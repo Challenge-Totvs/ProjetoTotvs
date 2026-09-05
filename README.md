@@ -58,17 +58,18 @@ Detalhes completos, modelo de dados e diagramas estão no **SDD.md**.
 ### Pré-requisitos
 - JDK 17+
 - Node.js 18+
-- Docker (para subir o Oracle localmente)
 - Maven
+- Acesso ao servidor Oracle da faculdade (host, porta, service name, usuário e senha fornecidos pela instituição — solicitar com antecedência)
 
-### 5.1 Banco de dados (Oracle via Docker)
+### 5.1 Banco de dados (servidor Oracle da faculdade)
 
-```bash
-docker run -d --name oracle-xe \
-  -p 1521:1521 \
-  -e ORACLE_PASSWORD=SuaSenhaForte123 \
-  gvenzl/oracle-xe:21-slim
-```
+O projeto **não sobe um Oracle local**: ele se conecta diretamente ao servidor Oracle disponibilizado pela faculdade. Antes de rodar o backend:
+
+1. Confirmar com a faculdade/TI o host, porta, *service name* (ou SID) e as credenciais de acesso;
+2. Verificar se é necessário estar na rede da faculdade ou conectado via VPN para acessar o servidor remotamente;
+3. Preencher essas informações nas variáveis de ambiente (seção 6) antes de subir o backend.
+
+> ⚠️ Como esse servidor está fora do seu controle, valide o acesso (conexão via SQL Developer/DBeaver) o quanto antes — idealmente antes do Sprint 0 — para não perder tempo de desenvolvimento caso haja bloqueio de rede, credencial pendente ou instabilidade do servidor.
 
 ### 5.2 Backend
 
@@ -95,8 +96,8 @@ Aplicação disponível em `http://localhost:5173`.
 
 | Variável | Descrição |
 |---|---|
-| `SPRING_DATASOURCE_URL` | URL JDBC do Oracle |
-| `SPRING_DATASOURCE_USERNAME` / `PASSWORD` | Credenciais do banco |
+| `SPRING_DATASOURCE_URL` | URL JDBC do servidor Oracle da faculdade (ex: `jdbc:oracle:thin:@host:porta:serviceName`) |
+| `SPRING_DATASOURCE_USERNAME` / `PASSWORD` | Credenciais fornecidas pela faculdade |
 | `JWT_SECRET` | Chave usada para assinar os tokens |
 | `JWT_EXPIRATION_MS` | Tempo de expiração do token (ex: 3600000) |
 

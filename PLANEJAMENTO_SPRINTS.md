@@ -25,10 +25,12 @@ Regra de ouro: **qualquer atraso corta primeiro os itens "Could" e "Should" do b
 **Quando:** 04/09 (noite) — 2h
 **Objetivo:** ambiente pronto para codar sem fricção no fim de semana.
 
+> ⚠️ **Ação prévia (antes até do Sprint 0):** solicitar/confirmar com a faculdade o acesso ao servidor Oracle (host, porta, service name, usuário, senha, necessidade de VPN). Como é uma dependência externa, quanto antes for resolvida, menor o risco de travar o Sprint 1.
+
 | Task | Estimativa | Prioridade |
 |---|---|---|
 | Criar repositório (backend + frontend) e estrutura de pastas | 20min | Must |
-| Subir Oracle XE via Docker e validar conexão | 40min | Must |
+| Configurar conexão com o servidor Oracle da faculdade e validar acesso | 40min | Must |
 | Gerar esqueleto Spring Boot (Web, Data JPA, Security, Validation, Lombok, driver Oracle) | 30min | Must |
 | Gerar esqueleto React (Vite) com rotas básicas | 20min | Must |
 | Configurar `application.yml` (datasource, JWT secret) | 10min | Must |

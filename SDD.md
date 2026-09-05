@@ -1,6 +1,6 @@
 # Documento de Design de Software (SDD) — InsightCall
 
-**Versão:** 1.0
+**Versão:** 2.0
 **Autor:** Kelwin Silva Bastos
 **Data:** 04/09/2026
 **Contexto:** Challenge TOTVS 2026 — FIAP
@@ -47,7 +47,7 @@ Consultores realizam diversas reuniões com clientes e, hoje, a transcrição de
 |---|---|
 | RNF01 | Autenticação stateless via JWT, senha com hash BCrypt |
 | RNF02 | Análise de uma transcrição de até ~10 mil caracteres deve responder em menos de 3s (processamento síncrono) |
-| RNF03 | Ambiente de banco reproduzível via Docker (Oracle XE) |
+| RNF03 | Conexão configurável via variáveis de ambiente com o servidor Oracle da faculdade (sem dependência de infraestrutura local de banco) |
 | RNF04 | Código organizado em camadas, com motor de análise desacoplado (Strategy) para permitir troca futura por NLP/LLM sem alterar o restante do sistema |
 | RNF05 | API documentada via OpenAPI/Swagger para facilitar integração com o frontend e a avaliação da banca |
 
@@ -207,7 +207,7 @@ Basta criar uma nova implementação (`LlmAnaliseStrategy`) e trocar o bean inje
 | Decisão | Alternativa considerada | Motivo da escolha |
 |---|---|---|
 | Análise rule-based (regex/keywords) | Modelo de NLP/LLM real | Prazo de 10 dias não permite integração + testes de um modelo com confiabilidade |
-| Oracle XE via Docker | Oracle Cloud Free Tier | Setup mais rápido e sem dependência de internet/latência durante o desenvolvimento |
+| Servidor Oracle da faculdade (compartilhado) | Oracle XE local via Docker | Infraestrutura já provisionada pela instituição; evita manter container local, mas introduz dependência de rede/VPN e de disponibilidade fora do controle do desenvolvedor |
 | Processamento síncrono da análise | Processamento assíncrono (fila) | Volume da demo é baixo; complexidade de fila não se justifica no MVP |
 | Monolito modular | Microsserviços | Overhead de infraestrutura incompatível com 1 dev / 10 dias |
 | JSON dentro de CLOB para listas de insights | Tabelas normalizadas (ex: `PONTO_INTERESSE`) | Reduz número de entidades/joins para o prazo disponível |
@@ -218,7 +218,8 @@ Basta criar uma nova implementação (`LlmAnaliseStrategy`) e trocar o bean inje
 
 | Risco | Probabilidade | Mitigação |
 |---|---|---|
-| Setup do Oracle consumir tempo demais | Média | Resolver Docker do Oracle já no Sprint 0 (antes do fim de semana 1) |
+| Acesso ao servidor Oracle da faculdade indisponível ou dependente de VPN/rede específica | Média-Alta | Validar credenciais e conectividade **antes** do Sprint 0 (não esperar o fim de semana); confirmar com a TI da faculdade horário de disponibilidade do servidor |
+| Servidor Oracle da faculdade instável ou lento (compartilhado com outros alunos/projetos) | Média | Ter um script de criação das tabelas pronto para recriar o schema rapidamente se necessário; evitar depender de uma janela específica de horário para testar |
 | JWT mal configurado gerar bugs de autenticação | Baixa | Reaproveitar implementação já validada em projetos anteriores |
 | Escopo aumentar durante o desenvolvimento | Alta | Lista de RF com MoSCoW travada; qualquer item novo vira "Won't" nesta entrega |
 | Falta de tempo para o frontend | Média | Frontend com no máximo 4 telas (login, reuniões, upload, resultado da análise) |
