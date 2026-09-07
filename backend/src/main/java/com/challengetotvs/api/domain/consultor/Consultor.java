@@ -8,7 +8,6 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = "id")
 public class Consultor {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

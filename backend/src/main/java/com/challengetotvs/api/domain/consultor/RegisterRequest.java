@@ -1,4 +1,4 @@
-package com.challengetotvs.api.dto;
+package com.challengetotvs.api.domain.consultor;
 
 import jakarta.validation.constraints.*;
 
