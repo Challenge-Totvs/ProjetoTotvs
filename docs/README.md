@@ -101,32 +101,41 @@ Aplicação disponível em `http://localhost:5173`.
 | `JWT_SECRET` | Chave usada para assinar os tokens |
 | `JWT_EXPIRATION_MS` | Tempo de expiração do token (ex: 3600000) |
 
-## 7. Estrutura de pastas (sugerida)
+## 7. Estrutura de pastas
 
 ```
-insightcall/
+ProjetoTotvs/
 ├── backend/
-│   └── src/main/java/com/insightcall/
-│       ├── config/          # Security, CORS, OpenAPI
-│       ├── controller/
-│       ├── dto/
-│       ├── entity/
-│       ├── repository/
-│       ├── service/
-│       │   └── analise/     # Strategy do motor de análise
-│       ├── security/        # JWT provider/filter
-│       └── exception/       # Handler global de erros
+│   └── src/main/java/com/challengetotvs/api/
+│       ├── config/               # SecurityConfig, CORS, OpenAPI
+│       ├── domain/
+│       │   ├── consultor/        # Consultor, ConsultorRepository, AuthService,
+│       │   │                     # RegisterRequest, LoginRequest, AuthResponse
+│       │   ├── cliente/          # Cliente, ClienteRepository, DTOs, Service, Controller
+│       │   ├── reuniao/          # Reuniao, StatusReuniao, Repository, DTOs, Service, Controller
+│       │   ├── transcricao/      # Transcricao, Repository, DTOs, Service, Controller
+│       │   └── analise/          # Analise, Repository, AnaliseStrategy (Strategy pattern)
+│       ├── security/             # JwtProvider, JwtAuthFilter, ConsultorUserDetails, ConsultorDetailsService
+│       └── exception/            # Handler global de erros (@ControllerAdvice)
 ├── frontend/
 │   └── src/
 │       ├── pages/
 │       ├── components/
-│       ├── services/        # chamadas axios
-│       └── context/         # AuthContext
+│       ├── services/             # chamadas axios
+│       └── context/              # AuthContext
 ├── docs/
 │   ├── SDD.md
 │   └── PLANEJAMENTO_SPRINTS.md
 └── README.md
 ```
+
+### Decisão arquitetural: package-by-feature em vez de package-by-layer
+
+O backend organiza o código **por domínio** (`domain.consultor`, `domain.cliente`, `domain.reuniao`...), em vez de por camada técnica (`controller/`, `service/`, `dto/`, `repository/` genéricos na raiz).
+
+**Motivo:** manter cada domínio coeso — entidade, repositório, DTOs, service e controller de um mesmo recurso ficam juntos, no mesmo pacote. Isso evita que pastas genéricas (como `dto/` ou `service/`) virem uma "gaveta" acumulando classes de features completamente diferentes conforme o projeto cresce, sem nenhuma relação entre elas além de estarem na mesma camada técnica.
+
+Exceções propositais a essa regra: `security/` fica fora do `domain` porque é infraestrutura transversal (autenticação), não uma regra de negócio de um domínio específico; `config/` e `exception/` seguem a mesma lógica, por serem configuração/tratamento cross-cutting, não específicos de um recurso.
 
 ## 8. Equipe
 
