@@ -26,4 +26,17 @@ public class Cliente {
         this.empresa = empresa;
         this.segmento = segmento;
     }
+
+    public void atualiazarInformacoes(ClienteRequest dados) {
+        if(dados.nome() != null){
+            this.nome = dados.nome();
+        }
+        if(dados.empresa() != null){
+            this.empresa = dados.empresa();
+        }
+        if(dados.segmento() != null){
+            this.segmento = dados.segmento();
+        }
+
+    }
 }

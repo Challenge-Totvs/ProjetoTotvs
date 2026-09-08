@@ -8,4 +8,13 @@ public record ClienteResponse(
         String empresa,
         String segmento
 ) {
+
+    public static ClienteResponse from (Cliente cliente){
+        return new ClienteResponse(
+                cliente.getId(),
+                cliente.getNome(),
+                cliente.getEmpresa(),
+                cliente.getSegmento()
+        );
+    }
 }
