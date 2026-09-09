@@ -16,21 +16,33 @@ public class ClienteController {
 
     private final ClienteService service;
 
-    @PostMapping("/register")
-    public ResponseEntity<Void> create(@RequestBody @Valid ClienteRequest request){
+    @PostMapping
+    public ResponseEntity<Void> criar(@RequestBody @Valid ClienteRequest request){
         service.criar(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping
-    public ResponseEntity<Page<ClienteResponse>> listall(@PageableDefault(size = 10, sort = {"nome"})Pageable pagination){
+    public ResponseEntity<Page<ClienteResponse>> listarTodos(@PageableDefault(size = 10, sort = {"nome"})Pageable pagination){
         var cliente = service.listar(pagination);
         return ResponseEntity.ok(cliente);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClienteResponse> listid(@PathVariable Long id){
+    public ResponseEntity<ClienteResponse> listarID(@PathVariable Long id){
         var cliente = service.listarPorId(id);
         return ResponseEntity.ok(cliente);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ClienteResponse> atualizar(@RequestBody @Valid ClienteRequest request,@PathVariable Long id){
+        var cliente = service.atualizar(request, id);
+        return ResponseEntity.ok(cliente);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id){
+        service.excluir(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
