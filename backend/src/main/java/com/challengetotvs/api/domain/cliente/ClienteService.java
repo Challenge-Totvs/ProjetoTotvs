@@ -1,15 +1,10 @@
 package com.challengetotvs.api.domain.cliente;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 @RequiredArgsConstructor
@@ -39,13 +34,13 @@ public class ClienteService {
 
     }
 
-    public ClienteResponse atualizar(ClienteRequest dados, Long id){
+    public ClienteResponse atualizar(ClienteRequest request, Long id){
         var cliente = repository.findById(id)
                                 .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado"));
 
-        cliente.setNome(cliente.getNome());
-        cliente.setEmpresa(cliente.getEmpresa());
-        cliente.setSegmento(cliente.getSegmento());
+        cliente.setNome(request.nome());
+        cliente.setEmpresa(request.empresa());
+        cliente.setSegmento(request.segmento());
 
         repository.save(cliente);
         return ClienteResponse.from(cliente);
