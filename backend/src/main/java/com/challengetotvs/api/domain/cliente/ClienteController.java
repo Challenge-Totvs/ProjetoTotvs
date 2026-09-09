@@ -28,4 +28,9 @@ public class ClienteController {
         return ResponseEntity.ok(cliente);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ClienteResponse> listid(@PathVariable Long id){
+        var cliente = service.listarPorId(id);
+        return ResponseEntity.ok(cliente);
+    }
 }
