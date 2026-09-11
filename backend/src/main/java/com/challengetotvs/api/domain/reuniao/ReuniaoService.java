@@ -37,7 +37,7 @@ public class ReuniaoService {
         var reuniao = reuniaoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Reunião não encontrada!"));
 
-        if(!reuniao.getConsultor().getId().equals(consultor.getId())){
+        if(!reuniao.pertenceA(consultor)){
             throw new AccessDeniedException("Você não tem permissão para acessar essa reunião!");
         }
 
@@ -53,7 +53,7 @@ public class ReuniaoService {
         var reuniao = reuniaoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Reunião não foi encontrada!"));
 
-        if(!reuniao.getConsultor().getId().equals(consultor.getId())){
+        if(!reuniao.pertenceA(consultor)){
             throw new AccessDeniedException("Você não tem permissão para acessar essa reunião!");
         }
 
@@ -72,7 +72,7 @@ public class ReuniaoService {
         var reuniao = reuniaoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Reunião não foi encontrada!"));
 
-        if(!reuniao.getConsultor().getId().equals(consultor.getId())){
+        if(!reuniao.pertenceA(consultor)){
             throw new AccessDeniedException("Você não tem permissão para acessar essa reunião!");
         }
 
@@ -83,7 +83,7 @@ public class ReuniaoService {
         var reuniao = reuniaoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Reunião não foi encontrada!"));
 
-        if(!reuniao.getConsultor().getId().equals(consultor.getId())){
+        if(!reuniao.pertenceA(consultor)){
             throw new AccessDeniedException("Você não tem permissão para acessar essa reunião!");
         }
 

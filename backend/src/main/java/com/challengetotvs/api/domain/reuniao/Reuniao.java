@@ -38,4 +38,8 @@ public class Reuniao {
         this.titulo = titulo;
         this.status = status != null ? status : StatusReuniao.AGENDADA;
     }
+
+    public boolean pertenceA(Consultor consultor){
+        return this.consultor.getId().equals(consultor.getId());
+    }
 }
