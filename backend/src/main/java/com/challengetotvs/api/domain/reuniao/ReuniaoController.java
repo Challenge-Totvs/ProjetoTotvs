@@ -1,5 +1,8 @@
 package com.challengetotvs.api.domain.reuniao;
 
+import com.challengetotvs.api.domain.transcricao.TranscricaoRequest;
+import com.challengetotvs.api.domain.transcricao.TranscricaoResponse;
+import com.challengetotvs.api.domain.transcricao.TranscricaoService;
 import com.challengetotvs.api.security.ConsultorUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class ReuniaoController {
 
     private final ReuniaoService service;
+    private final TranscricaoService transcricaoService;
 
     @PostMapping
     public ResponseEntity<Void> criar(@RequestBody @Valid ReuniaoRequest request, @AuthenticationPrincipal ConsultorUserDetails userDetails){
@@ -60,4 +64,10 @@ public class ReuniaoController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @PostMapping("/{id}/transcricao")
+    public ResponseEntity<TranscricaoResponse> enviarTranscricao(@PathVariable Long id, @RequestBody @Valid TranscricaoRequest request, @AuthenticationPrincipal ConsultorUserDetails userDetails){
+        var consultor = userDetails.getConsultor();
+        var transcricao = transcricaoService.enviar(id, request, consultor);
+        return ResponseEntity.ok(transcricao);
+    }
 }
