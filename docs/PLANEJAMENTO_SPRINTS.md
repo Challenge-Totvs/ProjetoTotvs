@@ -1,136 +1,191 @@
 # Planejamento Ágil — InsightCall
 
-**Metodologia:** Scrum adaptado para desenvolvedor único ("Solo Scrum")
-**Início:** 04/09/2026 | **Entrega/Apresentação:** 14/09/2026
-**Capacidade estimada:** ~42h efetivas
+**Metodologia:** Scrum adaptado para equipe de 2 pessoas, com checkpoints de aprendizado
+**Equipe:** Kelwin (backend Java, integração e frontend) + João (serviço de análise em Python)
+**Início real do projeto:** 04/09/2026 | **Nova entrega/apresentação:** 15/10/2026
+**Capacidade estimada:** ~39 dias corridos, disponibilidade parecida com o início (fins de semana cheios + ~2h nos dias de semana)
 
-## Calendário de disponibilidade
+## O que mudou em relação ao plano original
 
-| Data | Dia | Janela | Horas estimadas |
-|---|---|---|---|
-| 04/09 (sex) | Setup noturno | Noite | 2h |
-| 05/09 (sáb) | Fim de semana 1 | Dia inteiro | 8h |
-| 06/09 (dom) | Fim de semana 1 | Dia inteiro | 8h |
-| 07 a 11/09 (seg-sex) | Semana | 2h/dia | 10h |
-| 12/09 (sáb) | Fim de semana 2 | Dia inteiro | 8h |
-| 13/09 (dom) | Fim de semana 2 | Dia inteiro | 8h |
-| 14/09 (seg) | Entrega | Sem código novo | Ensaio/buffer |
-| **Total** | | | **~44h** |
+O prazo original (14/09) foi adiado para **15/10/2026** — quase 4x mais tempo. Isso muda o objetivo do plano: em vez de "sobreviver ao prazo apertado" (que era o foco do plano anterior, cortando tudo que não fosse essencial), agora o objetivo é **usar o tempo extra pra consolidar aprendizado de verdade**, com folga real pra imprevistos, revisão de código e reforço nos pontos onde você mais travou (Spring Security e JWT).
 
-Regra de ouro: **qualquer atraso corta primeiro os itens "Could" e "Should" do backlog**, nunca o núcleo "Must" (auth → CRUD → transcrição → análise → tela de resultado).
+### Mudança de arquitetura: motor de análise em Python
+
+A equipe decidiu implementar o motor de análise em **Python (FastAPI)**, como um serviço REST independente, em vez de dentro do backend Java. O backend continua sendo o dono do banco e da regra de negócio: ele chama o serviço Python, recebe os insights e **persiste** o resultado.
+
+**Consequências para o planejamento:**
+- A Fase 2 passa a ter **duas frentes paralelas** (Python e integração Java), com um passo de alinhamento obrigatório antes;
+- O projeto deixa de ser individual: a divisão de responsabilidades está no README (seção 8);
+- Surge um novo risco a gerenciar — a integração entre os serviços (ver SDD, seção 9).
+
+Três mudanças estruturais em relação ao plano original:
+1. **Checkpoints de aprendizado** ao final de cada fase — uma pausa pra revisar/testar o que foi realmente internalizado (via quiz e perguntas de "explique de volta"), antes de seguir pra próxima fase.
+2. **Motor de análise em Python**, como serviço separado, com trabalho paralelizado entre os dois integrantes;
+3. **Semana de buffer/polimento** inteira antes da reta final — não existia no plano original por falta de tempo; agora dá pra usar pra revisitar código, considerar melhorias que antes eram "Won't", e reforçar o que os checkpoints apontarem como fraco.
+
+## Progresso já feito (Sprint 0 + parte do Sprint 1)
+
+✅ Setup do ambiente (repositório, Oracle da faculdade, esqueleto Spring Boot/React)
+✅ 5 entidades JPA (Consultor, Cliente, Reunião, Transcrição, Análise)
+✅ Spring Security 6 configurado (SecurityFilterChain, PasswordEncoder, AuthenticationProvider)
+✅ JWT completo (JwtProvider + JwtAuthFilter, plugado no SecurityConfig)
 
 ---
 
-## Sprint 0 — Setup do ambiente
-**Quando:** 04/09 (noite) — 2h
-**Objetivo:** ambiente pronto para codar sem fricção no fim de semana.
+## FASE 1 — Concluir o Backend Core
+**Período:** 06/09 (dom) a 13/09 (dom) — ~1 semana
+**Objetivo:** fechar o que faltou do Sprint 1 original: autenticação exposta via endpoint, CRUDs, upload de transcrição.
 
-> ⚠️ **Ação prévia (antes até do Sprint 0):** solicitar/confirmar com a faculdade o acesso ao servidor Oracle (host, porta, service name, usuário, senha, necessidade de VPN). Como é uma dependência externa, quanto antes for resolvida, menor o risco de travar o Sprint 1.
+| Task | Prioridade |
+|---|---|
+| Endpoints de registro e login (/api/auth/register, /api/auth/login) | Must |
+| Teste manual do fluxo completo de login (Postman) | Must |
+| CRUD de Cliente | Must |
+| CRUD de Reunião vinculado ao consultor logado | Must |
+| Endpoint de upload/colagem de Transcrição | Must |
+| Tratamento de erros global (@ControllerAdvice) | Should |
+| Testes manuais de ponta a ponta (Postman/Swagger) | Must |
 
-| Task | Estimativa | Prioridade |
+**🎓 Checkpoint de aprendizado #1 (por volta de 13-14/09):** revisão de JPA (relacionamentos, fetch types), Spring Security (filter chain, UserDetails) e JWT (geração/validação, filtro). Formato: quiz rápido + 2-3 perguntas de "explique por que isso funciona assim" sobre decisões que você tomou nesta fase.
+
+---
+
+## FASE 2 — Motor de Análise (Python) + Integração
+**Período:** 14/09 (seg) a 20/09 (dom)
+**Objetivo:** ter o serviço Python analisando transcrições e o backend Java consumindo ele de ponta a ponta.
+
+> 🔀 **Esta fase muda de natureza:** com a decisão de fazer o motor em Python, a Fase 2 passa a ter **duas frentes paralelas**. Isso é o que torna o trabalho em dupla vantajoso — mas exige um passo de alinhamento antes de qualquer código.
+
+### Passo 0 — Alinhamento (fazer JUNTOS, antes de tudo)
+| Task | Responsável |
+|---|---|
+| Fechar o contrato da API entre os serviços (SDD, seção 7.2): formato do request, do response e dos erros | **Ambos** |
+| Definir portas, variáveis de ambiente e como cada um roda o serviço do outro localmente | **Ambos** |
+| Criar a pasta `analise-service/` no repositório com a estrutura base e o `requirements.txt` | **Ambos** |
+
+**Por que isso vem primeiro:** com o contrato fechado, cada frente consegue trabalhar com um *mock* do outro lado, sem ficar bloqueada esperando. Sem isso, uma frente trava a outra.
+
+### Frente A — Serviço Python (João)
+| Task | Prioridade |
+|---|---|
+| Setup do FastAPI: venv, `requirements.txt`, `main.py` subindo com `/docs` acessível | Must |
+| Modelos Pydantic (`schemas.py`) conforme o contrato acordado | Must |
+| Engine: listas de palavras-chave por categoria (`engine/keywords.py`) | Must |
+| Engine: extração via regex de valores, prazos e entidades (`engine/extractor.py`) | Must |
+| Engine: cálculo do score de engajamento (`engine/scorer.py`) | Must |
+| Endpoint `POST /analisar` ligando tudo (`router.py`) | Must |
+| Testes com pytest (engine + endpoint, casos de sucesso e texto vazio) | Should |
+
+### Frente B — Integração no backend Java (Kelwin)
+| Task | Prioridade |
+|---|---|
+| Configurar `RestClient` em `config/` com `ANALISE_SERVICE_URL` e timeout via variável de ambiente | Must |
+| Implementar `AnaliseServiceClientStrategy` (implementa a `AnaliseStrategy` já existente) | Must |
+| `AnaliseService`: buscar transcrição, checar ownership, chamar o Python, persistir a `Analise` | Must |
+| Endpoints `POST /api/transcricoes/{id}/analisar` e `GET /api/transcricoes/{id}/analise` | Must |
+| Tratar falhas de comunicação (timeout, 5xx, serviço fora do ar) conforme RNF06 | Must |
+| Documentação da API com springdoc-openapi (Swagger) | Should |
+| Testes unitários com o serviço Python mockado | Should |
+
+### Fechamento da fase (JUNTOS)
+| Task | Prioridade |
+|---|---|
+| Teste de integração real: os dois serviços no ar, fluxo completo até persistir no Oracle | Must |
+| Dados de *seed*: 2–3 transcrições de exemplo que gerem análises coerentes para a demo | Must |
+
+**🎓 Checkpoint de aprendizado #2 (por volta de 20-21/09):** revisão de Design Patterns (por que a Strategy permitiu trocar o motor sem tocar no resto do sistema), comunicação entre serviços via HTTP, e tratamento de falhas de integração. Bônus: FastAPI/Pydantic vs. Spring/Bean Validation — o que os dois têm em comum conceitualmente?
+
+---
+
+## FASE 3 — Frontend Base
+**Período:** 21/09 (seg) a 27/09 (dom)
+**Objetivo:** ter a aplicação React funcionando com autenticação e as telas de fluxo principal.
+
+| Task | Prioridade |
+|---|---|
+| Setup React Router + Axios + AuthContext | Must |
+| Tela de Login/Registro | Must |
+| Tela de listagem de reuniões/transcrições do consultor | Must |
+| Tela/formulário de upload de transcrição | Must |
+
+**🎓 Checkpoint de aprendizado #3 (por volta de 27-28/09):** revisão de React Router, Context API e como o token JWT viaja do frontend pro backend (interceptors do Axios).
+
+---
+
+## FASE 4 — Frontend Completo
+**Período:** 28/09 (seg) a 04/10 (dom)
+**Objetivo:** fechar a experiência de ponta a ponta.
+
+| Task | Prioridade |
+|---|---|
+| Tela de resultado da análise (interesse/desinteresse/oportunidades/score) | Must |
+| Dashboard simples (contagem de reuniões/oportunidades) | Should (antes era Could — o tempo extra permite promover) |
+| Ajustes visuais e responsividade básica | Should |
+| Teste end-to-end manual (fluxo completo pela UI) | Must |
+
+**🎓 Checkpoint de aprendizado #4 (por volta de 04-05/10):** revisão geral de ponta a ponta — consegue explicar o fluxo completo (request → filtro JWT → controller → service → repository → banco → resposta) sem olhar o código?
+
+---
+
+## FASE 5 — Buffer, Polimento e Stretch Goals
+**Período:** 05/10 (seg) a 11/10 (dom)
+**Objetivo:** essa fase não existia no plano original. Use pra reforçar o que os checkpoints apontarem como fraco, e opcionalmente avançar itens que antes eram "Won't".
+
+**Stretch goals opcionais (só se sobrar tempo e energia, nessa ordem de prioridade):**
+
+| Item | Por que vale considerar agora |
+|---|---|
+| Migrar de `ddl-auto=update` pra Flyway migrations | Você já tem experiência com Flyway de outros projetos — com mais tempo, é uma boa prática real pra mostrar na apresentação |
+| **Docker Compose para subir os dois serviços juntos** | Com dois runtimes, subir tudo com um comando reduz bastante o risco na hora da apresentação |
+| **Enriquecer o motor Python** (lematização, stopwords PT-BR, ou spaCy) | Frente natural de evolução agora que o motor está isolado — melhora a qualidade dos insights sem tocar no Java |
+| RF09 — papel ADMIN vendo reuniões de todos os consultores | Estava marcado "Won't" só por causa do prazo; a base de Security já suporta isso (é adicionar uma authority + regra no SecurityFilterChain) |
+| Testes automatizados mais abrangentes (Service layer completo) | Antes só cobria Auth e a Strategy; com tempo, dá pra cobrir os CRUDs também |
+| Revisão de código geral | Reler o próprio código das Fases 1-4 com olhar crítico, sem pressa — costuma revelar entendimentos que ficaram rasos |
+
+**Não é obrigatório fazer nada disso.** Se você preferir só descansar mais e manter o escopo do MVP original, está ótimo — o objetivo desta fase é dar folga, não empilhar trabalho novo.
+
+---
+
+## FASE 6 — Reta Final e Apresentação
+**Período:** 12/10 (seg, feriado de N. Sra. Aparecida) a 15/10 (qui, entrega)
+**Objetivo:** preparar a apresentação com calma, sem pressa de última hora.
+
+| Task | Prioridade |
+|---|---|
+| Preparar roteiro/slides da apresentação | Must |
+| Ensaiar a apresentação (roteiro + demo ao vivo) | Must |
+| Verificar que o ambiente sobe do zero sem erro (Oracle da faculdade + backend Java + **serviço Python** + frontend) | Must |
+| Ensaiar o plano B caso o serviço Python falhe na hora (prints/vídeo do fluxo de análise gravado) | Should |
+| Confirmar que o servidor Oracle da faculdade está acessível no horário da apresentação | Must |
+| Buffer para qualquer bug de última hora | Must |
+
+---
+
+## Backlog de User Stories (atualizado)
+
+| ID | História | Prioridade atual |
 |---|---|---|
-| Criar repositório (backend + frontend) e estrutura de pastas | 20min | Must |
-| Configurar conexão com o servidor Oracle da faculdade e validar acesso | 40min | Must |
-| Gerar esqueleto Spring Boot (Web, Data JPA, Security, Validation, Lombok, driver Oracle) | 30min | Must |
-| Gerar esqueleto React (Vite) com rotas básicas | 20min | Must |
-| Configurar `application.yml` (datasource, JWT secret) | 10min | Must |
-
-**Definition of Done:** projeto sobe local (`mvn spring-boot:run` e `npm run dev`) sem erro, conexão com Oracle validada com uma tabela de teste.
-
----
-
-## Sprint 1 — Backend Core (Fim de semana 1)
-**Quando:** 05–06/09 — 16h
-**Objetivo:** autenticação + CRUDs essenciais + upload de transcrição funcionando via Swagger/Postman.
-
-### Sábado 05/09 (8h) — Modelagem + Autenticação
-| Task | Estimativa | Prioridade |
-|---|---|---|
-| Modelar entidades JPA (`Consultor`, `Cliente`, `Reuniao`, `Transcricao`, `Analise`) | 1h30 | Must |
-| Configurar Spring Security 6 (SecurityFilterChain, PasswordEncoder) | 1h | Must |
-| Implementar geração/validação de JWT (`JwtProvider`, `JwtAuthFilter`) | 2h | Must |
-| Endpoints de registro e login (`/api/auth/**`) | 1h30 | Must |
-| Teste manual do fluxo completo de login via Postman | 1h | Must |
-
-### Domingo 06/09 (8h) — CRUDs + Upload
-| Task | Estimativa | Prioridade |
-|---|---|---|
-| CRUD de `Cliente` (controller, service, repository, DTO) | 1h30 | Must |
-| CRUD de `Reuniao` vinculado ao consultor logado | 2h | Must |
-| Endpoint de upload/colagem de `Transcricao` | 2h | Must |
-| Tratamento de erros global (`@ControllerAdvice`) | 1h | Should |
-| Testes manuais de ponta a ponta via Postman/Swagger | 1h30 | Must |
-
-**Definition of Done:** é possível, via Postman, registrar consultor, logar, criar cliente e reunião, e enviar uma transcrição — tudo persistido no Oracle.
+| US01 | Como consultor, quero me cadastrar e logar para acessar minhas reuniões | Must |
+| US02 | Como consultor, quero cadastrar um cliente e uma reunião | Must |
+| US03 | Como consultor, quero enviar a transcrição de uma reunião | Must |
+| US04 | Como consultor, quero que a transcrição seja analisada automaticamente | Must |
+| US05 | Como consultor, quero visualizar os pontos de interesse/desinteresse/oportunidades | Must |
+| US06 | Como consultor, quero listar minhas reuniões e transcrições | Should |
+| US07 | Como consultor, quero um resumo/dashboard das minhas oportunidades identificadas | Should (promovido de Could) |
+| US08 | Como gestor (admin), quero ver as reuniões de todos os consultores | Could (promovido de Won't — vira stretch goal da Fase 5) |
 
 ---
 
-## Sprint 2 — Motor de Análise + Refinamento (Semana, 2h/dia)
-**Quando:** 07–11/09 — 10h
-**Objetivo:** transcrição processada gera insights reais; API documentada e testada.
+## Metodologia de aprendizado (novidade deste plano)
 
-| Dia | Task | Estimativa | Prioridade |
-|---|---|---|---|
-| Seg 07/09 | Criar interface `AnaliseStrategy` + implementar `KeywordAnaliseStrategy` (listas de palavras-chave e regex) | 2h | Must |
-| Ter 08/09 | Endpoint `POST /transcricoes/{id}/analisar` + `GET /transcricoes/{id}/analise`, persistência da `Analise` | 2h | Must |
-| Qua 09/09 | Documentação da API com springdoc-openapi (Swagger UI) | 2h | Should |
-| Qui 10/09 | Testes unitários (JUnit/Mockito) para `AuthService` e `KeywordAnaliseStrategy` | 2h | Should |
-| Sex 11/09 | Buffer técnico + criação de dados de *seed* (2–3 transcrições de exemplo para a demo) | 2h | Must |
+Com o prazo mais folgado, a forma de trabalhar também muda:
 
-**Definition of Done:** ao enviar uma transcrição de teste, a API retorna pontos de interesse, desinteresse, oportunidades e score de forma consistente; Swagger UI acessível.
+1. **Tentativa antes de solução**, inclusive em bibliotecas novas — antes, sob pressão, às vezes a resposta vinha pronta; agora o padrão é você tentar primeiro, sempre.
+2. **Debug guiado, não resolvido de cara** — ao encontrar um erro, a conversa parte de "qual sua hipótese?" antes de apontar a causa.
+3. **Previsão antes da explicação** — antes de explicar o que um trecho de código faz, a pergunta "o que você acha que acontece?" vem primeiro.
+4. **Checkpoints de revisão entre fases** (marcados acima) — quiz rápido + perguntas de "explique de volta", pra identificar o que ficou raso vs. o que ficou sólido.
+5. **Sem pressa artificial** — as explicações podem ser mais devagar, com mais perguntas no meio, já que o tempo não é mais o fator limitante.
 
----
+## Regra de ouro (atualizada)
 
-## Sprint 3 — Frontend + Integração + Polimento (Fim de semana 2)
-**Quando:** 12–13/09 — 16h
-**Objetivo:** aplicação utilizável de ponta a ponta pela interface, pronta para demo.
-
-### Sábado 12/09 (8h) — Telas base
-| Task | Estimativa | Prioridade |
-|---|---|---|
-| Setup React Router + Axios + `AuthContext` (login/logout, guarda de rotas) | 2h | Must |
-| Tela de Login/Registro | 1h30 | Must |
-| Tela de listagem de reuniões/transcrições do consultor | 2h | Must |
-| Tela/formulário de upload de transcrição | 2h30 | Must |
-
-### Domingo 13/09 (8h) — Resultado da análise + Polimento
-| Task | Estimativa | Prioridade |
-|---|---|---|
-| Tela de resultado da análise (cards de interesse/desinteresse/oportunidades + score) | 3h | Must |
-| Dashboard simples com contagem de reuniões/oportunidades | 1h30 | Could |
-| Ajustes visuais e responsividade básica | 1h30 | Should |
-| Teste end-to-end manual (fluxo completo: login → criar reunião → upload → análise) | 1h | Must |
-| Preparar roteiro/slides da apresentação com os dados de seed | 1h | Must |
-
-**Definition of Done:** fluxo completo funciona pela interface, sem depender do Postman, com dados de seed carregados para a demo.
-
----
-
-## Dia da entrega — 14/09
-- **Sem desenvolvimento novo.** Apenas:
-  - Ensaio da apresentação;
-  - Verificação de que o ambiente (Docker + backend + frontend) sobe do zero sem erro;
-  - Buffer para qualquer bug de última hora.
-
----
-
-## Backlog resumido (User Stories)
-
-| ID | História | Story Points | Prioridade |
-|---|---|---|---|
-| US01 | Como consultor, quero me cadastrar e logar para acessar minhas reuniões | 5 | Must |
-| US02 | Como consultor, quero cadastrar um cliente e uma reunião | 3 | Must |
-| US03 | Como consultor, quero enviar a transcrição de uma reunião | 5 | Must |
-| US04 | Como consultor, quero que a transcrição seja analisada automaticamente | 8 | Must |
-| US05 | Como consultor, quero visualizar os pontos de interesse/desinteresse/oportunidades | 5 | Must |
-| US06 | Como consultor, quero listar minhas reuniões e transcrições | 3 | Should |
-| US07 | Como consultor, quero um resumo/dashboard das minhas oportunidades identificadas | 3 | Could |
-| US08 | Como gestor (admin), quero ver as reuniões de todos os consultores | 5 | Won't (próxima entrega) |
-
-**Total Must:** 26 pontos | **Should:** 6 pontos | **Could:** 3 pontos
-
----
-
-## Riscos de cronograma (ver também SDD, seção 9)
-
-Se algum sprint atrasar, a ordem de corte é: **US07 → US06 → parte visual do frontend (Should) → nunca o núcleo Must**. O objetivo é sempre ter, na pior das hipóteses, um fluxo Postman-only funcionando até o dia 11/09, garantindo uma demo (ainda que sem UI polida) para o dia 14.
+Com o prazo folgado, a regra de corte de escopo muda: **nada precisa ser cortado por padrão**. Se algum imprevisto real acontecer (problema de saúde, imprevisto na faculdade/estágio, servidor Oracle instável por dias), a ordem de corte continua sendo US08 → US07 → US06 → itens "Should" do frontend — mas a expectativa agora é entregar o escopo completo com folga, não just o mínimo viável.

@@ -21,37 +21,55 @@ Dado o prazo (10 dias) e o time reduzido, esta primeira entrega cobre:
 **Incluso:**
 - Cadastro/login de consultores com autenticação JWT;
 - Upload de transcrição (texto colado ou arquivo `.txt`) vinculada a um consultor e a uma reunião/cliente;
-- Motor de análise baseado em regras (palavras-chave + regex), com arquitetura pronta para trocar por um modelo de NLP/LLM no futuro;
+- **Motor de análise em Python**, exposto como serviço REST independente, responsável por processar o texto da transcrição e devolver os insights estruturados;
 - Tela com o resultado da análise (interesse, desinteresse, oportunidades, score);
 - Listagem de reuniões/transcrições por consultor.
 
 **Fora do escopo (próximas versões):**
 - Captura automática de áudio/transcrição em tempo real (assume-se que a transcrição já chega pronta, gerada por outra ferramenta);
-- Análise via modelo de linguagem (LLM) — hoje é rule-based;
+- Análise via modelo de linguagem (LLM) — a primeira versão do motor é rule-based (palavras-chave + regex), com a arquitetura pronta para evoluir;
 - Notificações por e-mail, dashboard analítico avançado, app mobile.
 
 ## 3. Stack técnica
 
-| Camada | Tecnologia |
-|---|---|
-| Backend | Java 17+ / Spring Boot 3 |
-| Persistência | Spring Data JPA + Oracle Database (XE via Docker) |
-| Autenticação | Spring Security 6 + JWT |
-| Frontend | React (Vite) + Axios + React Router |
-| Documentação de API | springdoc-openapi (Swagger UI) |
-| Testes | JUnit 5 + Mockito |
+O projeto é composto por **três aplicações independentes**:
+
+| Aplicação | Camada | Tecnologia |
+|---|---|---|
+| `backend/` | API principal | Java 17+ / Spring Boot 3 |
+| | Persistência | Spring Data JPA + Oracle (servidor da faculdade) |
+| | Autenticação | Spring Security 6 + JWT |
+| | Documentação de API | springdoc-openapi (Swagger UI) |
+| | Testes | JUnit 5 + Mockito |
+| `analise-service/` | Motor de análise | Python 3.11+ / FastAPI |
+| | Validação | Pydantic |
+| | Documentação de API | OpenAPI automático (nativo do FastAPI) |
+| | Testes | pytest |
+| `frontend/` | Interface | React (Vite) + Axios + React Router |
 
 ## 4. Arquitetura (resumo)
 
-Arquitetura em camadas clássica, monolito modular:
+O sistema usa uma arquitetura de **dois serviços**: o backend Java orquestra tudo (autenticação, CRUDs, persistência) e delega **apenas o processamento de texto** para um serviço Python especializado.
 
 ```
-React (SPA)  →  REST API (Spring Boot)  →  Service Layer  →  Repository (Spring Data)  →  Oracle
-                        ↑
-                 JWT Filter (Spring Security)
+                                    ┌──────────────────────────┐
+                                    │  analise-service         │
+                                    │  (Python / FastAPI)      │
+                                    │  stateless, sem banco    │
+                                    └──────────▲───────────────┘
+                                               │ HTTP (JSON)
+                                               │ texto → insights
+React (SPA) ──► REST API (Spring Boot) ──► AnaliseService ──┘
+                        ▲                        │
+                 JWT Filter                      ▼
+              (Spring Security)          Repository (Spring Data) ──► Oracle
 ```
 
-Detalhes completos, modelo de dados e diagramas estão no **SDD.md**.
+**Divisão de responsabilidades:**
+- **Java** é o dono do banco e da regra de negócio: autentica, valida permissões, busca a transcrição, chama o Python, e **persiste** o resultado na entidade `Analise`.
+- **Python** é stateless: recebe um texto, devolve os insights em JSON. Não conhece o banco, não conhece usuários, não guarda estado.
+
+Detalhes completos, contrato da API entre os serviços, modelo de dados e diagramas estão no **SDD.md**.
 
 ## 5. Como rodar o projeto
 
@@ -59,6 +77,7 @@ Detalhes completos, modelo de dados e diagramas estão no **SDD.md**.
 - JDK 17+
 - Node.js 18+
 - Maven
+- **Python 3.11+** (para o serviço de análise)
 - Acesso ao servidor Oracle da faculdade (host, porta, service name, usuário e senha fornecidos pela instituição — solicitar com antecedência)
 
 ### 5.1 Banco de dados (servidor Oracle da faculdade)
@@ -68,8 +87,6 @@ O projeto **não sobe um Oracle local**: ele se conecta diretamente ao servidor 
 1. Confirmar com a faculdade/TI o host, porta, *service name* (ou SID) e as credenciais de acesso;
 2. Verificar se é necessário estar na rede da faculdade ou conectado via VPN para acessar o servidor remotamente;
 3. Preencher essas informações nas variáveis de ambiente (seção 6) antes de subir o backend.
-
-> ⚠️ Como esse servidor está fora do seu controle, valide o acesso (conexão via SQL Developer/DBeaver) o quanto antes — idealmente antes do Sprint 0 — para não perder tempo de desenvolvimento caso haja bloqueio de rede, credencial pendente ou instabilidade do servidor.
 
 ### 5.2 Backend
 
@@ -82,7 +99,24 @@ mvn spring-boot:run
 
 A API sobe em `http://localhost:8080`. Documentação Swagger em `http://localhost:8080/swagger-ui.html`.
 
-### 5.3 Frontend
+### 5.3 Serviço de análise (Python)
+
+```bash
+cd analise-service
+python -m venv .venv
+
+# Linux/macOS:
+source .venv/bin/activate
+# Windows (Git Bash):
+source .venv/Scripts/activate
+
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+O serviço sobe em `http://localhost:8000`. Documentação interativa (gerada automaticamente pelo FastAPI) em `http://localhost:8000/docs`.
+
+### 5.4 Frontend
 
 ```bash
 cd frontend
@@ -100,6 +134,8 @@ Aplicação disponível em `http://localhost:5173`.
 | `SPRING_DATASOURCE_USERNAME` / `PASSWORD` | Credenciais fornecidas pela faculdade |
 | `JWT_SECRET` | Chave usada para assinar os tokens |
 | `JWT_EXPIRATION_MS` | Tempo de expiração do token (ex: 3600000) |
+| `ANALISE_SERVICE_URL` | URL base do serviço Python (ex: `http://localhost:8000`) |
+| `ANALISE_SERVICE_TIMEOUT_MS` | Timeout da chamada ao serviço de análise (ex: 10000) |
 
 ## 7. Estrutura de pastas
 
@@ -107,16 +143,29 @@ Aplicação disponível em `http://localhost:5173`.
 ProjetoTotvs/
 ├── backend/
 │   └── src/main/java/com/challengetotvs/api/
-│       ├── config/               # SecurityConfig, CORS, OpenAPI
+│       ├── config/               # SecurityConfig, CORS, OpenAPI, RestClient
 │       ├── domain/
 │       │   ├── consultor/        # Consultor, ConsultorRepository, AuthService,
 │       │   │                     # RegisterRequest, LoginRequest, AuthResponse
 │       │   ├── cliente/          # Cliente, ClienteRepository, DTOs, Service, Controller
 │       │   ├── reuniao/          # Reuniao, StatusReuniao, Repository, DTOs, Service, Controller
 │       │   ├── transcricao/      # Transcricao, Repository, DTOs, Service, Controller
-│       │   └── analise/          # Analise, Repository, AnaliseStrategy (Strategy pattern)
+│       │   └── analise/          # Analise, Repository, AnaliseService,
+│       │                         # AnaliseStrategy + AnaliseServiceClientStrategy (HTTP)
 │       ├── security/             # JwtProvider, JwtAuthFilter, ConsultorUserDetails, ConsultorDetailsService
 │       └── exception/            # Handler global de erros (@ControllerAdvice)
+├── analise-service/
+│   ├── app/
+│   │   ├── main.py               # instancia o FastAPI e registra as rotas
+│   │   ├── schemas.py            # modelos Pydantic (contrato de entrada/saída)
+│   │   ├── router.py             # endpoint POST /analisar
+│   │   └── engine/
+│   │       ├── keywords.py       # listas de palavras-chave por categoria
+│   │       ├── extractor.py      # regex para valores, prazos e entidades
+│   │       └── scorer.py         # cálculo do score de engajamento
+│   ├── tests/                    # pytest
+│   ├── requirements.txt
+│   └── .env.example
 ├── frontend/
 │   └── src/
 │       ├── pages/
@@ -139,12 +188,15 @@ Exceções propositais a essa regra: `security/` fica fora do `domain` porque é
 
 ## 8. Equipe
 
-- Kelwin Silva Bastos — responsável por este módulo (backend, motor de análise e frontend)
-- *(demais integrantes do grupo — preencher conforme divisão de tarefas do Challenge TOTVS)*
+| Integrante          | Responsabilidade principal |
+|---------------------|---|
+| Kelwin Silva Bastos | Backend Java (API, autenticação, CRUDs, persistência), integração com o serviço de análise e frontend React |
+| João Paulo Basta    | Serviço de análise em Python (FastAPI): motor de processamento de texto, extração de insights e score |
 
 ## 9. Roadmap futuro
 
-- Trocar o motor de análise rule-based por um modelo de NLP/LLM real;
+- Trocar o motor rule-based do serviço Python por um modelo de NLP/LLM real (a troca fica isolada no `analise-service`, sem impacto no backend Java);
+- Containerizar os dois serviços (Docker Compose) para simplificar a subida do ambiente completo;
 - Processamento assíncrono de análises longas (fila/eventos);
 - Dashboard consolidado por gestor com métricas de todos os consultores;
 - Exportação de relatório em PDF por reunião.

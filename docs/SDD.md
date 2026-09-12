@@ -1,6 +1,6 @@
 # Documento de Design de Software (SDD) — InsightCall
 
-**Versão:** 2.0
+**Versão:** 1.0
 **Autor:** Kelwin Silva Bastos
 **Data:** 04/09/2026
 **Contexto:** Challenge TOTVS 2026 — FIAP
@@ -18,10 +18,10 @@ Consultores realizam diversas reuniões com clientes e, hoje, a transcrição de
 ### 1.3 Restrições do projeto
 | Restrição | Impacto no design |
 |---|---|
-| Prazo de 10 dias, 1 desenvolvedor | MVP enxuto, sem funcionalidades acessórias |
-| ~42h efetivas de desenvolvimento | Análise de texto **rule-based**, não ML |
-| Stack fixa: Spring Boot, Spring Data, JWT, Oracle, React | Sem espaço para testar stacks alternativas |
-| Apresentação para a TOTVS | Precisa de uma demo estável, mesmo que com dados de seed |
+| Prazo até 15/10/2026, 2 desenvolvedores | Permite paralelizar backend Java e motor Python, desde que o contrato entre eles seja acordado cedo |
+| Stack: Spring Boot, Spring Data, JWT, Oracle, React + Python/FastAPI | Dois runtimes distintos para subir e manter |
+| Banco Oracle compartilhado da faculdade | Depende de rede/VPN da instituição; fora do controle da equipe |
+| Apresentação para a TOTVS | Precisa de uma demo estável, com os **dois serviços** no ar simultaneamente |
 
 ---
 
@@ -46,10 +46,11 @@ Consultores realizam diversas reuniões com clientes e, hoje, a transcrição de
 | ID | Descrição |
 |---|---|
 | RNF01 | Autenticação stateless via JWT, senha com hash BCrypt |
-| RNF02 | Análise de uma transcrição de até ~10 mil caracteres deve responder em menos de 3s (processamento síncrono) |
+| RNF02 | Análise de uma transcrição de até ~10 mil caracteres deve responder em menos de 3s, incluindo o tempo da chamada HTTP entre os serviços |
 | RNF03 | Conexão configurável via variáveis de ambiente com o servidor Oracle da faculdade (sem dependência de infraestrutura local de banco) |
-| RNF04 | Código organizado em camadas, com motor de análise desacoplado (Strategy) para permitir troca futura por NLP/LLM sem alterar o restante do sistema |
-| RNF05 | API documentada via OpenAPI/Swagger para facilitar integração com o frontend e a avaliação da banca |
+| RNF04 | O motor de análise deve ser um serviço independente e **stateless**, permitindo evoluir a lógica de análise (regex → NLP/LLM) sem qualquer alteração no backend Java |
+| RNF05 | Ambos os serviços documentados via OpenAPI/Swagger (springdoc no Java, nativo no FastAPI) |
+| RNF06 | A indisponibilidade do serviço de análise **não pode derrubar** o restante da aplicação: login, CRUDs e upload de transcrição continuam funcionando; apenas a análise retorna erro tratado |
 
 ---
 
@@ -57,37 +58,59 @@ Consultores realizam diversas reuniões com clientes e, hoje, a transcrição de
 
 ### 3.1 Visão geral
 
+O sistema é composto por **dois serviços independentes** mais o frontend. O backend Java é o orquestrador e único dono do banco; o serviço Python é especializado em processamento de texto e não tem estado nem acesso a dados.
+
 ```mermaid
 flowchart LR
     subgraph Frontend [React SPA]
         UI[Telas: Login, Reuniões, Upload, Análise]
     end
 
-    subgraph Backend [Spring Boot]
+    subgraph Backend [Spring Boot - Java]
         FILTER[JWT Auth Filter]
         CTRL[Controllers]
-        SVC[Services]
-        STRAT[AnaliseStrategy]
+        SVC[AnaliseService]
+        STRAT[AnaliseServiceClientStrategy]
         REPO[Repositories - Spring Data JPA]
+    end
+
+    subgraph Motor [analise-service - Python/FastAPI]
+        API[POST /analisar]
+        ENGINE[Engine: keywords + regex + scorer]
     end
 
     DB[(Oracle Database)]
 
     UI -->|HTTPS/REST + JWT| FILTER --> CTRL --> SVC
-    SVC --> STRAT
+    SVC --> STRAT -->|HTTP POST JSON| API --> ENGINE
     SVC --> REPO --> DB
 ```
 
-### 3.2 Justificativa arquitetural
-Optou-se por um **monolito modular em camadas** em vez de microsserviços: com um único desenvolvedor e 10 dias, a complexidade operacional de múltiplos serviços (deploy, comunicação, observabilidade) não se paga. A separação em pacotes (`controller`, `service`, `repository`, `service.analise`) já garante baixo acoplamento suficiente para a apresentação e para evolução futura.
+**Fluxo completo de uma análise:**
+1. Consultor dispara `POST /api/transcricoes/{id}/analisar` no backend Java.
+2. Java valida o JWT, confere se a transcrição pertence ao consultor e busca o `conteudo` no Oracle.
+3. Java chama `POST /analisar` no serviço Python, enviando apenas o **texto** da transcrição.
+4. Python processa e devolve os insights estruturados em JSON (sem persistir nada).
+5. Java recebe o JSON, monta a entidade `Analise` e **persiste no Oracle**.
+6. Java devolve o resultado para o frontend.
 
-### 3.3 Camadas
+### 3.2 Justificativa arquitetural
+
+A separação em dois serviços foi motivada por **adequação de ferramenta ao problema**: o processamento e a manipulação de texto se beneficiam do ecossistema Python (bibliotecas de NLP, manipulação de dados, facilidade de experimentação), enquanto a camada transacional (autenticação, CRUDs, integridade dos dados) permanece no Spring Boot, onde já está madura e testada.
+
+Essa divisão também **viabiliza o trabalho em paralelo** entre os dois integrantes da equipe: com o contrato da API acordado previamente (seção 7), cada frente evolui de forma independente.
+
+**Custo assumido conscientemente:** dois runtimes para subir e manter, um ponto de falha de rede a mais, e a necessidade de garantir que ambos os serviços estejam no ar durante a apresentação. O RNF06 mitiga parte disso, garantindo degradação graciosa em vez de falha total.
+
+### 3.3 Camadas (backend Java)
 
 - **Controller**: expõe os endpoints REST, valida entrada (Bean Validation) e traduz para DTOs.
 - **Service**: contém a regra de negócio (ex: `TranscricaoService`, `AnaliseService`, `AuthService`).
-- **Strategy de análise** (`service.analise`): interface `AnaliseStrategy` com implementação `KeywordAnaliseStrategy`. Permite trocar a lógica de análise (hoje regex/keywords, amanhã um LLM) sem tocar no restante da aplicação.
+- **Strategy de análise** (`domain.analise`): a interface `AnaliseStrategy` é mantida, mas a implementação passa a ser `AnaliseServiceClientStrategy` — um **cliente HTTP** que delega o processamento ao serviço Python, em vez de conter a lógica de análise.
 - **Repository**: interfaces Spring Data JPA sobre as entidades.
 - **Security**: filtro JWT, `UserDetailsService`, configuração de rotas públicas/privadas.
+
+> 💡 **A decisão original de usar o padrão Strategy se provou acertada:** a troca do motor de análise (de uma implementação Java local para uma chamada HTTP a um serviço Python) exigiu apenas uma nova implementação da interface — nenhum Controller, Repository ou entidade precisou ser alterado. Esse é um bom argumento de design para a apresentação.
 
 ---
 
@@ -186,19 +209,68 @@ public interface AnaliseStrategy {
 }
 ```
 
-### 7.2 Implementação inicial — `KeywordAnaliseStrategy`
-Abordagem **rule-based**, reaproveitando a lógica de detecção de palavras-chave e extração via regex já validada em projeto anterior (AUDIA/InsightCall — Challenge TOTVS):
+### 7.2 Contrato da API entre os serviços
 
-- **Listas de palavras-chave** (PT-BR) por categoria, ex:
+Este é o **ponto de acordo entre as duas frentes de trabalho**. Deve ser tratado como um contrato estável: alterações exigem alinhamento entre os dois integrantes.
+
+**Requisição** — `POST http://<analise-service>/analisar`
+
+```json
+{
+  "conteudo": "[00:02] Consultor: Bom dia, Marina...",
+  "formatoOrigem": "TXT"
+}
+```
+
+**Resposta** — `200 OK`
+
+```json
+{
+  "pontosInteresse": [
+    "Demonstrou urgência para resolver o controle de obras neste trimestre."
+  ],
+  "pontosDesinteresse": [
+    "Preocupação com o tempo de implantação durante a alta temporada."
+  ],
+  "oportunidadesVenda": [
+    "Módulo de gestão de obras — mencionado como principal dor operacional."
+  ],
+  "scoreEngajamento": 81,
+  "sentimentoGeral": "POSITIVO"
+}
+```
+
+**Erros previstos:**
+
+| Status | Situação | Tratamento no lado Java |
+|---|---|---|
+| 422 | Texto vazio ou curto demais para analisar | Propaga como erro de validação para o consultor |
+| 500 | Falha interna no motor | Log + mensagem genérica; a `Analise` não é persistida |
+| Timeout / conexão recusada | Serviço Python fora do ar | Erro tratado conforme RNF06; demais funcionalidades seguem normais |
+
+### 7.3 Implementação do motor (Python)
+
+Abordagem **rule-based** na primeira versão, aproveitando a facilidade do Python para manipulação de texto:
+
+- **Listas de palavras-chave** (PT-BR) por categoria, em `engine/keywords.py`:
   - *Interesse*: "faz sentido", "quero saber mais", "quanto custa", "podemos avançar";
   - *Desinteresse*: "não é prioridade agora", "vamos pensar", "sem orçamento no momento";
   - *Oportunidade*: "outra filial", "módulo adicional", "renovação do contrato", "upgrade".
-- **Regex** para capturar menções a valores monetários e prazos (ex: extração de orçamento citado em reunião).
-- **Score de engajamento**: cálculo simples (ex: proporção de trechos positivos vs. negativos, normalizado de 0 a 100).
-- Resultado devolvido como `ResultadoAnalise` (DTO), persistido pela `AnaliseService`.
+- **Regex** (`engine/extractor.py`) para capturar menções a valores monetários, prazos e nomes de filiais/módulos.
+- **Score de engajamento** (`engine/scorer.py`): proporção de sinais positivos vs. negativos, normalizada de 0 a 100.
+- **Validação de entrada/saída** via modelos Pydantic (`schemas.py`), garantindo que o contrato acima seja respeitado automaticamente.
 
-### 7.3 Extensibilidade futura
-Basta criar uma nova implementação (`LlmAnaliseStrategy`) e trocar o bean injetado — o restante do sistema (controller, persistência, frontend) não muda. Esse ponto vale a pena destacar na apresentação para a TOTVS como diferencial de design.
+### 7.4 Implementação do cliente (Java)
+
+No backend, `AnaliseServiceClientStrategy` implementa `AnaliseStrategy` e encapsula a chamada HTTP:
+
+- Usa `RestClient` (Spring Framework 6+), configurado em `config/` com a `ANALISE_SERVICE_URL` e o timeout definidos por variável de ambiente;
+- Converte a resposta JSON para o DTO `ResultadoAnalise` já existente;
+- Trata falhas de comunicação (timeout, 5xx, conexão recusada) e as traduz em uma exceção de domínio, capturada pelo `@ControllerAdvice` global.
+
+### 7.5 Extensibilidade futura
+
+A evolução do motor (regex → NLP → LLM) acontece **inteiramente dentro do `analise-service`**, sem recompilar ou alterar o backend Java, desde que o contrato da seção 7.2 seja mantido. Esse isolamento é um bom argumento de design para a apresentação à TOTVS.
 
 ---
 
@@ -206,11 +278,13 @@ Basta criar uma nova implementação (`LlmAnaliseStrategy`) e trocar o bean inje
 
 | Decisão | Alternativa considerada | Motivo da escolha |
 |---|---|---|
-| Análise rule-based (regex/keywords) | Modelo de NLP/LLM real | Prazo de 10 dias não permite integração + testes de um modelo com confiabilidade |
-| Servidor Oracle da faculdade (compartilhado) | Oracle XE local via Docker | Infraestrutura já provisionada pela instituição; evita manter container local, mas introduz dependência de rede/VPN e de disponibilidade fora do controle do desenvolvedor |
-| Processamento síncrono da análise | Processamento assíncrono (fila) | Volume da demo é baixo; complexidade de fila não se justifica no MVP |
-| Monolito modular | Microsserviços | Overhead de infraestrutura incompatível com 1 dev / 10 dias |
-| JSON dentro de CLOB para listas de insights | Tabelas normalizadas (ex: `PONTO_INTERESSE`) | Reduz número de entidades/joins para o prazo disponível |
+| **Motor de análise em Python (FastAPI), como serviço separado** | Motor em Java, dentro do monolito | Manipulação e processamento de texto se beneficiam do ecossistema Python; permite paralelizar o trabalho entre os dois integrantes. Custo: dois runtimes, integração HTTP e um ponto de falha a mais |
+| **FastAPI** | Flask | Documentação OpenAPI automática e validação via Pydantic saem de graça, reforçando o contrato entre os serviços. Flask seria viável (a equipe já tem experiência), mas exigiria montar validação e docs manualmente |
+| **Java persiste a `Analise`; Python é stateless** | Python gravar direto no Oracle | Mantém um único dono do banco, evitando duas fontes de escrita, duas configurações de credencial e risco de inconsistência. O serviço Python fica mais simples e trivialmente testável |
+| **Comunicação síncrona via HTTP/REST** | Fila de mensagens (RabbitMQ/Kafka) | Volume da demo é baixo e o usuário espera o resultado na tela; fila adicionaria complexidade sem ganho perceptível neste escopo |
+| Análise rule-based (regex/keywords) na v1 | Modelo de NLP/LLM real | Permite entregar o fluxo completo com confiabilidade; a arquitetura já está pronta para a troca posterior |
+| Servidor Oracle da faculdade (compartilhado) | Oracle XE local via Docker | Infraestrutura já provisionada pela instituição; evita manter container local, mas introduz dependência de rede/VPN e de disponibilidade fora do controle da equipe |
+| JSON dentro de CLOB para listas de insights | Tabelas normalizadas (ex: `PONTO_INTERESSE`) | Reduz número de entidades/joins; o formato já chega pronto do serviço Python |
 
 ---
 
@@ -221,6 +295,9 @@ Basta criar uma nova implementação (`LlmAnaliseStrategy`) e trocar o bean inje
 | Acesso ao servidor Oracle da faculdade indisponível ou dependente de VPN/rede específica | Média-Alta | Validar credenciais e conectividade **antes** do Sprint 0 (não esperar o fim de semana); confirmar com a TI da faculdade horário de disponibilidade do servidor |
 | Servidor Oracle da faculdade instável ou lento (compartilhado com outros alunos/projetos) | Média | Ter um script de criação das tabelas pronto para recriar o schema rapidamente se necessário; evitar depender de uma janela específica de horário para testar |
 | JWT mal configurado gerar bugs de autenticação | Baixa | Reaproveitar implementação já validada em projetos anteriores |
+| **Divergência entre o que o Java envia e o que o Python espera** (contrato quebrado) | **Alta** | Fechar o contrato da seção 7.2 **antes** de cada frente começar a codar; validar com Pydantic no Python e testes de integração no Java |
+| **Serviço Python fora do ar durante a apresentação** | Média | Checklist de subida dos dois serviços antes da demo; RNF06 garante que o resto da aplicação continue funcionando; ter prints/vídeo do fluxo de análise como plano B |
+| **Trabalho paralelo gerar retrabalho ou bloqueio mútuo** | Média | Divisão clara de responsabilidades (seção 8 do README); contrato acordado permite cada um trabalhar com um mock do outro lado |
 | Escopo aumentar durante o desenvolvimento | Alta | Lista de RF com MoSCoW travada; qualquer item novo vira "Won't" nesta entrega |
 | Falta de tempo para o frontend | Média | Frontend com no máximo 4 telas (login, reuniões, upload, resultado da análise) |
 
@@ -228,8 +305,16 @@ Basta criar uma nova implementação (`LlmAnaliseStrategy`) e trocar o bean inje
 
 ## 10. Plano de testes (mínimo viável)
 
-- Testes unitários (JUnit + Mockito) para:
-  - `AuthService` (login/registro, geração de token);
-  - `KeywordAnaliseStrategy` (classificação correta de trechos de exemplo);
-- Testes manuais via Swagger/Postman para os demais endpoints;
-- Roteiro de demonstração com dados de *seed* (2–3 transcrições de exemplo já cadastradas) para garantir uma apresentação estável no dia 14/09.
+**Backend Java (JUnit + Mockito):**
+- `AuthService` (login/registro, geração de token);
+- Checagem de *ownership* (`Reuniao.pertenceA`) — garantir que um consultor não acessa dados de outro;
+- `AnaliseServiceClientStrategy` com o serviço Python **mockado**, cobrindo resposta de sucesso, 5xx e timeout.
+
+**Serviço Python (pytest):**
+- Engine: dado um texto de exemplo, verifica se os insights e o score saem corretos;
+- Endpoint `/analisar`: resposta 200 no caminho feliz e 422 para texto vazio/curto demais.
+
+**Integração e manual:**
+- Teste de ponta a ponta com os **dois serviços no ar**: upload de transcrição → disparo da análise → resultado persistido no Oracle;
+- Testes manuais via Swagger (Java, porta 8080) e `/docs` (Python, porta 8000);
+- Roteiro de demonstração com dados de *seed* (2–3 transcrições de exemplo já cadastradas) para garantir uma apresentação estável em 15/10.
