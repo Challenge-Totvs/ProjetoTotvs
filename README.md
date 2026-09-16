@@ -21,7 +21,7 @@ Dado o prazo (10 dias) e o time reduzido, esta primeira entrega cobre:
 **Incluso:**
 - Cadastro/login de consultores com autenticação JWT;
 - Upload de transcrição (texto colado ou arquivo `.txt`) vinculada a um consultor e a uma reunião/cliente;
-- **Motor de análise em Python**, exposto como serviço REST independente. Usa **LLM como motor principal** (com uma segunda LLM de outro provedor como fallback), gerando insights ancorados em evidência da própria transcrição, score de engajamento e uma recomendação de próximos passos; um motor de regex é mantido como último recurso caso as duas LLMs falhem;
+- **Motor de análise em Python**, exposto como serviço REST independente, numa cadeia de 4 camadas: **LLM principal** (Claude ou ChatGPT, gerando insights ancorados em evidência, score e recomendação de próximos passos) → **LLM secundária** (outro provedor, se a principal falhar) → **modelo de classificação local** (treinado pelo grupo na disciplina de Data Science, cobrindo insights e score sem a recomendação) → **regex** (último recurso absoluto);
 - Tela com o resultado da análise (interesse, desinteresse, oportunidades, score, recomendação);
 - Listagem de reuniões/transcrições por consultor.
 
@@ -166,11 +166,15 @@ ProjetoTotvs/
 │   │   ├── main.py               # instancia o FastAPI e registra as rotas
 │   │   ├── schemas.py            # modelos Pydantic (contrato de entrada/saída)
 │   │   ├── router.py             # endpoint POST /analisar
-│   │   ├── orchestrator.py       # cadeia de fallback: LLM principal -> LLM secundária -> regex
-│   │   └── engines/
-│   │       ├── llm_engine.py     # motor via LLM (parametrizável por provedor - usado 2x)
-│   │       └── regex_engine.py   # motor de regex, mantido como último recurso
-│   │           # (keywords.py, extractor.py, scorer.py dentro deste módulo)
+│   │   ├── orchestrator.py       # cadeia de fallback: LLM principal -> LLM secundária -> modelo local -> regex
+│   │   ├── engines/
+│   │   │   ├── llm_engine.py       # motor via LLM (parametrizável por provedor - usado 2x)
+│   │   │   ├── modelo_local_engine.py  # classificador (origem: notebook de Data Science),
+│   │   │   │                           # estendido por distillation + agregação por reunião
+│   │   │   └── regex_engine.py     # motor de regex, mantido como último recurso
+│   │   │       # (keywords.py, extractor.py, scorer.py dentro deste módulo)
+│   │   └── modelos/
+│   │       └── classificador.joblib   # modelo + vetorizador serializados, carregados na subida
 │   ├── tests/                    # pytest
 │   ├── requirements.txt
 │   └── .env.example
@@ -199,13 +203,13 @@ Exceções propositais a essa regra: `security/` fica fora do `domain` porque é
 | Integrante | Responsabilidade principal |
 |---|---|
 | Kelwin Silva Bastos | Backend Java (API, autenticação, CRUDs, persistência), integração com o serviço de análise e frontend React |
-| João Paulo Basta | Serviço de análise em Python (FastAPI): motor de processamento de texto, extração de insights e score |
+| *João Paulo Basta* | Serviço de análise em Python (FastAPI): motor de processamento de texto, extração de insights e score |
 
-> ⚠️ **Preencher o nome do segundo integrante.** O contrato da API entre os dois serviços (seção 7 do SDD) é o ponto de acordo entre as duas frentes — deve ser definido em conjunto **antes** de cada um começar a desenvolver o seu lado, para permitir trabalho em paralelo sem bloqueio.
+> O contrato da API entre os dois serviços (seção 7 do SDD) é o ponto de acordo entre as duas frentes — deve ser definido em conjunto **antes** de cada um começar a desenvolver o seu lado, para permitir trabalho em paralelo sem bloqueio.
 
 ## 9. Roadmap futuro
 
-- Treinar um modelo de Machine Learning supervisionado próprio, uma vez que exista um conjunto de dados rotulado (ver SDD, seção 8) — reduziria custo por análise em relação a depender de LLMs em nuvem;
+- **Fine-tuning de um modelo generativo local** (LoRA/QLoRA), para substituir o classificador discriminativo da 3ª camada por algo capaz de gerar `recomendacaoProximosPassos` mesmo no fallback — tratado como experimento paralelo de aprendizado, condicionado a um protótipo funcionar a tempo (ver SDD, seção 7.5);
 - Modelo local (ex: Ollama) substituindo uma ou ambas as LLMs em nuvem, caso a confidencialidade dos dados do cliente se torne um requisito de produção;
 - Dividir transcrições muito grandes em partes processadas em paralelo, se a medição de latência mostrar necessidade (ver SDD, seção 7.5);
 - Containerizar os dois serviços (Docker Compose) para simplificar a subida do ambiente completo;

@@ -61,26 +61,31 @@ Três mudanças estruturais em relação ao plano original:
 |---|---|
 | Fechar o contrato da API entre os serviços (SDD, seção 7.2): formato do request, do response e dos erros | **Ambos** |
 | **Escolher os dois provedores de LLM** (primário e secundário, de empresas diferentes) e confirmar limites/custos da camada gratuita atual de cada um | **Ambos** |
+| Alinhar o escopo da extensão do classificador de Data Science (distillation + agregação por reunião) como 3ª camada da cadeia | **Ambos** |
 | Definir portas, variáveis de ambiente e como cada um roda o serviço do outro localmente | **Ambos** |
 | Criar a pasta `analise-service/` no repositório com a estrutura base e o `requirements.txt` | **Ambos** |
 
 **Por que isso vem primeiro:** com o contrato fechado, cada frente consegue trabalhar com um *mock* do outro lado, sem ficar bloqueada esperando. Sem isso, uma frente trava a outra.
 
-### Frente A — Serviço Python (João Paulo Basta)
+### Frente A — Serviço Python (João Paulo Basta + Kelwin, se necessário)
 
-> 🔀 **Mudança de escopo:** o motor de análise passou de "regex apenas" para "LLM como motor principal, com regex como último recurso de uma cadeia de fallback". Ver SDD, seção 7, para o desenho completo.
+> 🔀 **Mudança de escopo:** o motor de análise é uma cadeia de **4 camadas** — LLM principal → LLM secundária → modelo de classificação local (origem: notebook de Data Science do grupo) → regex como último recurso absoluto. Ver SDD, seção 7, para o desenho completo.
 
 | Task | Prioridade |
 |---|---|
 | Setup do FastAPI: venv, `requirements.txt`, `main.py` subindo com `/docs` acessível | Must |
-| Modelos Pydantic (`schemas.py`) conforme o contrato acordado (insights com `descricao`+`trecho`, `sentimentoGeral` como Enum, `recomendacaoProximosPassos`, `motorUtilizado`) | Must |
+| Modelos Pydantic (`schemas.py`) conforme o contrato acordado (insights com `descricao`+`trecho`, `sentimentoGeral` como Enum, `recomendacaoProximosPassos`, `motorUtilizado` com 4 valores) | Must |
 | Escolher e configurar os dois provedores de LLM (primário e secundário), incluindo chaves de API via variável de ambiente | Must |
 | `LlmEngine`: prompt que instrui o modelo a citar `trecho` verbatim, respeitar o enum de `sentimentoGeral` e limitar `recomendacaoProximosPassos` a ~500 caracteres; usar saída estruturada do provedor + validação Pydantic | Must |
-| `AnaliseOrchestrator`: cadeia de fallback LLM primária → LLM secundária → regex, preenchendo `motorUtilizado` corretamente | Must |
+| **Estender o classificador do notebook de Data Science via distillation:** usar a LLM principal para rotular um lote de trechos como interesse/não e oportunidade/não; treinar os 2 classificadores novos no mesmo padrão do classificador de risco já existente | Must |
+| **Etapa de agregação por reunião:** consolidar os trechos classificados de uma transcrição em `scoreEngajamento` e `sentimentoGeral` (os classificadores hoje operam por trecho, não por reunião inteira) | Must |
+| `ModeloLocalEngine`: carrega o(s) classificador(es) serializados via `joblib` na subida do serviço; `recomendacaoProximosPassos` sempre `null` | Must |
+| **Validar o modelo local com uma amostra dos dados de seed do produto** (domínio sintético, diferente do corpus real de treino) antes de confiar nele em produção | Must |
+| `AnaliseOrchestrator`: cadeia de fallback LLM primária → LLM secundária → modelo local → regex, preenchendo `motorUtilizado` corretamente | Must |
 | Engine de regex (mantido como último recurso): `keywords.py`, `extractor.py` (agora também extraindo `trecho`), `scorer.py` | Must |
 | Endpoint `POST /analisar` ligando tudo (`router.py`) | Must |
 | Testar com transcrições de tamanho real do dataset (~100-200 mil caracteres) para calibrar timeout e observar qualidade (efeito "lost in the middle") | Should |
-| Testes com pytest (engines, orquestrador, endpoint — casos de sucesso, falha de uma LLM, falha das duas) | Should |
+| Testes com pytest (engines, orquestrador, endpoint — casos de sucesso, falha de uma LLM, falha das duas, falha até o modelo local) | Should |
 
 ### Frente B — Integração no backend Java (Kelwin)
 | Task | Prioridade |
@@ -147,6 +152,7 @@ Três mudanças estruturais em relação ao plano original:
 | **Docker Compose para subir os dois serviços juntos** | Com dois runtimes, subir tudo com um comando reduz bastante o risco na hora da apresentação |
 | **Enriquecer o motor Python** (lematização, stopwords PT-BR, ou spaCy) | Frente natural de evolução agora que o motor está isolado — melhora a qualidade dos insights sem tocar no Java |
 | **Dividir transcrições muito grandes (>150 mil caracteres) em partes, processadas em paralelo pela mesma LLM, com uma chamada final de merge** | Só implementar **depois de medir**: primeiro testar a latência real de uma chamada única com uma transcrição grande do dataset; se já couber no RNF02 (até 2 min), essa divisão não é necessária. Importante: cada parte deve extrair insights com `trecho` de evidência (não resumo), e a divisão fica inteira dentro da tentativa da LLM principal — a LLM secundária continua sendo só fallback independente, nunca parceira obrigatória do pipeline |
+| **Protótipo de fine-tuning de um modelo generativo local (LoRA/QLoRA)**, para eventualmente substituir o classificador discriminativo da 3ª camada | Experimento paralelo de aprendizado, **não bloqueante**: ~100-200 exemplos gerados por distillation da LLM principal, modelo base pequeno (ex: Llama 3.x 1B-3B), treinado via Colab. Só vira parte da arquitetura de fato se sair bom e a tempo — senão, fica documentado no SDD como próximo passo, sem prejuízo à entrega com a cadeia de 4 camadas já especificada |
 | RF09 — papel ADMIN vendo reuniões de todos os consultores | Estava marcado "Won't" só por causa do prazo; a base de Security já suporta isso (é adicionar uma authority + regra no SecurityFilterChain) |
 | Testes automatizados mais abrangentes (Service layer completo) | Antes só cobria Auth e a Strategy; com tempo, dá pra cobrir os CRUDs também |
 | Revisão de código geral | Reler o próprio código das Fases 1-4 com olhar crítico, sem pressa — costuma revelar entendimentos que ficaram rasos |

@@ -172,7 +172,7 @@ erDiagram
 - `STATUS` de `REUNIAO` como enum: `AGENDADA`, `REALIZADA`, `ANALISADA`.
 - `pontosInteresse`, `pontosDesinteresse` e `oportunidadesVenda` são armazenados como JSON serializado dentro do CLOB — agora uma lista de objetos `{descricao, trecho}` (evidência ancorada na transcrição), não mais strings simples.
 - `recomendacaoProximosPassos` (CLOB, nullable) é preenchido apenas quando o motor utilizado foi uma LLM; fica `null` quando a análise caiu no fallback de regex.
-- `motorUtilizado` (string) registra qual camada da cadeia de fallback gerou aquele resultado (`LLM_PRIMARIA`, `LLM_SECUNDARIA` ou `REGEX_FALLBACK`) — usado pelo frontend para sinalizar ao consultor quando uma análise foi simplificada.
+- `motorUtilizado` (string) registra qual camada da cadeia de fallback gerou aquele resultado (`LLM_PRIMARIA`, `LLM_SECUNDARIA`, `MODELO_LOCAL` ou `REGEX_FALLBACK`) — usado pelo frontend para sinalizar ao consultor quando uma análise foi simplificada.
 - Reanálise sobrescreve o registro existente (mesma linha, sem histórico de tentativas anteriores) — mantém a relação 1:1 já modelada sem exigir migração de schema.
 
 ---
@@ -208,25 +208,32 @@ erDiagram
 
 ### 7.1 Interface
 
-A interface `AnaliseEngine` (Python) e `AnaliseStrategy` (Java) permanecem como o ponto de extensão do sistema. A novidade é que, do lado Python, existem agora **três implementações em cadeia**, não uma:
+A interface `AnaliseEngine` (Python) e `AnaliseStrategy` (Java) permanecem como o ponto de extensão do sistema. Do lado Python, existem agora **quatro implementações em cadeia**:
 
 ```
 AnaliseEngine (interface)
 ├── LlmEngine (parametrizável por provedor — usada duas vezes: primária e secundária)
-└── RegexEngine (a implementação original, mantida como último recurso)
+├── ModeloLocalEngine (classificador treinado pelo grupo de Data Science, estendido por distillation)
+└── RegexEngine (a implementação original, mantida como último recurso absoluto)
 ```
 
 Um orquestrador (`AnaliseOrchestrator`) tenta cada engine em ordem, avançando para a próxima em caso de falha:
 
 ```
-LLM primária → (falhou: timeout, erro do provedor, JSON malformado)
-    → LLM secundária (provedor diferente)
-        → (falhou também) → Motor de regex (último recurso, sempre disponível)
+LLM primária (Claude ou ChatGPT — definido após teste comparativo)
+    → falhou (timeout, erro do provedor, JSON malformado)
+LLM secundária (o outro provedor)
+    → falhou também
+Modelo de classificação local (ModeloLocalEngine)
+    → falhou também (ou indisponível/não carregado)
+Motor de regex (último recurso, sempre disponível, sem dependência externa)
 ```
 
 **Por que duas LLMs de provedores diferentes:** protege contra indisponibilidade ou limite de cota específicos de um provedor. **Não** protege contra falha de rede da própria aplicação (ex: sem internet) — mas esse risco foi avaliado como baixo, já que a apresentação ocorre nas instalações da TOTVS, não em rede da faculdade.
 
-**Por que o regex nunca foi descartado:** ele é a única camada 100% local, sem dependência externa — a rede de segurança final para a demonstração nunca falhar por completo.
+**Por que o modelo local entra como 3ª camada, não como principal:** ele é originado do notebook de Machine Learning supervisionado da equipe (disciplina de Data Science, ver seção 8), que resolve uma fração do contrato — hoje classifica risco/neutro por trecho. Estendido por distillation (rótulos gerados pela LLM principal, usados para treinar mais dois classificadores) mais uma etapa de agregação por reunião, ele passa a cobrir `pontosInteresse`, `pontosDesinteresse`, `oportunidadesVenda`, `scoreEngajamento` e `sentimentoGeral` — mas nunca `recomendacaoProximosPassos`, que exige um modelo generativo, não um classificador discriminativo. Além disso, foi treinado no corpus real e anonimizado da TOTVS (disciplina de Data Science), um domínio diferente dos dados sintéticos do produto — validar com uma amostra dos dados de seed antes de confiar nele em produção.
+
+**Por que o regex nunca foi descartado:** ele é a única camada 100% local e sem qualquer dependência de modelo treinado ou API externa — a rede de segurança final para a demonstração nunca falhar por completo.
 
 ### 7.2 Contrato da API entre os serviços
 
@@ -276,15 +283,15 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 |---|---|---|
 | `pontosInteresse` / `pontosDesinteresse` / `oportunidadesVenda` | lista de objetos `{descricao, trecho}` | antes eram listas de strings simples. O `trecho` é uma citação verbatim da transcrição, usada como evidência — reduz alucinação da LLM e permite ao consultor conferir a fonte. O motor de regex também popula `trecho` (ele naturalmente sabe a posição do match) |
 | `sentimentoGeral` | enum `POSITIVO \| NEUTRO \| NEGATIVO` | antes era string livre; virou enum para evitar variação de grafia da LLM |
-| `recomendacaoProximosPassos` | string, máx. ~500 caracteres, nullable | narrativa curta gerada só pela LLM. **Nulo quando `motorUtilizado = REGEX_FALLBACK`** — o regex não consegue gerar texto narrativo. O frontend esconde essa seção quando o campo vem nulo |
-| `motorUtilizado` | enum `LLM_PRIMARIA \| LLM_SECUNDARIA \| REGEX_FALLBACK` | indica qual camada da cadeia de fallback realmente gerou aquele resultado. Usado pelo frontend para exibir o aviso "análise simplificada — você pode gerar uma nova mais tarde" quando o valor é `REGEX_FALLBACK` |
+| `recomendacaoProximosPassos` | string, máx. ~500 caracteres, nullable | narrativa curta gerada só por uma LLM (generativa). **Nulo quando `motorUtilizado` é `MODELO_LOCAL` ou `REGEX_FALLBACK`** — nenhum dos dois é capaz de gerar texto narrativo (o classificador é discriminativo, não generativo). O frontend esconde essa seção quando o campo vem nulo |
+| `motorUtilizado` | enum `LLM_PRIMARIA \| LLM_SECUNDARIA \| MODELO_LOCAL \| REGEX_FALLBACK` | indica qual camada da cadeia de fallback realmente gerou aquele resultado. Usado pelo frontend para exibir o aviso "análise simplificada — você pode gerar uma nova mais tarde" quando o valor é `MODELO_LOCAL` ou `REGEX_FALLBACK` |
 
 **Erros previstos:**
 
 | Status | Situação | Tratamento no lado Java |
 |---|---|---|
 | 422 | Texto vazio ou curto demais para analisar | Propaga como erro de validação para o consultor |
-| 500 | Falha interna no motor (nas três camadas) | Log + mensagem genérica; a `Analise` não é persistida |
+| 500 | Falha interna no motor (nas quatro camadas) | Log + mensagem genérica; a `Analise` não é persistida |
 | Timeout / conexão recusada | Serviço Python inteiro fora do ar | Erro tratado conforme RNF06; demais funcionalidades seguem normais |
 
 ### 7.3 Implementação do motor (Python)
@@ -296,6 +303,15 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 - **Atenção ao efeito "lost in the middle":** modelos de linguagem perdem precisão para informação no meio de contextos muito longos, mesmo dentro do limite técnico da janela de contexto. Como o dataset tem transcrições na casa de 100-200 mil caracteres, isso é um risco real de qualidade a observar durante os testes — não apenas um problema de limite técnico;
 - `ANALISE_SERVICE_TIMEOUT_MS` deve ser generoso (ver RNF02) por causa do volume de texto processado por chamada.
 
+**Modelo de classificação local (3ª camada) — origem no notebook de Data Science da equipe:**
+- Ponto de partida: classificador risco/neutro por trecho (TF-IDF + Logistic Regression, com validação agrupada por cliente), já treinado e avaliado pela disciplina de Data Science sobre o corpus real anonimizado da TOTVS;
+- **Extensão por distillation:** a LLM principal rotula um lote de trechos como interesse/não-interesse e oportunidade/não-oportunidade; esses rótulos treinam dois classificadores adicionais, no mesmo padrão do classificador de risco já existente;
+- **Agregação por reunião:** como os classificadores operam por trecho, uma etapa nova consolida os trechos classificados de uma transcrição em `scoreEngajamento` (proporção de trechos positivos, normalizada) e `sentimentoGeral` (predominância entre as três categorias);
+- `pontosInteresse` / `pontosDesinteresse` / `oportunidadesVenda` são preenchidos com os trechos classificados positivamente em cada categoria (o próprio trecho serve de evidência, sem necessidade de gerar `descricao` nova — pode usar o trecho como está ou uma versão levemente resumida);
+- `recomendacaoProximosPassos` sempre `null` nesta camada — classificadores discriminativos não geram texto novo;
+- **Risco de domínio, documentado na seção 9:** o modelo foi treinado no corpus real da TOTVS (Customer Success), diferente do domínio sintético dos dados de seed do produto. Validar com uma amostra dos dados reais do app antes de confiar nele em produção;
+- Modelo e vetorizador (`TfidfVectorizer` + classificadores) serializados via `joblib` e carregados uma vez na subida do serviço, não a cada requisição.
+
 **Motor de último recurso (regex) — mantido da v1:**
 - Listas de palavras-chave (PT-BR) por categoria em `engine/keywords.py`;
 - Regex (`engine/extractor.py`) para valores, prazos e entidades — e agora também para o `trecho` de evidência de cada insight;
@@ -303,21 +319,21 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 - `recomendacaoProximosPassos` sempre `null` nesta camada.
 
 **Orquestração:**
-- `AnaliseOrchestrator` tenta LLM primária → LLM secundária → regex, nessa ordem, avançando a cada falha;
+- `AnaliseOrchestrator` tenta LLM primária → LLM secundária → modelo local → regex, nessa ordem, avançando a cada falha;
 - Preenche `motorUtilizado` com a camada que efetivamente respondeu.
 
 ### 7.4 Implementação do cliente (Java)
 
 - `AnaliseServiceClientStrategy` implementa `AnaliseStrategy`, inalterada em sua função — chama o serviço Python e converte a resposta para `ResultadoAnalise`;
-- `ResultadoAnalise` (DTO) ganha os campos `recomendacaoProximosPassos`, `motorUtilizado`, e os itens de insight passam a ser um record aninhado (`ItemAnalise(descricao, trecho)`) em vez de `String`;
-- **Suporte a reanálise:** ao disparar a análise para uma transcrição que já possui um resultado (por exemplo, a primeira tentativa caiu no fallback de regex), o `AnaliseService` faz um *upsert* — busca a `Analise` existente e atualiza seus campos, em vez de tentar inserir um novo registro. Isso preserva a relação 1:1 já modelada (`UNIQUE` em `TRANSCRICAO_ID`) sem exigir migração de schema; o histórico de tentativas anteriores não é mantido, apenas o resultado mais recente;
+- `ResultadoAnalise` (DTO) ganha os campos `recomendacaoProximosPassos`, `motorUtilizado` (agora com 4 valores possíveis), e os itens de insight passam a ser um record aninhado (`ItemAnalise(descricao, trecho)`) em vez de `String`;
+- **Suporte a reanálise:** ao disparar a análise para uma transcrição que já possui um resultado (por exemplo, a primeira tentativa caiu no fallback de regex ou do modelo local), o `AnaliseService` faz um *upsert* — busca a `Analise` existente e atualiza seus campos, em vez de tentar inserir um novo registro. Isso preserva a relação 1:1 já modelada (`UNIQUE` em `TRANSCRICAO_ID`) sem exigir migração de schema; o histórico de tentativas anteriores não é mantido, apenas o resultado mais recente;
 - Timeout do `RestClient` elevado para acomodar o RNF02 revisado.
 
 ### 7.5 Extensibilidade futura
 
 - Trocar o provedor de LLM (ou adicionar um terceiro na cadeia) exige apenas configuração, sem alteração de código;
 - Um modelo local (ex: via Ollama) pode substituir uma ou ambas as LLMs em nuvem, caso a confidencialidade dos dados do cliente se torne um requisito de produção — ver discussão de LGPD na seção 9;
-- Modelo de Machine Learning supervisionado próprio, treinado com dados anotados do domínio (ver seção 8, item rejeitado), é o passo natural para reduzir custo por análise em escala — mas depende de um esforço de rotulagem que está fora do escopo desta entrega.
+- **Fine-tuning de um modelo generativo local (LoRA/QLoRA) para substituir o classificador discriminativo da 3ª camada** — geraria também `recomendacaoProximosPassos` no fallback, algo que nenhum classificador consegue fazer. Tratado como **experimento paralelo de aprendizado**, fora do caminho crítico da Fase 2: só entra na arquitetura de fato se um protótipo pequeno (100-200 exemplos, gerados por distillation da LLM principal, modelo base pequeno tipo Llama 3.x 1B-3B) mostrar resultado bom a tempo. Caso contrário, permanece documentado aqui como próximo passo, sem prejuízo à entrega da Fase 2 com a versão de 4 camadas já especificada;
 - **Processamento em partes (map-reduce) para transcrições muito grandes** (o dataset chega a ~200 mil caracteres): dividir o texto em partes, extrair insights de cada uma em paralelo (mantendo o `trecho` de evidência em cada parte — nunca resumir antes de extrair, sob risco de perder a citação verbatim) e fazer uma chamada final de consolidação. Esse pipeline inteiro continua sendo uma única tentativa da LLM primária; a LLM secundária permanece como fallback independente, nunca como etapa obrigatória do processamento. Só vale implementar se a medição de latência de uma chamada única mostrar necessidade real — ver stretch goal na Fase 5 do planejamento.
 
 ## 8. Decisões técnicas e trade-offs
@@ -333,8 +349,9 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 | **Insights ancorados em evidência** (`descricao` + `trecho` verbatim da transcrição) | Listas de strings simples (v1) | Reduz alucinação da LLM (o modelo precisa apontar onde viu aquilo) e permite ao consultor conferir a fonte. Benefício colateral: também melhora o motor de regex, que já sabe a posição do match |
 | **`recomendacaoProximosPassos` só na LLM, nulo no fallback de regex** | Gerar um texto template genérico no regex | Regex não tem capacidade de gerar linguagem natural coerente; um texto template soaria artificial. Optou-se por simplesmente omitir a seção no frontend quando ausente, com aviso de que a análise foi simplificada |
 | **Reanálise via sobrescrita (upsert) do registro existente** | Manter histórico de todas as tentativas de análise | Mais simples de implementar sob o prazo — não exige alterar a relação 1:1 já modelada entre `Transcricao` e `Analise`. Custo: perde-se o histórico de tentativas anteriores |
-| **Rejeitado: ML supervisionado treinado com o dataset de 10 mil transcrições** | — | O dataset não possui rótulo/avaliação (não há gabarito de "boa reunião" ou "isso é uma objeção"). Aprendizado supervisionado exige dado rotulado; rotular manualmente um volume relevante é um esforço de meses, incompatível com o prazo. Documentado como roadmap futuro |
-| **Rejeitado: modelo de ML genérico pré-treinado como camada intermediária de fallback** | Usar um classificador de sentimento de prateleira (ex: Hugging Face) antes do regex | Modelos genéricos pré-treinados classificam sentimento geral bem, mas não distinguem interesse/objeção/oportunidade — categorização específica do domínio de vendas B2B. Para este contrato de saída, entregaria menos estrutura que o próprio motor de regex, tornando-se um fallback pior, não melhor |
+| **Adotado: classificador supervisionado (origem: disciplina de Data Science) como 3ª camada, estendido por distillation** | Treinar do zero com o dataset de 10 mil transcrições sintéticas | O grupo já possui um classificador de risco/neutro por trecho, treinado e validado (agrupamento por cliente, blindagem de vocabulário) sobre o corpus real da TOTVS numa disciplina paralela. Estendê-lo via distillation (rótulos gerados pela LLM principal para as categorias que faltam) é viável no prazo; treinar do zero com o dataset de 10 mil sintético permanece descartado pelo motivo abaixo |
+| **Descartado: treinar do zero com o dataset de 10 mil transcrições sintéticas** | — | Esse dataset específico não possui rótulo/avaliação (não há gabarito de "boa reunião" ou "isso é uma objeção"). Rotular manualmente um volume relevante é um esforço de meses, incompatível com o prazo |
+| **Rejeitado: modelo de ML genérico pré-treinado como camada intermediária de fallback** | Usar um classificador de sentimento de prateleira (ex: Hugging Face) antes do regex | Modelos genéricos pré-treinados classificam sentimento geral bem, mas não distinguem interesse/objeção/oportunidade — categorização específica do domínio de vendas B2B. Para este contrato de saída, entregaria menos estrutura que o próprio motor de regex, tornando-se um fallback pior, não melhor. Superado pela adoção do classificador próprio da disciplina de Data Science, que já resolve essa distinção |
 | Servidor Oracle da faculdade (compartilhado) | Oracle XE local via Docker | Infraestrutura já provisionada pela instituição; evita manter container local, mas introduz dependência de rede/VPN e de disponibilidade fora do controle da equipe |
 | JSON dentro de CLOB para listas de insights | Tabelas normalizadas (ex: `PONTO_INTERESSE`) | Reduz número de entidades/joins; o formato já chega pronto do serviço Python |
 
@@ -351,7 +368,8 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 | **Serviço Python fora do ar durante a apresentação** | Média | Checklist de subida dos dois serviços antes da demo; RNF06 garante que o resto da aplicação continue funcionando; ter prints/vídeo do fluxo de análise como plano B |
 | **Trabalho paralelo gerar retrabalho ou bloqueio mútuo** | Média | Divisão clara de responsabilidades (seção 8 do README); contrato acordado permite cada um trabalhar com um mock do outro lado |
 | **Alucinação da LLM** (insight inventado que o cliente nunca disse) | Média | Insights ancorados em evidência verbatim (`trecho`) — reduz a chance e permite ao consultor conferir a fonte antes de confiar na análise |
-| **As duas LLMs falharem ao mesmo tempo** (quota, mudança de API, não apenas rede) | Baixa-Média | Motor de regex como último recurso garante que a análise nunca retorna erro puro; `motorUtilizado = REGEX_FALLBACK` avisa o consultor que aquela análise foi simplificada |
+| **As duas LLMs falharem ao mesmo tempo** (quota, mudança de API, não apenas rede) | Baixa-Média | Duas camadas de segurança abaixo: modelo local, depois regex — a análise nunca retorna erro puro; `motorUtilizado` avisa o consultor quando a análise foi simplificada |
+| **Modelo local (3ª camada) generalizar mal para o domínio do produto** — foi treinado no corpus real da TOTVS, os dados de seed do app são sintéticos | Média | Validar com uma amostra dos dados de seed antes de confiar no modelo em produção; como ele só atua depois de duas LLMs falharem, um resultado abaixo do ideal aqui ainda é preferível a nenhum resultado |
 | **Latência alta com transcrições grandes** (dataset tem médias de ~100 mil caracteres, podendo chegar a ~200 mil) prejudicar a demo | Média | RNF02 revisado para até 2 minutos com loading no frontend; timeout do `RestClient` generoso; testar com uma transcrição real de tamanho grande antes da apresentação, não só com dados de seed curtos |
 | **LGPD/confidencialidade** de mandar transcrições de clientes para API de LLM de terceiros | Baixa (dataset de teste é sintético) | Não é um risco imediato porque o dataset usado é mockado, não dados reais de cliente. Documentado como ponto de atenção para uma eventual produção real — resposta preparada: a arquitetura permite trocar por modelo local (Ollama) sem alteração no Java |
 | Escopo aumentar durante o desenvolvimento | Alta | Lista de RF com MoSCoW travada; qualquer item novo vira "Won't" nesta entrega |
@@ -369,7 +387,8 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 **Serviço Python (pytest):**
 - `RegexEngine`: dado um texto de exemplo, verifica se os insights (com `trecho` de evidência) e o score saem corretos;
 - `LlmEngine`: teste com a chamada ao provedor mockada, cobrindo JSON válido, JSON malformado (deve falhar e repassar a falha ao orquestrador) e timeout;
-- `AnaliseOrchestrator`: cobrir os 3 cenários de fallback (LLM primária responde; primária falha e secundária responde; as duas falham e cai no regex), verificando se `motorUtilizado` reflete corretamente cada caso;
+- `AnaliseOrchestrator`: cobrir os cenários de fallback (LLM primária responde; primária falha e secundária responde; as duas LLMs falham e o modelo local responde; as três falham e cai no regex), verificando se `motorUtilizado` reflete corretamente cada caso;
+- `ModeloLocalEngine`: validar com uma amostra dos dados de seed do produto (domínio sintético), não só com o corpus real da TOTVS usado no treino original;
 - Endpoint `/analisar`: resposta 200 no caminho feliz e 422 para texto vazio/curto demais.
 
 **Integração e manual:**
