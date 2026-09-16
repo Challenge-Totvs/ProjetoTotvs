@@ -1,7 +1,7 @@
 # Planejamento Ágil — InsightCall
 
 **Metodologia:** Scrum adaptado para equipe de 2 pessoas, com checkpoints de aprendizado
-**Equipe:** Kelwin (backend Java, integração e frontend) + João (serviço de análise em Python)
+**Equipe:** Kelwin (backend Java, integração e frontend) + João Paulo Basta (serviço de análise em Python)
 **Início real do projeto:** 04/09/2026 | **Nova entrega/apresentação:** 15/10/2026
 **Capacidade estimada:** ~39 dias corridos, disponibilidade parecida com o início (fins de semana cheios + ~2h nos dias de semana)
 
@@ -60,32 +60,40 @@ Três mudanças estruturais em relação ao plano original:
 | Task | Responsável |
 |---|---|
 | Fechar o contrato da API entre os serviços (SDD, seção 7.2): formato do request, do response e dos erros | **Ambos** |
+| **Escolher os dois provedores de LLM** (primário e secundário, de empresas diferentes) e confirmar limites/custos da camada gratuita atual de cada um | **Ambos** |
 | Definir portas, variáveis de ambiente e como cada um roda o serviço do outro localmente | **Ambos** |
 | Criar a pasta `analise-service/` no repositório com a estrutura base e o `requirements.txt` | **Ambos** |
 
 **Por que isso vem primeiro:** com o contrato fechado, cada frente consegue trabalhar com um *mock* do outro lado, sem ficar bloqueada esperando. Sem isso, uma frente trava a outra.
 
-### Frente A — Serviço Python (João)
+### Frente A — Serviço Python (João Paulo Basta)
+
+> 🔀 **Mudança de escopo:** o motor de análise passou de "regex apenas" para "LLM como motor principal, com regex como último recurso de uma cadeia de fallback". Ver SDD, seção 7, para o desenho completo.
+
 | Task | Prioridade |
 |---|---|
 | Setup do FastAPI: venv, `requirements.txt`, `main.py` subindo com `/docs` acessível | Must |
-| Modelos Pydantic (`schemas.py`) conforme o contrato acordado | Must |
-| Engine: listas de palavras-chave por categoria (`engine/keywords.py`) | Must |
-| Engine: extração via regex de valores, prazos e entidades (`engine/extractor.py`) | Must |
-| Engine: cálculo do score de engajamento (`engine/scorer.py`) | Must |
+| Modelos Pydantic (`schemas.py`) conforme o contrato acordado (insights com `descricao`+`trecho`, `sentimentoGeral` como Enum, `recomendacaoProximosPassos`, `motorUtilizado`) | Must |
+| Escolher e configurar os dois provedores de LLM (primário e secundário), incluindo chaves de API via variável de ambiente | Must |
+| `LlmEngine`: prompt que instrui o modelo a citar `trecho` verbatim, respeitar o enum de `sentimentoGeral` e limitar `recomendacaoProximosPassos` a ~500 caracteres; usar saída estruturada do provedor + validação Pydantic | Must |
+| `AnaliseOrchestrator`: cadeia de fallback LLM primária → LLM secundária → regex, preenchendo `motorUtilizado` corretamente | Must |
+| Engine de regex (mantido como último recurso): `keywords.py`, `extractor.py` (agora também extraindo `trecho`), `scorer.py` | Must |
 | Endpoint `POST /analisar` ligando tudo (`router.py`) | Must |
-| Testes com pytest (engine + endpoint, casos de sucesso e texto vazio) | Should |
+| Testar com transcrições de tamanho real do dataset (~100-200 mil caracteres) para calibrar timeout e observar qualidade (efeito "lost in the middle") | Should |
+| Testes com pytest (engines, orquestrador, endpoint — casos de sucesso, falha de uma LLM, falha das duas) | Should |
 
 ### Frente B — Integração no backend Java (Kelwin)
 | Task | Prioridade |
 |---|---|
-| Configurar `RestClient` em `config/` com `ANALISE_SERVICE_URL` e timeout via variável de ambiente | Must |
+| Configurar `RestClient` em `config/` com `ANALISE_SERVICE_URL` e timeout via variável de ambiente (valor generoso — ver RNF02 revisado) | Must |
 | Implementar `AnaliseServiceClientStrategy` (implementa a `AnaliseStrategy` já existente) | Must |
-| `AnaliseService`: buscar transcrição, checar ownership, chamar o Python, persistir a `Analise` | Must |
-| Endpoints `POST /api/transcricoes/{id}/analisar` e `GET /api/transcricoes/{id}/analise` | Must |
+| Atualizar entidade `Analise` e DDL: colunas novas `RECOMENDACAO_PROXIMOS_PASSOS` (CLOB) e `MOTOR_UTILIZADO` (VARCHAR2) | Must |
+| Atualizar `ResultadoAnalise` (DTO): insights como lista de `ItemAnalise(descricao, trecho)`, mais `recomendacaoProximosPassos` e `motorUtilizado` | Must |
+| `AnaliseService`: buscar transcrição, checar ownership, chamar o Python, persistir a `Analise` — com lógica de **upsert** (sobrescreve se já existir análise para aquela transcrição, em vez de falhar por violar o `UNIQUE`) | Must |
+| Endpoints `POST /api/transcricoes/{id}/analisar` (serve tanto para 1ª análise quanto para reanálise) e `GET /api/transcricoes/{id}/analise` | Must |
 | Tratar falhas de comunicação (timeout, 5xx, serviço fora do ar) conforme RNF06 | Must |
 | Documentação da API com springdoc-openapi (Swagger) | Should |
-| Testes unitários com o serviço Python mockado | Should |
+| Testes unitários com o serviço Python mockado (sucesso, timeout, JSON inesperado) | Should |
 
 ### Fechamento da fase (JUNTOS)
 | Task | Prioridade |
@@ -138,6 +146,7 @@ Três mudanças estruturais em relação ao plano original:
 | Migrar de `ddl-auto=update` pra Flyway migrations | Você já tem experiência com Flyway de outros projetos — com mais tempo, é uma boa prática real pra mostrar na apresentação |
 | **Docker Compose para subir os dois serviços juntos** | Com dois runtimes, subir tudo com um comando reduz bastante o risco na hora da apresentação |
 | **Enriquecer o motor Python** (lematização, stopwords PT-BR, ou spaCy) | Frente natural de evolução agora que o motor está isolado — melhora a qualidade dos insights sem tocar no Java |
+| **Dividir transcrições muito grandes (>150 mil caracteres) em partes, processadas em paralelo pela mesma LLM, com uma chamada final de merge** | Só implementar **depois de medir**: primeiro testar a latência real de uma chamada única com uma transcrição grande do dataset; se já couber no RNF02 (até 2 min), essa divisão não é necessária. Importante: cada parte deve extrair insights com `trecho` de evidência (não resumo), e a divisão fica inteira dentro da tentativa da LLM principal — a LLM secundária continua sendo só fallback independente, nunca parceira obrigatória do pipeline |
 | RF09 — papel ADMIN vendo reuniões de todos os consultores | Estava marcado "Won't" só por causa do prazo; a base de Security já suporta isso (é adicionar uma authority + regra no SecurityFilterChain) |
 | Testes automatizados mais abrangentes (Service layer completo) | Antes só cobria Auth e a Strategy; com tempo, dá pra cobrir os CRUDs também |
 | Revisão de código geral | Reler o próprio código das Fases 1-4 com olhar crítico, sem pressa — costuma revelar entendimentos que ficaram rasos |

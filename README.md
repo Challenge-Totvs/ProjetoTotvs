@@ -21,13 +21,13 @@ Dado o prazo (10 dias) e o time reduzido, esta primeira entrega cobre:
 **Incluso:**
 - Cadastro/login de consultores com autenticação JWT;
 - Upload de transcrição (texto colado ou arquivo `.txt`) vinculada a um consultor e a uma reunião/cliente;
-- **Motor de análise em Python**, exposto como serviço REST independente, responsável por processar o texto da transcrição e devolver os insights estruturados;
-- Tela com o resultado da análise (interesse, desinteresse, oportunidades, score);
+- **Motor de análise em Python**, exposto como serviço REST independente. Usa **LLM como motor principal** (com uma segunda LLM de outro provedor como fallback), gerando insights ancorados em evidência da própria transcrição, score de engajamento e uma recomendação de próximos passos; um motor de regex é mantido como último recurso caso as duas LLMs falhem;
+- Tela com o resultado da análise (interesse, desinteresse, oportunidades, score, recomendação);
 - Listagem de reuniões/transcrições por consultor.
 
 **Fora do escopo (próximas versões):**
 - Captura automática de áudio/transcrição em tempo real (assume-se que a transcrição já chega pronta, gerada por outra ferramenta);
-- Análise via modelo de linguagem (LLM) — a primeira versão do motor é rule-based (palavras-chave + regex), com a arquitetura pronta para evoluir;
+- Modelo de Machine Learning supervisionado próprio (ver SDD, seção 8) — o dataset disponível não possui rótulo/avaliação, então essa via fica documentada como roadmap;
 - Notificações por e-mail, dashboard analítico avançado, app mobile.
 
 ## 3. Stack técnica
@@ -80,6 +80,8 @@ Detalhes completos, contrato da API entre os serviços, modelo de dados e diagra
 - **Python 3.11+** (para o serviço de análise)
 - Acesso ao servidor Oracle da faculdade (host, porta, service name, usuário e senha fornecidos pela instituição — solicitar com antecedência)
 
+> ⚠️ **Ordem de inicialização:** o `analise-service` (Python) precisa estar no ar **antes** de você disparar qualquer análise pelo backend. As demais funcionalidades (login, CRUDs, upload de transcrição) funcionam normalmente mesmo com o serviço Python desligado.
+
 ### 5.1 Banco de dados (servidor Oracle da faculdade)
 
 O projeto **não sobe um Oracle local**: ele se conecta diretamente ao servidor Oracle disponibilizado pela faculdade. Antes de rodar o backend:
@@ -87,6 +89,8 @@ O projeto **não sobe um Oracle local**: ele se conecta diretamente ao servidor 
 1. Confirmar com a faculdade/TI o host, porta, *service name* (ou SID) e as credenciais de acesso;
 2. Verificar se é necessário estar na rede da faculdade ou conectado via VPN para acessar o servidor remotamente;
 3. Preencher essas informações nas variáveis de ambiente (seção 6) antes de subir o backend.
+
+> ⚠️ Como esse servidor está fora do seu controle, valide o acesso (conexão via SQL Developer/DBeaver) o quanto antes — idealmente antes do Sprint 0 — para não perder tempo de desenvolvimento caso haja bloqueio de rede, credencial pendente ou instabilidade do servidor.
 
 ### 5.2 Backend
 
@@ -116,6 +120,8 @@ uvicorn app.main:app --reload --port 8000
 
 O serviço sobe em `http://localhost:8000`. Documentação interativa (gerada automaticamente pelo FastAPI) em `http://localhost:8000/docs`.
 
+> A pasta `.venv/` deve estar no `.gitignore` — nunca versione o ambiente virtual.
+
 ### 5.4 Frontend
 
 ```bash
@@ -135,7 +141,8 @@ Aplicação disponível em `http://localhost:5173`.
 | `JWT_SECRET` | Chave usada para assinar os tokens |
 | `JWT_EXPIRATION_MS` | Tempo de expiração do token (ex: 3600000) |
 | `ANALISE_SERVICE_URL` | URL base do serviço Python (ex: `http://localhost:8000`) |
-| `ANALISE_SERVICE_TIMEOUT_MS` | Timeout da chamada ao serviço de análise (ex: 10000) |
+| `ANALISE_SERVICE_TIMEOUT_MS` | Timeout da chamada ao serviço de análise. Generoso por causa do tamanho das transcrições (dataset chega a ~200 mil caracteres) — ex: 120000 (2 min) |
+| `ANALISE_LLM_PRINCIPAL` / `ANALISE_LLM_SECUNDARIA` | Provedor e credencial de cada LLM na cadeia de fallback (definidos no `analise-service`, não no Java) |
 
 ## 7. Estrutura de pastas
 
@@ -159,10 +166,11 @@ ProjetoTotvs/
 │   │   ├── main.py               # instancia o FastAPI e registra as rotas
 │   │   ├── schemas.py            # modelos Pydantic (contrato de entrada/saída)
 │   │   ├── router.py             # endpoint POST /analisar
-│   │   └── engine/
-│   │       ├── keywords.py       # listas de palavras-chave por categoria
-│   │       ├── extractor.py      # regex para valores, prazos e entidades
-│   │       └── scorer.py         # cálculo do score de engajamento
+│   │   ├── orchestrator.py       # cadeia de fallback: LLM principal -> LLM secundária -> regex
+│   │   └── engines/
+│   │       ├── llm_engine.py     # motor via LLM (parametrizável por provedor - usado 2x)
+│   │       └── regex_engine.py   # motor de regex, mantido como último recurso
+│   │           # (keywords.py, extractor.py, scorer.py dentro deste módulo)
 │   ├── tests/                    # pytest
 │   ├── requirements.txt
 │   └── .env.example
@@ -188,14 +196,18 @@ Exceções propositais a essa regra: `security/` fica fora do `domain` porque é
 
 ## 8. Equipe
 
-| Integrante          | Responsabilidade principal |
-|---------------------|---|
+| Integrante | Responsabilidade principal |
+|---|---|
 | Kelwin Silva Bastos | Backend Java (API, autenticação, CRUDs, persistência), integração com o serviço de análise e frontend React |
-| João Paulo Basta    | Serviço de análise em Python (FastAPI): motor de processamento de texto, extração de insights e score |
+| João Paulo Basta | Serviço de análise em Python (FastAPI): motor de processamento de texto, extração de insights e score |
+
+> ⚠️ **Preencher o nome do segundo integrante.** O contrato da API entre os dois serviços (seção 7 do SDD) é o ponto de acordo entre as duas frentes — deve ser definido em conjunto **antes** de cada um começar a desenvolver o seu lado, para permitir trabalho em paralelo sem bloqueio.
 
 ## 9. Roadmap futuro
 
-- Trocar o motor rule-based do serviço Python por um modelo de NLP/LLM real (a troca fica isolada no `analise-service`, sem impacto no backend Java);
+- Treinar um modelo de Machine Learning supervisionado próprio, uma vez que exista um conjunto de dados rotulado (ver SDD, seção 8) — reduziria custo por análise em relação a depender de LLMs em nuvem;
+- Modelo local (ex: Ollama) substituindo uma ou ambas as LLMs em nuvem, caso a confidencialidade dos dados do cliente se torne um requisito de produção;
+- Dividir transcrições muito grandes em partes processadas em paralelo, se a medição de latência mostrar necessidade (ver SDD, seção 7.5);
 - Containerizar os dois serviços (Docker Compose) para simplificar a subida do ambiente completo;
 - Processamento assíncrono de análises longas (fila/eventos);
 - Dashboard consolidado por gestor com métricas de todos os consultores;
