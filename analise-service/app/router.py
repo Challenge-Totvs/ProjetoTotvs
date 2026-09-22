@@ -8,3 +8,6 @@ router = APIRouter()
 def post_analisar(request: AnaliseRequest) -> AnaliseResponse:
     return analisar(request.conteudo)
 
+@router.get("/health")
+def get_health() -> dict:
+    return {"status": "ok"}
