@@ -3,7 +3,14 @@ import os
 from app.schemas import AnaliseResponse, MotorUtilizado
 from pydantic import ValidationError
 
-_client = Anthropic(api_key=os.environ["LLM_PRINCIPAL_API_KEY"])
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = Anthropic(api_key=os.environ["LLM_PRINCIPAL_API_KEY"])
+    return _client
+# _client = Anthropic(api_key=os.environ["LLM_PRINCIPAL_API_KEY"])
 
 def analisar(conteudo: str) -> AnaliseResponse:
     prompt = f"""Você é um analista de vendas B2B experiente, avaliando a transcrição de uma reunião comercial entre um consultor e um cliente.
@@ -40,7 +47,8 @@ Analise a transcrição e identifique:
 
     for tentativa in range(2):
         try:
-            resposta = _client.messages.create(
+            # _client.messages.create(
+            resposta = _get_client().messages.create(
                 model=os.environ["LLM_PRINCIPAL_MODEL"],
                 max_tokens=4000,
                 tools=[
