@@ -1,7 +1,7 @@
 # InsightCall — Plataforma de Transcrições e Análise de Reuniões
 
 > Projeto acadêmico — FIAP — Challenge TOTVS 2026
-> Entrega/apresentação: **14/09/2026**
+> Entrega/apresentação: **14/10/2026**
 
 ## 1. Sobre o projeto
 
@@ -16,7 +16,7 @@ O objetivo é dar ao consultor (e ao gestor comercial) uma visão rápida do que
 
 ## 2. Escopo desta entrega (MVP)
 
-Dado o prazo (10 dias) e o time reduzido, esta primeira entrega cobre:
+Esta entrega cobre:
 
 **Incluso:**
 - Cadastro/login de consultores com autenticação JWT;
@@ -27,10 +27,23 @@ Dado o prazo (10 dias) e o time reduzido, esta primeira entrega cobre:
 
 **Fora do escopo (próximas versões):**
 - Captura automática de áudio/transcrição em tempo real (assume-se que a transcrição já chega pronta, gerada por outra ferramenta);
-- Modelo de Machine Learning supervisionado próprio (ver SDD, seção 8) — o dataset disponível não possui rótulo/avaliação, então essa via fica documentada como roadmap;
+- Modelo de Machine Learning supervisionado próprio treinado do zero (ver SDD, seção 8) — o dataset disponível não possui rótulo/avaliação, então essa via fica documentada como roadmap;
 - Notificações por e-mail, dashboard analítico avançado, app mobile.
 
-## 3. Stack técnica
+## 3. Status atual (28/09/2026)
+
+| Frente | Status |
+|---|---|
+| Backend Java — Fase 1 (auth, CRUDs, JWT) | ✅ Completo |
+| Serviço Python — FastAPI, engine de 4 camadas, endpoint `/analisar`, health check | ✅ Completo (falta só teste com chave de API real, a decidir hoje pela equipe) |
+| Serviço Python — testes (pytest) | 🟡 Parcial (`modelo_local_engine` testado; `regex_engine` e `orchestrator` pendentes) |
+| Backend Java — `AnaliseServiceClientStrategy` e endpoints de análise | ⬜ Não iniciado — começa em 29/09 |
+| Frontend React | ⬜ Não iniciado — começa em 29/09, estimativa de ~3 dias |
+| Dashboard do gestor | ⬜ Condicionado ao fluxo principal estar estável até ~08/10 |
+
+Ver `docs/PLANEJAMENTO_SPRINTS.md` para o cronograma detalhado até 14/10.
+
+## 4. Stack técnica
 
 O projeto é composto por **três aplicações independentes**:
 
@@ -47,7 +60,7 @@ O projeto é composto por **três aplicações independentes**:
 | | Testes | pytest |
 | `frontend/` | Interface | React (Vite) + Axios + React Router |
 
-## 4. Arquitetura (resumo)
+## 5. Arquitetura (resumo)
 
 O sistema usa uma arquitetura de **dois serviços**: o backend Java orquestra tudo (autenticação, CRUDs, persistência) e delega **apenas o processamento de texto** para um serviço Python especializado.
 
@@ -71,7 +84,7 @@ React (SPA) ──► REST API (Spring Boot) ──► AnaliseService ──┘
 
 Detalhes completos, contrato da API entre os serviços, modelo de dados e diagramas estão no **SDD.md**.
 
-## 5. Como rodar o projeto
+## 6. Como rodar o projeto
 
 ### Pré-requisitos
 - JDK 17+
@@ -82,17 +95,17 @@ Detalhes completos, contrato da API entre os serviços, modelo de dados e diagra
 
 > ⚠️ **Ordem de inicialização:** o `analise-service` (Python) precisa estar no ar **antes** de você disparar qualquer análise pelo backend. As demais funcionalidades (login, CRUDs, upload de transcrição) funcionam normalmente mesmo com o serviço Python desligado.
 
-### 5.1 Banco de dados (servidor Oracle da faculdade)
+### 6.1 Banco de dados (servidor Oracle da faculdade)
 
 O projeto **não sobe um Oracle local**: ele se conecta diretamente ao servidor Oracle disponibilizado pela faculdade. Antes de rodar o backend:
 
 1. Confirmar com a faculdade/TI o host, porta, *service name* (ou SID) e as credenciais de acesso;
 2. Verificar se é necessário estar na rede da faculdade ou conectado via VPN para acessar o servidor remotamente;
-3. Preencher essas informações nas variáveis de ambiente (seção 6) antes de subir o backend.
+3. Preencher essas informações nas variáveis de ambiente (seção 7) antes de subir o backend.
 
-> ⚠️ Como esse servidor está fora do seu controle, valide o acesso (conexão via SQL Developer/DBeaver) o quanto antes — idealmente antes do Sprint 0 — para não perder tempo de desenvolvimento caso haja bloqueio de rede, credencial pendente ou instabilidade do servidor.
+> ⚠️ Como esse servidor está fora do seu controle, valide o acesso (conexão via SQL Developer/DBeaver) o quanto antes para não perder tempo de desenvolvimento caso haja bloqueio de rede, credencial pendente ou instabilidade do servidor.
 
-### 5.2 Backend
+### 6.2 Backend
 
 ```bash
 cd backend
@@ -103,7 +116,7 @@ mvn spring-boot:run
 
 A API sobe em `http://localhost:8080`. Documentação Swagger em `http://localhost:8080/swagger-ui.html`.
 
-### 5.3 Serviço de análise (Python)
+### 6.3 Serviço de análise (Python)
 
 ```bash
 cd analise-service
@@ -122,7 +135,7 @@ O serviço sobe em `http://localhost:8000`. Documentação interativa (gerada au
 
 > A pasta `.venv/` deve estar no `.gitignore` — nunca versione o ambiente virtual.
 
-### 5.4 Frontend
+### 6.4 Frontend
 
 ```bash
 cd frontend
@@ -132,7 +145,7 @@ npm run dev
 
 Aplicação disponível em `http://localhost:5173`.
 
-## 6. Variáveis de ambiente (backend)
+## 7. Variáveis de ambiente (backend)
 
 | Variável | Descrição |
 |---|---|
@@ -144,7 +157,7 @@ Aplicação disponível em `http://localhost:5173`.
 | `ANALISE_SERVICE_TIMEOUT_MS` | Timeout da chamada ao serviço de análise. Generoso por causa do tamanho das transcrições (dataset chega a ~200 mil caracteres) — ex: 120000 (2 min) |
 | `ANALISE_LLM_PRINCIPAL` / `ANALISE_LLM_SECUNDARIA` | Provedor e credencial de cada LLM na cadeia de fallback (definidos no `analise-service`, não no Java) |
 
-## 7. Estrutura de pastas
+## 8. Estrutura de pastas
 
 ```
 ProjetoTotvs/
@@ -165,17 +178,17 @@ ProjetoTotvs/
 │   ├── app/
 │   │   ├── main.py               # instancia o FastAPI e registra as rotas
 │   │   ├── schemas.py            # modelos Pydantic (contrato de entrada/saída)
-│   │   ├── router.py             # endpoint POST /analisar
+│   │   ├── router.py             # endpoints POST /analisar e GET /health
 │   │   ├── orchestrator.py       # cadeia de fallback: LLM principal -> LLM secundária -> modelo local -> regex
 │   │   ├── engines/
 │   │   │   ├── llm_engine.py       # motor via LLM (parametrizável por provedor - usado 2x)
 │   │   │   ├── modelo_local_engine.py  # classificador (origem: notebook de Data Science),
-│   │   │   │                           # estendido por distillation + agregação por reunião
+│   │   │   │                           # extensão por distillation adiada para a Fase 5
 │   │   │   └── regex_engine.py     # motor de regex, mantido como último recurso
 │   │   │       # (keywords.py, extractor.py, scorer.py dentro deste módulo)
 │   │   └── modelos/
 │   │       └── classificador.joblib   # modelo + vetorizador serializados, carregados na subida
-│   ├── tests/                    # pytest
+│   ├── tests/                    # pytest (modelo_local_engine testado; regex/orchestrator pendentes)
 │   ├── requirements.txt
 │   └── .env.example
 ├── frontend/
@@ -198,17 +211,18 @@ O backend organiza o código **por domínio** (`domain.consultor`, `domain.clien
 
 Exceções propositais a essa regra: `security/` fica fora do `domain` porque é infraestrutura transversal (autenticação), não uma regra de negócio de um domínio específico; `config/` e `exception/` seguem a mesma lógica, por serem configuração/tratamento cross-cutting, não específicos de um recurso.
 
-## 8. Equipe
+## 9. Equipe
 
 | Integrante | Responsabilidade principal |
 |---|---|
 | Kelwin Silva Bastos | Backend Java (API, autenticação, CRUDs, persistência), integração com o serviço de análise e frontend React |
-| *João Paulo Basta* | Serviço de análise em Python (FastAPI): motor de processamento de texto, extração de insights e score |
+| João Paulo Basta | Serviço de análise em Python (FastAPI): motor de processamento de texto, extração de insights e score |
 
-> O contrato da API entre os dois serviços (seção 7 do SDD) é o ponto de acordo entre as duas frentes — deve ser definido em conjunto **antes** de cada um começar a desenvolver o seu lado, para permitir trabalho em paralelo sem bloqueio.
+> O contrato da API entre os dois serviços (seção 7 do SDD) é o ponto de acordo entre as duas frentes — foi definido em conjunto antes de cada um começar a desenvolver o seu lado, permitindo trabalho em paralelo sem bloqueio (card "PASSO 0" no Trello).
 
-## 9. Roadmap futuro
+## 10. Roadmap futuro
 
+- Extensão por distillation do classificador local (categorias interesse/oportunidade) e agregação por reunião — descrita no SDD, seção 7.3, adiada para depois da entrega principal;
 - **Fine-tuning de um modelo generativo local** (LoRA/QLoRA), para substituir o classificador discriminativo da 3ª camada por algo capaz de gerar `recomendacaoProximosPassos` mesmo no fallback — tratado como experimento paralelo de aprendizado, condicionado a um protótipo funcionar a tempo (ver SDD, seção 7.5);
 - Modelo local (ex: Ollama) substituindo uma ou ambas as LLMs em nuvem, caso a confidencialidade dos dados do cliente se torne um requisito de produção;
 - Dividir transcrições muito grandes em partes processadas em paralelo, se a medição de latência mostrar necessidade (ver SDD, seção 7.5);

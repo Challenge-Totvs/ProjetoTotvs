@@ -2,7 +2,7 @@
 
 **Versão:** 1.0
 **Autor:** Kelwin Silva Bastos
-**Data:** 04/09/2026
+**Data:** 04/09/2026 (última revisão de cronograma: 28/09/2026)
 **Contexto:** Challenge TOTVS 2026 — FIAP
 
 ---
@@ -18,7 +18,7 @@ Consultores realizam diversas reuniões com clientes e, hoje, a transcrição de
 ### 1.3 Restrições do projeto
 | Restrição | Impacto no design |
 |---|---|
-| Prazo até 15/10/2026, 2 desenvolvedores | Permite paralelizar backend Java e motor Python, desde que o contrato entre eles seja acordado cedo |
+| Prazo até 14/10/2026, 2 desenvolvedores | Permite paralelizar backend Java e motor Python, desde que o contrato entre eles seja acordado cedo |
 | Stack: Spring Boot, Spring Data, JWT, Oracle, React + Python/FastAPI | Dois runtimes distintos para subir e manter |
 | Banco Oracle compartilhado da faculdade | Depende de rede/VPN da instituição; fora do controle da equipe |
 | Apresentação para a TOTVS | Precisa de uma demo estável, com os **dois serviços** no ar simultaneamente |
@@ -233,6 +233,8 @@ Motor de regex (último recurso, sempre disponível, sem dependência externa)
 
 **Por que o modelo local entra como 3ª camada, não como principal:** ele é originado do notebook de Machine Learning supervisionado da equipe (disciplina de Data Science, ver seção 8), que resolve uma fração do contrato — hoje classifica risco/neutro por trecho. Estendido por distillation (rótulos gerados pela LLM principal, usados para treinar mais dois classificadores) mais uma etapa de agregação por reunião, ele passa a cobrir `pontosInteresse`, `pontosDesinteresse`, `oportunidadesVenda`, `scoreEngajamento` e `sentimentoGeral` — mas nunca `recomendacaoProximosPassos`, que exige um modelo generativo, não um classificador discriminativo. Além disso, foi treinado no corpus real e anonimizado da TOTVS (disciplina de Data Science), um domínio diferente dos dados sintéticos do produto — validar com uma amostra dos dados de seed antes de confiar nele em produção.
 
+> **Status em 28/09/2026:** o `modelo_local_engine.py` está implementado e testado (2 testes unitários). Foi identificada uma limitação real: classifica bem insatisfação forte/cancelamento, mas tem ponto cego para objeção de preço e desengajamento leve (probabilidades baixas nesses casos em testes manuais). Decisão da equipe: aceitar por ora e revisitar apenas depois de todo o restante do projeto estar pronto.
+
 **Por que o regex nunca foi descartado:** ele é a única camada 100% local e sem qualquer dependência de modelo treinado ou API externa — a rede de segurança final para a demonstração nunca falhar por completo.
 
 ### 7.2 Contrato da API entre os serviços
@@ -303,6 +305,8 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 - **Atenção ao efeito "lost in the middle":** modelos de linguagem perdem precisão para informação no meio de contextos muito longos, mesmo dentro do limite técnico da janela de contexto. Como o dataset tem transcrições na casa de 100-200 mil caracteres, isso é um risco real de qualidade a observar durante os testes — não apenas um problema de limite técnico;
 - `ANALISE_SERVICE_TIMEOUT_MS` deve ser generoso (ver RNF02) por causa do volume de texto processado por chamada.
 
+> **Status em 28/09/2026:** `llm_engine.py` implementado, unificando Anthropic e OpenAI num único módulo parametrizado por `provider`, com cache de client, retry de 2 tentativas cobrindo exceções das duas SDKs, e o prompt com a defesa anti-prompt-injection (`<transcricao>` como dado, nunca instrução) e a rubrica de score (0-20/21-50/51-80/81-100). Testado com chave inválida para confirmar o dispatch correto entre provedores. Falta o teste com chave real — depende da decisão de orçamento da equipe (28/09).
+
 **Modelo de classificação local (3ª camada) — origem no notebook de Data Science da equipe:**
 - Ponto de partida: classificador risco/neutro por trecho (TF-IDF + Logistic Regression, com validação agrupada por cliente), já treinado e avaliado pela disciplina de Data Science sobre o corpus real anonimizado da TOTVS;
 - **Extensão por distillation:** a LLM principal rotula um lote de trechos como interesse/não-interesse e oportunidade/não-oportunidade; esses rótulos treinam dois classificadores adicionais, no mesmo padrão do classificador de risco já existente;
@@ -311,6 +315,8 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 - `recomendacaoProximosPassos` sempre `null` nesta camada — classificadores discriminativos não geram texto novo;
 - **Risco de domínio, documentado na seção 9:** o modelo foi treinado no corpus real da TOTVS (Customer Success), diferente do domínio sintético dos dados de seed do produto. Validar com uma amostra dos dados reais do app antes de confiar nele em produção;
 - Modelo e vetorizador (`TfidfVectorizer` + classificadores) serializados via `joblib` e carregados uma vez na subida do serviço, não a cada requisição.
+
+> **Status em 28/09/2026:** a extensão por distillation (interesse/oportunidade) descrita acima **ainda não foi implementada** — fica adiada para a Fase 5 (buffer/stretch), sem prejuízo à entrega. O que está pronto e commitado é a camada original (classificador de risco/neutro por trecho), já integrada na cadeia de 4 camadas com sua limitação documentada acima.
 
 **Motor de último recurso (regex) — mantido da v1:**
 - Listas de palavras-chave (PT-BR) por categoria em `engine/keywords.py`;
@@ -322,6 +328,8 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 - `AnaliseOrchestrator` tenta LLM primária → LLM secundária → modelo local → regex, nessa ordem, avançando a cada falha;
 - Preenche `motorUtilizado` com a camada que efetivamente respondeu.
 
+> **Status em 28/09/2026:** `orchestrator.py` implementado com uma lista de engines (`functools.partial` para as duas variantes de LLM) percorrida em ordem, testado ponta a ponta sem chaves reais (cai corretamente até `MODELO_LOCAL`).
+
 ### 7.4 Implementação do cliente (Java)
 
 - `AnaliseServiceClientStrategy` implementa `AnaliseStrategy`, inalterada em sua função — chama o serviço Python e converte a resposta para `ResultadoAnalise`;
@@ -329,11 +337,13 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 - **Suporte a reanálise:** ao disparar a análise para uma transcrição que já possui um resultado (por exemplo, a primeira tentativa caiu no fallback de regex ou do modelo local), o `AnaliseService` faz um *upsert* — busca a `Analise` existente e atualiza seus campos, em vez de tentar inserir um novo registro. Isso preserva a relação 1:1 já modelada (`UNIQUE` em `TRANSCRICAO_ID`) sem exigir migração de schema; o histórico de tentativas anteriores não é mantido, apenas o resultado mais recente;
 - Timeout do `RestClient` elevado para acomodar o RNF02 revisado.
 
+> **Status em 28/09/2026: não iniciado.** É a próxima frente — começa em 29/09, na mesma máquina que será usada na apresentação.
+
 ### 7.5 Extensibilidade futura
 
 - Trocar o provedor de LLM (ou adicionar um terceiro na cadeia) exige apenas configuração, sem alteração de código;
 - Um modelo local (ex: via Ollama) pode substituir uma ou ambas as LLMs em nuvem, caso a confidencialidade dos dados do cliente se torne um requisito de produção — ver discussão de LGPD na seção 9;
-- **Fine-tuning de um modelo generativo local (LoRA/QLoRA) para substituir o classificador discriminativo da 3ª camada** — geraria também `recomendacaoProximosPassos` no fallback, algo que nenhum classificador consegue fazer. Tratado como **experimento paralelo de aprendizado**, fora do caminho crítico da Fase 2: só entra na arquitetura de fato se um protótipo pequeno (100-200 exemplos, gerados por distillation da LLM principal, modelo base pequeno tipo Llama 3.x 1B-3B) mostrar resultado bom a tempo. Caso contrário, permanece documentado aqui como próximo passo, sem prejuízo à entrega da Fase 2 com a versão de 4 camadas já especificada;
+- **Fine-tuning de um modelo generativo local (LoRA/QLoRA) para substituir o classificador discriminativo da 3ª camada** — geraria também `recomendacaoProximosPassos` no fallback, algo que nenhum classificador consegue fazer. Tratado como **experimento paralelo de aprendizado**, fora do caminho crítico da entrega: só entra na arquitetura de fato se um protótipo pequeno (100-200 exemplos, gerados por distillation da LLM principal, modelo base pequeno tipo Llama 3.x 1B-3B) mostrar resultado bom a tempo. Caso contrário, permanece documentado aqui como próximo passo, sem prejuízo à entrega principal com a versão de 4 camadas já especificada;
 - **Processamento em partes (map-reduce) para transcrições muito grandes** (o dataset chega a ~200 mil caracteres): dividir o texto em partes, extrair insights de cada uma em paralelo (mantendo o `trecho` de evidência em cada parte — nunca resumir antes de extrair, sob risco de perder a citação verbatim) e fazer uma chamada final de consolidação. Esse pipeline inteiro continua sendo uma única tentativa da LLM primária; a LLM secundária permanece como fallback independente, nunca como etapa obrigatória do processamento. Só vale implementar se a medição de latência de uma chamada única mostrar necessidade real — ver stretch goal na Fase 5 do planejamento.
 
 ## 8. Decisões técnicas e trade-offs
@@ -369,11 +379,11 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 | **Trabalho paralelo gerar retrabalho ou bloqueio mútuo** | Média | Divisão clara de responsabilidades (seção 8 do README); contrato acordado permite cada um trabalhar com um mock do outro lado |
 | **Alucinação da LLM** (insight inventado que o cliente nunca disse) | Média | Insights ancorados em evidência verbatim (`trecho`) — reduz a chance e permite ao consultor conferir a fonte antes de confiar na análise |
 | **As duas LLMs falharem ao mesmo tempo** (quota, mudança de API, não apenas rede) | Baixa-Média | Duas camadas de segurança abaixo: modelo local, depois regex — a análise nunca retorna erro puro; `motorUtilizado` avisa o consultor quando a análise foi simplificada |
-| **Modelo local (3ª camada) generalizar mal para o domínio do produto** — foi treinado no corpus real da TOTVS, os dados de seed do app são sintéticos | Média | Validar com uma amostra dos dados de seed antes de confiar no modelo em produção; como ele só atua depois de duas LLMs falharem, um resultado abaixo do ideal aqui ainda é preferível a nenhum resultado |
+| **Modelo local (3ª camada) generalizar mal para o domínio do produto** — foi treinado no corpus real da TOTVS, os dados de seed do app são sintéticos | Média | Validar com uma amostra dos dados de seed antes de confiar no modelo em produção; como ele só atua depois de duas LLMs falharem, um resultado abaixo do ideal aqui ainda é preferível a nenhum resultado. **Confirmado em 28/09:** ponto cego real para objeção de preço/desengajamento leve — aceito por ora, revisitar só depois do resto pronto |
 | **Latência alta com transcrições grandes** (dataset tem médias de ~100 mil caracteres, podendo chegar a ~200 mil) prejudicar a demo | Média | RNF02 revisado para até 2 minutos com loading no frontend; timeout do `RestClient` generoso; testar com uma transcrição real de tamanho grande antes da apresentação, não só com dados de seed curtos |
 | **LGPD/confidencialidade** de mandar transcrições de clientes para API de LLM de terceiros | Baixa (dataset de teste é sintético) | Não é um risco imediato porque o dataset usado é mockado, não dados reais de cliente. Documentado como ponto de atenção para uma eventual produção real — resposta preparada: a arquitetura permite trocar por modelo local (Ollama) sem alteração no Java |
 | Escopo aumentar durante o desenvolvimento | Alta | Lista de RF com MoSCoW travada; qualquer item novo vira "Won't" nesta entrega |
-| Falta de tempo para o frontend | Média | Frontend com no máximo 4 telas (login, reuniões, upload, resultado da análise) |
+| Falta de tempo para o frontend | **Alta — já concretizado**: a janela original (21-27/09) passou sem o frontend ter começado | Frontend com no máximo 4-5 telas, comprimido para 02-09/10, começando junto com o Java em 29/09 na máquina que será usada na apresentação |
 
 ---
 
@@ -391,9 +401,11 @@ Ponto de acordo entre as duas frentes de trabalho. Alterações exigem alinhamen
 - `ModeloLocalEngine`: validar com uma amostra dos dados de seed do produto (domínio sintético), não só com o corpus real da TOTVS usado no treino original;
 - Endpoint `/analisar`: resposta 200 no caminho feliz e 422 para texto vazio/curto demais.
 
+> **Status em 28/09/2026:** `ModeloLocalEngine` testado (2 testes unitários, com `conftest.py` na raiz do serviço). `RegexEngine` e `AnaliseOrchestrator` ainda sem suíte de testes própria — adiado para a Fase 5, não bloqueia a entrega principal.
+
 **Integração e manual:**
 - Teste de ponta a ponta com os **dois serviços no ar**: upload de transcrição → disparo da análise → resultado persistido no Oracle;
 - **Teste com transcrição de tamanho real** (~100-200 mil caracteres, não só os dados de seed curtos) para validar o RNF02 revisado e o timeout configurado;
 - Teste de reanálise: disparar a análise duas vezes para a mesma transcrição e confirmar que o segundo resultado sobrescreve o primeiro (upsert), sem violar a constraint `UNIQUE` em `TRANSCRICAO_ID`;
 - Testes manuais via Swagger (Java, porta 8080) e `/docs` (Python, porta 8000);
-- Roteiro de demonstração com dados de *seed* (2–3 transcrições de exemplo já cadastradas) para garantir uma apresentação estável em 15/10.
+- Roteiro de demonstração com dados de *seed* (2–3 transcrições de exemplo já cadastradas) para garantir uma apresentação estável em **14/10**.
