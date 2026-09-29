@@ -1,4 +1,7 @@
 package com.challengetotvs.api.domain.analise;
 
-public class ItemAnalise {
+public record ItemAnalise (
+        String descricao,
+        String trecho
+){
 }
