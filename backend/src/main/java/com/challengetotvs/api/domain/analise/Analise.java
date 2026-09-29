@@ -28,12 +28,17 @@ public class Analise {
     @Column(nullable = false)
     private int scoreEngajamento;
 
-    private String sentimentoGeral;
+    @Enumerated(EnumType.STRING)
+    private SentimentoGeral sentimentoGeral;
     @Column(nullable = false)
     private LocalDateTime criadoEm;
+    @Lob
+    private String recomendacaoProximosPassos;
+    @Enumerated(EnumType.STRING)
+    private MotorUtilizado motorUtilizado;
 
     @Builder
-    public Analise(Transcricao transcricao, String pontosInteresse, String pontosDesinteresse, String oportunidadesVenda, int scoreEngajamento, String sentimentoGeral){
+    public Analise(Transcricao transcricao, String pontosInteresse, String pontosDesinteresse, String oportunidadesVenda, int scoreEngajamento, SentimentoGeral sentimentoGeral, String recomendacaoProximosPassos, MotorUtilizado motorUtilizado){
         this.transcricao = transcricao;
         this.pontosInteresse = pontosInteresse;
         this.pontosDesinteresse = pontosDesinteresse;
@@ -41,5 +46,7 @@ public class Analise {
         this.scoreEngajamento = scoreEngajamento;
         this.sentimentoGeral = sentimentoGeral;
         this.criadoEm = LocalDateTime.now();
+        this.recomendacaoProximosPassos = recomendacaoProximosPassos;
+        this.motorUtilizado = motorUtilizado;
     }
 }
