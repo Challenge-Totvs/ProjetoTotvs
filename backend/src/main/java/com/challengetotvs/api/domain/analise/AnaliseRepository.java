@@ -6,5 +6,5 @@ import java.util.Optional;
 
 
 public interface AnaliseRepository extends JpaRepository<Analise, Long>{
-    Optional<Analise> findByTranscricaoId(Long id);
+    Optional<Analise> findByTranscricaoId(Long transcricaoId);
 }
