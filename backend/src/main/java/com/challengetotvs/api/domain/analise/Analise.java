@@ -49,4 +49,16 @@ public class Analise {
         this.recomendacaoProximosPassos = recomendacaoProximosPassos;
         this.motorUtilizado = motorUtilizado;
     }
+
+    public void atualizar(String pontosInteresse, String pontosDesinteresse, String oportunidadesVenda,
+                          int scoreEngajamento, SentimentoGeral sentimentoGeral,
+                          String recomendacaoProximosPassos, MotorUtilizado motorUtilizado) {
+        this.pontosInteresse = pontosInteresse;
+        this.pontosDesinteresse = pontosDesinteresse;
+        this.oportunidadesVenda = oportunidadesVenda;
+        this.scoreEngajamento = scoreEngajamento;
+        this.sentimentoGeral = sentimentoGeral;
+        this.recomendacaoProximosPassos = recomendacaoProximosPassos;
+        this.motorUtilizado = motorUtilizado;
+    }
 }
