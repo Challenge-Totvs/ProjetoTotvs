@@ -1,5 +1,6 @@
 package com.challengetotvs.api.domain.analise;
 
+import tools.jackson.core.type.TypeReference;
 import com.challengetotvs.api.domain.consultor.Consultor;
 import com.challengetotvs.api.domain.transcricao.TranscricaoRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -7,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -53,5 +55,30 @@ public class AnaliseService {
         }
 
         return resultado;
+    }
+
+    public ResultadoAnalise buscar(Long transcricaoId, Consultor consultor) {
+        var transcricao = transcricaoRepository.findById(transcricaoId)
+                .orElseThrow(() -> new EntityNotFoundException("Transcrição não encontrada"));
+
+        if (!transcricao.getReuniao().pertenceA(consultor)) {
+            throw new AccessDeniedException("Você não tem permissão para acessar essa transcrição!");
+        }
+
+        var analise = analiseRepository.findByTranscricaoId(transcricaoId)
+                .orElseThrow(() -> new EntityNotFoundException("Análise não encontrada"));
+
+        return new ResultadoAnalise(
+                paraLista(analise.getPontosInteresse()),
+                paraLista(analise.getPontosDesinteresse()),
+                paraLista(analise.getOportunidadesVenda()),
+                analise.getScoreEngajamento(),
+                analise.getSentimentoGeral(),
+                analise.getRecomendacaoProximosPassos(),
+                analise.getMotorUtilizado());
+    }
+
+    private List<ItemAnalise> paraLista(String json) {
+        return objectMapper.readValue(json, new TypeReference<List<ItemAnalise>>() {});
     }
 }
