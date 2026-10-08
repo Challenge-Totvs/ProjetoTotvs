@@ -24,7 +24,8 @@ export default function CadastroPage() {
         try {
             await registrar(nome, email, senha)
             navigate('/login', { state: { cadastroOk: true } })
-        } catch {
+        } catch (err) {
+            console.error(err)
             setErro('Não foi possível concluir o cadastro. Verifique os dados e tente novamente.')
         } finally {
             setCarregando(false)
