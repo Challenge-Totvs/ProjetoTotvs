@@ -1,14 +1,117 @@
 @import "tailwindcss";
 
+/* Tokens aprovados da interface (mesmos valores da demo InsightCallApp.jsx).
+   Cada cor vira uma classe do Tailwind: text-ink, bg-nevoa, border-linha etc. */
 @theme {
-  --color-brand-navy: #002233;
-  --color-brand-cyan: #00d4ff;
-  --color-brand-cyan-hover: #00bfe8;
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-ink: #002233;
+  --color-ardosia: #5a6b75;
+  --color-faint: #78909c;
+  --color-linha: #e1e7eb;
+  --color-linha-forte: #c9d3d9;
+  --color-nevoa: #f5f7f9;
+  --color-branco: #ffffff;
+  --color-hover: #eef2f5;
+
+  --color-sinal: #00dbff;
+  --color-sinal-hover: #4de5ff;
+  --color-sinal-texto: #007399;
+  --color-sinal-fundo: #def7ff;
+  --color-sinal-borda: #b6ecf8;
+
+  --color-critico: #c8322b;
+  --color-critico-fundo: #fcebea;
+  --color-critico-borda: #f2c9c6;
+
+  --color-atencao: #8c5c08;
+  --color-atencao-fundo: #fff2db;
+  --color-atencao-borda: #f0d9a8;
+
+  --color-resolvido: #0d8c73;
+  --color-resolvido-fundo: #e0f7f0;
+  --color-resolvido-borda: #bce8da;
+
+  /* Cores auxiliares usadas em pontos específicos da interface */
+  --color-oport-aberta: #c27c0e;
+  --color-fala-cliente: #9fb3be;
+  --color-marca-texto: #b7c6cf;
+  --color-primario-hover: #0b3346;
+  --color-citado: #fafbfc;
+  --color-toast-erro: #ffb4ae;
+  --color-toast-ok: #7fe3c9;
+  --color-toast-fechar: #8fa6b2;
+
+  /* Na demo o tamanho do texto não muda a altura de linha (ela vem do elemento pai);
+     os tamanhos de texto do Tailwind seguem a mesma regra. */
+  --text-xs--line-height: inherit;
+  --text-sm--line-height: inherit;
+  --text-base--line-height: inherit;
+  --text-lg--line-height: inherit;
+
+  --animate-giro: giro 0.8s linear infinite;
+
+  @keyframes giro {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }
 
 @layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+  /* O tamanho base de 14px fica no body: o html mantém 16px, que é a base das medidas em rem do Tailwind. */
+  html {
+    line-height: normal;
   }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-ink);
+    background: var(--color-branco);
+    -webkit-font-smoothing: antialiased;
+    color-scheme: light;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  input,
+  textarea,
+  select {
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-sinal-texto);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-giro {
+      animation-duration: 2.4s;
+    }
+  }
+}
+
+/* Seta desenhada do <select>, igual à da demo (não existe utilitário pronto para isso). */
+@utility seta-select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-ardosia) 50%),
+    linear-gradient(135deg, var(--color-ardosia) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 13px,
+    calc(100% - 10px) 13px;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
 }
