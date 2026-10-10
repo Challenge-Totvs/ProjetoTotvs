@@ -1,10 +1,12 @@
 package com.challengetotvs.api.domain.cliente;
 
+import com.challengetotvs.api.domain.consultor.Consultor;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -12,45 +14,36 @@ public class ClienteService {
 
     private final ClienteRepository repository;
 
-    public ClienteResponse criar(ClienteRequest request){
-        var cliente = new Cliente(
-                request.nome(),
-                request.empresa(),
-                request.segmento()
-        );
+    @Transactional
+    public ClienteResponse criar(ClienteRequest request, Consultor vendedor) {
+        var cliente = new Cliente(request.nome().trim(), request.tipo(), request.segmento(), vendedor);
+        cliente.adicionarContato(request.contato().nome().trim(), request.contato().cargo().trim());
         repository.save(cliente);
         return ClienteResponse.from(cliente);
-
     }
 
-    public Page<ClienteResponse> listar(Pageable pagination){
-        return repository.findAll(pagination).map(ClienteResponse::from);
+    @Transactional(readOnly = true) // mantém a sessão aberta para ler vendedor e contatos ao montar a resposta
+    public List<ClienteResponse> listar(Consultor usuario) {
+        var clientes = ehGestor(usuario)
+                ? repository.findByVendedorIsNotNullOrderByNomeAsc()
+                : repository.findByVendedorOrderByNomeAsc(usuario);
+        return clientes.stream().map(ClienteResponse::from).toList();
     }
 
-    public ClienteResponse listarPorId(Long id){
+    @Transactional(readOnly = true)
+    public ClienteResponse buscar(Long id, Consultor usuario) {
         return repository.findById(id)
+                .filter(c -> podeVer(c, usuario))
                 .map(ClienteResponse::from)
-                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado!" + id));
-
+                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado"));
     }
 
-    public ClienteResponse atualizar(ClienteRequest request, Long id){
-        var cliente = repository.findById(id)
-                                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado"));
-
-        cliente.setNome(request.nome());
-        cliente.setEmpresa(request.empresa());
-        cliente.setSegmento(request.segmento());
-
-        repository.save(cliente);
-        return ClienteResponse.from(cliente);
-
+    private boolean ehGestor(Consultor usuario) {
+        return "GESTOR".equals(usuario.getRole());
     }
 
-    public void excluir(Long id){
-        if(!repository.existsById(id)){
-            throw new EntityNotFoundException("Cliente não encontrado!" + id);
-        }
-        repository.deleteById(id);
+    private boolean podeVer(Cliente cliente, Consultor usuario) {
+        if (ehGestor(usuario)) return true;
+        return cliente.getVendedor() != null && cliente.getVendedor().getId().equals(usuario.getId());
     }
 }

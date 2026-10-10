@@ -1,13 +1,14 @@
 package com.challengetotvs.api.domain.cliente;
 
+import com.challengetotvs.api.security.ConsultorUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -17,32 +18,20 @@ public class ClienteController {
     private final ClienteService service;
 
     @PostMapping
-    public ResponseEntity<Void> criar(@RequestBody @Valid ClienteRequest request){
-        service.criar(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<ClienteResponse> criar(@RequestBody @Valid ClienteRequest request,
+                                                 @AuthenticationPrincipal ConsultorUserDetails logado) {
+        var criado = service.criar(request, logado.getConsultor());
+        return ResponseEntity.status(HttpStatus.CREATED).body(criado);
     }
 
     @GetMapping
-    public ResponseEntity<Page<ClienteResponse>> listarTodos(@PageableDefault(size = 10, sort = {"nome"})Pageable pagination){
-        var cliente = service.listar(pagination);
-        return ResponseEntity.ok(cliente);
+    public ResponseEntity<List<ClienteResponse>> listar(@AuthenticationPrincipal ConsultorUserDetails logado) {
+        return ResponseEntity.ok(service.listar(logado.getConsultor()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClienteResponse> listarID(@PathVariable Long id){
-        var cliente = service.listarPorId(id);
-        return ResponseEntity.ok(cliente);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ClienteResponse> atualizar(@RequestBody @Valid ClienteRequest request,@PathVariable Long id){
-        var cliente = service.atualizar(request, id);
-        return ResponseEntity.ok(cliente);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id){
-        service.excluir(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    public ResponseEntity<ClienteResponse> buscar(@PathVariable Long id,
+                                                  @AuthenticationPrincipal ConsultorUserDetails logado) {
+        return ResponseEntity.ok(service.buscar(id, logado.getConsultor()));
     }
 }
