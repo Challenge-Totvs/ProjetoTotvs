@@ -1,38 +1,83 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
-import { TOKEN_KEY } from '../api/http'
-import * as authApi from '../api/auth'
+/* Sessão: guarda o token e o usuário logado (GET /api/me). */
+
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import * as authApi from "../api/auth";
+import * as convitesApi from "../api/convites";
+import { SESSAO_EXPIRADA_KEY, TOKEN_KEY } from "../api/http";
+import type { RegisterRequest, Usuario } from "../types/api";
 
 interface AuthContextData {
-    isAuthenticated: boolean
-    login: (email: string, senha: string) => Promise<void>
-    logout: () => void
+  usuario: Usuario | null;
+  /** true enquanto confere o token salvo, na abertura da aplicação. */
+  carregando: boolean;
+  entrar: (email: string, senha: string) => Promise<Usuario>;
+  cadastrar: (dados: RegisterRequest) => Promise<Usuario>;
+  /** Aceita um convite: cria o acesso com nome e senha e já entra. */
+  aceitarConvite: (token: string, nome: string, senha: string) => Promise<Usuario>;
+  sair: () => void;
 }
 
-const AuthContext = createContext<AuthContextData | null>(null)
+const AuthContext = createContext<AuthContextData | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [carregando, setCarregando] = useState(() => !!localStorage.getItem(TOKEN_KEY));
 
-    async function login(email: string, senha: string) {
-        const { token } = await authApi.login(email, senha)
-        localStorage.setItem(TOKEN_KEY, token)
-        setToken(token)
-    }
+  // Ao abrir a aplicação com um token salvo, busca quem é o usuário.
+  useEffect(() => {
+    if (!localStorage.getItem(TOKEN_KEY)) return;
+    authApi
+      .buscarMe()
+      .then(setUsuario)
+      .catch(() => localStorage.removeItem(TOKEN_KEY))
+      .finally(() => setCarregando(false));
+  }, []);
 
-    function logout() {
-        localStorage.removeItem(TOKEN_KEY)
-        setToken(null)
-    }
+  /** Grava o token e carrega o usuário (usa o que veio no login, se veio). */
+  const iniciarSessao = useCallback(async (token: string, veio?: Usuario) => {
+    localStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.removeItem(SESSAO_EXPIRADA_KEY);
+    const u = veio ?? (await authApi.buscarMe());
+    setUsuario(u);
+    return u;
+  }, []);
 
-    return (
-        <AuthContext.Provider value={{ isAuthenticated: !!token, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    )
+  const entrar = useCallback(
+    async (email: string, senha: string) => {
+      const resp = await authApi.login(email, senha);
+      return iniciarSessao(resp.token, resp.usuario);
+    },
+    [iniciarSessao],
+  );
+
+  const cadastrar = useCallback(
+    async (dados: RegisterRequest) => {
+      const resp = await authApi.registrar(dados);
+      if (resp?.token) return iniciarSessao(resp.token, resp.usuario);
+      // Backend que ainda não devolve token no cadastro: entra com login logo em seguida.
+      return entrar(dados.email, dados.senha);
+    },
+    [iniciarSessao, entrar],
+  );
+
+  const aceitarConvite = useCallback(
+    async (token: string, nome: string, senha: string) => {
+      const resp = await convitesApi.aceitarConvite(token, nome, senha);
+      return iniciarSessao(resp.token, resp.usuario);
+    },
+    [iniciarSessao],
+  );
+
+  const sair = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    setUsuario(null);
+  }, []);
+
+  return <AuthContext.Provider value={{ usuario, carregando, entrar, cadastrar, aceitarConvite, sair }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-    const ctx = useContext(AuthContext)
-    if (!ctx) throw new Error('useAuth deve ser usado dentro de AuthProvider')
-    return ctx
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth deve ser usado dentro de AuthProvider");
+  return ctx;
 }
