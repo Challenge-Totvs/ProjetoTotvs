@@ -52,6 +52,6 @@ public class AuthService {
 
         var token = jwtProvider.generateToken(consultor.getEmail(), consultor.getRole());
 
-        return new AuthResponse(token);
+        return new AuthResponse(token, UsuarioResponse.de(consultor));
     }
 }
