@@ -23,10 +23,9 @@ public class ReuniaoController {
     private final TranscricaoService transcricaoService;
 
     @PostMapping
-    public ResponseEntity<Void> criar(@RequestBody @Valid ReuniaoRequest request, @AuthenticationPrincipal ConsultorUserDetails userDetails){
-        var consultor = userDetails.getConsultor();
-        service.criar(request, consultor);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<ReuniaoResponse> criar(@RequestBody @Valid ReuniaoRequest request, @AuthenticationPrincipal ConsultorUserDetails userDetails){
+        var criada = service.criar(request, userDetails.getConsultor());
+        return ResponseEntity.status(HttpStatus.CREATED).body(criada);
     }
 
     @GetMapping
@@ -40,13 +39,6 @@ public class ReuniaoController {
     public ResponseEntity<ReuniaoResponse> listarPorId(@PathVariable Long id, @AuthenticationPrincipal ConsultorUserDetails userDetails) {
         var consultor = userDetails.getConsultor();
         var reuniao = service.listarPorId(id, consultor);
-        return ResponseEntity.ok(reuniao);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ReuniaoResponse> atualizar(@PathVariable Long id, @RequestBody @Valid ReuniaoRequest request, @AuthenticationPrincipal ConsultorUserDetails userDetails){
-        var consultor = userDetails.getConsultor();
-        var reuniao = service.atualizar(request, consultor, id);
         return ResponseEntity.ok(reuniao);
     }
 

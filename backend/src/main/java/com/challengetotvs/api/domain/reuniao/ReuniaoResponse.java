@@ -1,27 +1,30 @@
 package com.challengetotvs.api.domain.reuniao;
 
-import com.challengetotvs.api.domain.cliente.Cliente;
-import com.challengetotvs.api.domain.cliente.ClienteResponse;
-import com.challengetotvs.api.domain.consultor.Consultor;
-
 import java.time.LocalDateTime;
 
 public record ReuniaoResponse(
         Long id,
+        Long clienteId,
         String cliente,
-        LocalDateTime dataHora,
         String titulo,
-        StatusReuniao status
+        LocalDateTime dataHora,
+        Integer duracaoMin,
+        StatusReuniao status,
+        boolean confirmada,
+        String contato
 ) {
 
-    public static ReuniaoResponse from (Reuniao reuniao){
+    public static ReuniaoResponse from(Reuniao reuniao) {
         return new ReuniaoResponse(
                 reuniao.getId(),
+                reuniao.getCliente().getId(),
                 reuniao.getCliente().getNome(),
-                reuniao.getDataHora(),
                 reuniao.getTitulo(),
-                reuniao.getStatus()
+                reuniao.getDataHora(),
+                reuniao.getDuracaoMin(),
+                reuniao.getStatus(),
+                reuniao.foiConfirmada(),
+                reuniao.getContato() == null ? null : reuniao.getContato().getNome()
         );
-
     }
 }
