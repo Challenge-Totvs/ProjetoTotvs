@@ -10,6 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.challengetotvs.api.exception.ApiException;
+import org.springframework.http.HttpStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +24,7 @@ public class AuthService {
 
     public void register(RegisterRequest request){
          if(repository.findByEmail(request.email()).isPresent()){
-             throw new IllegalArgumentException("Email já está cadastrado");
+             throw new ApiException(HttpStatus.CONFLICT, "email_em_uso", "Já existe uma conta com este e-mail.");
          }
 
         var senha = passwordEncoder.encode(request.senha());
