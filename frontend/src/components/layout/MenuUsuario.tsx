@@ -25,7 +25,7 @@ export function MenuUsuario({ onSair }: { onSair: () => void }) {
         aria-label={`Menu de ${usuario.nome}`}
         className="flex h-[34px] items-center gap-2.5 rounded-lg pr-1 pl-2.5 hover:bg-hover"
       >
-        <span className="text-[13px] text-ink max-[900px]:hidden">{usuario.nome}</span>
+        <span className="text-[13px] text-ink ate-900:hidden">{usuario.nome}</span>
         <Avatar nome={usuario.nome} tamanho={30} tom="sinal" />
       </button>
       {aberto && (

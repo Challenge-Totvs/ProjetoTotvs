@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import * as authApi from "../api/auth";
+import * as convitesApi from "../api/convites";
 import { SESSAO_EXPIRADA_KEY, TOKEN_KEY } from "../api/http";
 import type { RegisterRequest, Usuario } from "../types/api";
 
@@ -11,6 +12,8 @@ interface AuthContextData {
   carregando: boolean;
   entrar: (email: string, senha: string) => Promise<Usuario>;
   cadastrar: (dados: RegisterRequest) => Promise<Usuario>;
+  /** Aceita um convite: cria o acesso com nome e senha e já entra. */
+  aceitarConvite: (token: string, nome: string, senha: string) => Promise<Usuario>;
   sair: () => void;
 }
 
@@ -57,12 +60,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [iniciarSessao, entrar],
   );
 
+  const aceitarConvite = useCallback(
+    async (token: string, nome: string, senha: string) => {
+      const resp = await convitesApi.aceitarConvite(token, nome, senha);
+      return iniciarSessao(resp.token, resp.usuario);
+    },
+    [iniciarSessao],
+  );
+
   const sair = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     setUsuario(null);
   }, []);
 
-  return <AuthContext.Provider value={{ usuario, carregando, entrar, cadastrar, sair }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ usuario, carregando, entrar, cadastrar, aceitarConvite, sair }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

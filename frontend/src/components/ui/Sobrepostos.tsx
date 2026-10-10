@@ -76,13 +76,13 @@ export function PainelLateral({ titulo, onFechar, children, rotulo }: { titulo: 
   return (
     <>
       <div
-        className="hidden max-[1100px]:fixed max-[1100px]:inset-[56px_0_0_0] max-[1100px]:z-45 max-[1100px]:block max-[1100px]:bg-[rgba(0,34,51,.18)]"
+        className="hidden ate-1100:fixed ate-1100:inset-[56px_0_0_0] ate-1100:z-45 ate-1100:block ate-1100:bg-[rgba(0,34,51,.18)]"
         onClick={onFechar}
         aria-hidden="true"
       />
       <aside
         aria-label={rotulo || titulo}
-        className="sticky top-0 max-h-[calc(100vh-56px-32px-48px)] w-[360px] flex-none overflow-y-auto rounded-xl border border-linha bg-branco max-[1100px]:fixed max-[1100px]:top-14 max-[1100px]:right-0 max-[1100px]:bottom-0 max-[1100px]:z-50 max-[1100px]:max-h-none max-[1100px]:w-[min(420px,100vw)] max-[1100px]:rounded-none max-[1100px]:border-0 max-[1100px]:border-l max-[1100px]:shadow-[-12px_0_32px_rgba(0,34,51,.18)]"
+        className="sticky top-0 max-h-[calc(100vh-56px-32px-48px)] w-[360px] flex-none overflow-y-auto rounded-xl border border-linha bg-branco ate-1100:fixed ate-1100:top-14 ate-1100:right-0 ate-1100:bottom-0 ate-1100:z-50 ate-1100:max-h-none ate-1100:w-[min(420px,100vw)] ate-1100:rounded-none ate-1100:border-0 ate-1100:border-l ate-1100:shadow-[-12px_0_32px_rgba(0,34,51,.18)]"
       >
         <header className="sticky top-0 z-1 flex items-center gap-2 border-b border-linha bg-branco py-2.5 pr-3 pl-4">
           <span className="min-w-0 flex-1 text-xs font-semibold tracking-[0.04em] text-ardosia uppercase">{titulo}</span>
@@ -101,7 +101,7 @@ export function BotaoPainel({ aberto, onClick }: { aberto: boolean; onClick: () 
   return (
     <button type="button" className={btn()} onClick={onClick} aria-pressed={aberto} title="Painel lateral (])">
       {aberto ? <PanelRightClose size={15} aria-hidden="true" /> : <PanelRightOpen size={15} aria-hidden="true" />}
-      <span className="max-[640px]:hidden">Painel</span>
+      <span className="ate-640:hidden">Painel</span>
       <Kbd>]</Kbd>
     </button>
   );

@@ -48,7 +48,7 @@ function secaoDaRota(caminho: string): string {
 }
 
 const classeItem =
-  "flex h-[38px] w-full items-center gap-2.5 rounded-lg px-3 text-left text-[13.5px] text-ardosia hover:bg-hover hover:text-ink aria-[current=page]:bg-sinal-fundo aria-[current=page]:font-medium aria-[current=page]:text-ink aria-[current=page]:shadow-[inset_3px_0_0_var(--color-sinal-texto)] max-[900px]:justify-center max-[900px]:px-0";
+  "flex h-[38px] w-full items-center gap-2.5 rounded-lg px-3 text-left text-[13.5px] text-ardosia hover:bg-hover hover:text-ink aria-[current=page]:bg-sinal-fundo aria-[current=page]:font-medium aria-[current=page]:text-ink aria-[current=page]:shadow-[inset_3px_0_0_var(--color-sinal-texto)] ate-900:justify-center ate-900:px-0";
 
 export function Sidebar() {
   const { usuario } = useApp();
@@ -66,17 +66,17 @@ export function Sidebar() {
       title={it.g ? `${it.l} (G depois ${it.g})` : it.l}
     >
       <it.Icone size={17} aria-hidden="true" className="flex-none" />
-      <span className="max-[900px]:hidden">{it.l}</span>
+      <span className="ate-900:hidden">{it.l}</span>
     </button>
   );
 
   return (
-    <aside className="flex w-[232px] flex-none flex-col border-r border-linha bg-branco max-[900px]:w-16" aria-label="Navegação principal">
+    <aside className="flex w-[232px] flex-none flex-col border-r border-linha bg-branco ate-900:w-16" aria-label="Navegação principal">
       <div className="flex h-14 flex-none items-center border-b border-linha px-[18px]">
-        <span className="max-[900px]:hidden">
+        <span className="ate-900:hidden">
           <Logo tamanho={16} />
         </span>
-        <span aria-hidden="true" className="hidden h-2.5 w-2.5 rounded-[3px] bg-sinal max-[900px]:block" />
+        <span aria-hidden="true" className="hidden h-2.5 w-2.5 rounded-[3px] bg-sinal ate-900:block" />
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-1 p-3">
         {usuario.perfil === "vendedor" && (
@@ -85,7 +85,7 @@ export function Sidebar() {
             className={btn({
               primario: true,
               className: cx(
-                "mb-2.5 h-9! w-full justify-center aria-[current=page]:shadow-[0_0_0_2px_var(--color-sinal-fundo)] max-[900px]:px-0",
+                "mb-2.5 h-9! w-full justify-center aria-[current=page]:shadow-[0_0_0_2px_var(--color-sinal-fundo)] ate-900:px-0",
               ),
             })}
             aria-current={secao === "nova" ? "page" : undefined}
@@ -93,7 +93,7 @@ export function Sidebar() {
             title="Nova transcrição"
           >
             <Plus size={16} aria-hidden="true" />
-            <span className="max-[900px]:hidden">Nova transcrição</span>
+            <span className="ate-900:hidden">Nova transcrição</span>
           </button>
         )}
         <nav className="flex flex-col gap-0.5">

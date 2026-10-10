@@ -46,7 +46,7 @@ export function MiniHistograma({ terco }: { terco: [number, number, number] }) {
         <span
           key={i}
           title={`${n} no ${nomes[i]}`}
-          className={n ? "w-2.5 rounded-sm bg-ardosia" : "w-2.5 rounded-sm bg-linha"}
+          className={n ? "w-2.5 rounded-xs bg-ardosia" : "w-2.5 rounded-xs bg-linha"}
           style={{ height: Math.max(2, Math.round((n / max) * 20)) }}
         />
       ))}

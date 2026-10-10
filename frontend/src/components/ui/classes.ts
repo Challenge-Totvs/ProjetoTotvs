@@ -63,20 +63,20 @@ export const num = "tabular-nums";
 
 /** Grade de números: ajusta sozinha, 2 colunas ou 4 colunas. */
 export function numeros(colunas?: 2 | 4): string {
-  if (colunas === 2) return "grid grid-cols-2 gap-2.5 max-[640px]:grid-cols-1";
-  if (colunas === 4) return "grid grid-cols-4 gap-2.5 max-[1100px]:grid-cols-2 max-[640px]:grid-cols-1";
+  if (colunas === 2) return "grid grid-cols-2 gap-2.5 ate-640:grid-cols-1";
+  if (colunas === 4) return "grid grid-cols-4 gap-2.5 ate-1100:grid-cols-2 ate-640:grid-cols-1";
   return "grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-2.5";
 }
 
 /* ---------- Grades de página ---------- */
 
-export const grid2 = "grid grid-cols-2 items-start gap-4 max-[900px]:grid-cols-1";
-export const grid3 = "grid grid-cols-3 items-start gap-4 max-[1200px]:grid-cols-2 max-[900px]:grid-cols-1";
-export const gridReuniao = "grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-start gap-4 max-[1100px]:grid-cols-1";
-export const gridForm = "grid grid-cols-2 gap-3.5 max-[900px]:grid-cols-1";
+export const grid2 = "grid grid-cols-2 items-start gap-4 ate-900:grid-cols-1";
+export const grid3 = "grid grid-cols-3 items-start gap-4 ate-1200:grid-cols-2 ate-900:grid-cols-1";
+export const gridReuniao = "grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-start gap-4 ate-1100:grid-cols-1";
+export const gridForm = "grid grid-cols-2 gap-3.5 ate-900:grid-cols-1";
 
 /** Conteúdo com o painel lateral ao lado. */
-export const comPainel = "flex items-start gap-4 max-[1024px]:flex-wrap";
+export const comPainel = "flex items-start gap-4 ate-1024:flex-wrap";
 export const conteudo = "min-w-0 flex-1";
 
 /* ---------- Listas ---------- */
@@ -95,7 +95,7 @@ export const item =
 
 export const barraFerramentas = "mb-3 flex flex-wrap items-center gap-2.5";
 export const busca =
-  "inline-flex h-[34px] max-w-[360px] min-w-60 flex-1 items-center gap-2 rounded-lg border border-linha bg-branco px-2.5 focus-within:border-sinal-texto focus-within:shadow-[0_0_0_3px_var(--color-sinal-fundo)] max-[640px]:w-full max-[640px]:max-w-none max-[640px]:min-w-0 [&_input]:w-full [&_input]:border-0 [&_input]:bg-transparent [&_input]:px-0.5 [&_input]:py-px [&_input]:text-[13px] [&_input]:outline-none [&_input]:placeholder:text-[#757575]";
+  "inline-flex h-[34px] max-w-[360px] min-w-60 flex-1 items-center gap-2 rounded-lg border border-linha bg-branco px-2.5 focus-within:border-sinal-texto focus-within:shadow-[0_0_0_3px_var(--color-sinal-fundo)] ate-640:w-full ate-640:max-w-none ate-640:min-w-0 [&_input]:w-full [&_input]:border-0 [&_input]:bg-transparent [&_input]:px-0.5 [&_input]:py-px [&_input]:text-[13px] [&_input]:outline-none [&_input]:placeholder:text-[#757575]";
 
 /* ---------- Tabelas ---------- */
 

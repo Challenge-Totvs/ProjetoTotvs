@@ -484,3 +484,72 @@ export interface Convite {
   perfil: Perfil;
   criadoEm: DataISO;
 }
+
+/* ---------- Gestor: pedidos de apoio, padrões, vendedores e convite ---------- */
+
+/** Um pedido de apoio ("Avisar gestor") no sino do gestor. */
+export interface Notificacao {
+  id: Id;
+  de: VendedorRef;
+  cliente: { id: Id; nome: string } | null;
+  /** Tema do pedido, com a última citação para o glifo. Nulo se o tema não existe mais. */
+  tema: { id: Id; titulo: string; tipos: TipoTema[]; ultimaTratado: boolean | null } | null;
+  mensagem: string | null;
+  criadoEm: DataISO;
+  lida: boolean;
+}
+
+export interface Notificacoes {
+  naoLidas: number;
+  itens: Notificacao[];
+}
+
+/** Citação de amostra de um padrão, com o cliente e o vendedor. */
+export interface CitacaoAmostra extends Citacao {
+  temaId: Id;
+  cliente: { id: Id; nome: string };
+  vendedorNome: string;
+}
+
+/** Um padrão visto entre os clientes do time (handoff 8.15). */
+export interface PadraoAgregado {
+  padrao: string;
+  nome: string;
+  tipo: TipoTema;
+  /** Todos os temas do padrão, inclusive os marcados como não procede. */
+  total: number;
+  naoProcede: number;
+  taxaNaoProcede: number;
+  /** Clientes distintos entre os temas não marcados. */
+  clientes: number;
+  semRetorno: number;
+  perdidas: number;
+  recorrentes: number;
+  taxaConversa: number | null;
+  /** Citações no início, no meio e no fim das reuniões. */
+  terco: [number, number, number];
+  porVendedor: [string, number][];
+  porSegmento: [string, number][];
+  /** Motivos de "não procede" (chave do motivo e quantidade). */
+  motivos: [string, number][];
+  /** As três citações mais recentes. */
+  amostra: CitacaoAmostra[];
+}
+
+/** Uma linha da tela Vendedores. */
+export interface VendedorResumo {
+  id: Id;
+  nome: string;
+  email: string;
+  metricas: MetricasVendedor;
+}
+
+/** GET /api/convites/{token} — dados do convite para a tela de aceite. */
+export interface ConviteDetalhe {
+  email: string;
+  perfil: Perfil;
+  time: string;
+  convidadoPor: string;
+  aceito: boolean;
+  expirado: boolean;
+}

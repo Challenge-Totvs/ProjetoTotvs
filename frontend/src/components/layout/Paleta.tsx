@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, LogOut, Plus, Search, type LucideIcon } from "lucide-react";
+import { Building2, LogOut, Plus, Search, Users, type LucideIcon } from "lucide-react";
 import * as clientesApi from "../../api/clientes";
+import * as gestorApi from "../../api/gestor";
 import { useApp } from "../../context/AppContext";
 import { PADROES, ROTULO_SITUACAO, rotuloTipoCliente, ultimaCitacao } from "../../lib/dominio";
 import { normalizar } from "../../lib/formato";
 import { rotas } from "../../lib/rotas";
-import type { ClienteResumo, Situacao, Tema } from "../../types/api";
+import type { ClienteResumo, Situacao, Tema, VendedorResumo } from "../../types/api";
 import { Kbd } from "../ui/base";
 import { Glifo, GlifosTema } from "../ui/glifos";
 import { NAV } from "./Sidebar";
@@ -45,6 +46,7 @@ export function Paleta({ fechar, onSair }: { fechar: () => void; onSair: () => v
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
   const [clientes, setClientes] = useState<ClienteResumo[]>([]);
+  const [vendedores, setVendedores] = useState<VendedorResumo[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listaRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +56,13 @@ export function Paleta({ fechar, onSair }: { fechar: () => void; onSair: () => v
       .listarClientes()
       .then(setClientes)
       .catch(() => undefined);
-  }, []);
+    // O gestor também busca os vendedores do time, para o grupo "Vendedores".
+    if (app.gestor)
+      gestorApi
+        .listarVendedores()
+        .then(setVendedores)
+        .catch(() => undefined);
+  }, [app.gestor]);
 
   const ir = (para: string) => {
     fechar();
@@ -120,10 +128,16 @@ export function Paleta({ fechar, onSair }: { fechar: () => void; onSair: () => v
           acao: () => ir(rotas.padrao(k)),
         })),
       });
+      lista.push({
+        id: "vend",
+        titulo: "Vendedores",
+        limite: 3,
+        itens: vendedores.map((v) => ({ id: `v-${v.id}`, l: `Visão de ${v.nome}`, Icone: Users, acao: () => ir(rotas.vendedor(v.id)) })),
+      });
     }
     return lista;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [app.usuario.perfil, clientes]);
+  }, [app.usuario.perfil, clientes, vendedores]);
 
   const filtrados = useMemo(() => {
     const termo = normalizar(q.trim());

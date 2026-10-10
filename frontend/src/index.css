@@ -2,6 +2,14 @@
 
 /* Tokens aprovados da interface (mesmos valores da demo InsightCallApp.jsx).
    Cada cor vira uma classe do Tailwind: text-ink, bg-nevoa, border-linha etc. */
+/* Pontos de quebra iguais aos da demo: "max-width: N" inclui a largura N.
+   (O max-[Npx] do Tailwind usa "width < N" e ficaria 1px atrás.) */
+@custom-variant ate-1200 (@media (max-width: 1200px));
+@custom-variant ate-1100 (@media (max-width: 1100px));
+@custom-variant ate-1024 (@media (max-width: 1024px));
+@custom-variant ate-900 (@media (max-width: 900px));
+@custom-variant ate-640 (@media (max-width: 640px));
+
 @theme {
   --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;

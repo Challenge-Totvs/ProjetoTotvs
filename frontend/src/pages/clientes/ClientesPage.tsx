@@ -1,6 +1,7 @@
 /* Lista de clientes: busca os clientes do usuário e mostra a tela do perfil. */
 
 import { listarClientes } from "../../api/clientes";
+import { ClientesGestor } from "../../components/clientes/ClientesGestor";
 import { ClientesVendedor } from "../../components/clientes/ClientesVendedor";
 import { Carregando, ErroCarregar } from "../../components/ui/base";
 import { useApp, useTrilha } from "../../context/AppContext";
@@ -16,9 +17,7 @@ export default function ClientesPage() {
   if (carregando && !dados) return <Carregando />;
   if (!dados) return <ErroCarregar mensagem={erro || "Não foi possível carregar os clientes."} onTentar={() => void recarregar()} />;
 
-  if (app.gestor) {
-    // Etapa 2: tela do gestor com facetas e agrupamento
-    return <ClientesVendedor clientes={dados} />;
-  }
+  // O gestor vê todos os clientes do time, com facetas e agrupamento; o vendedor, só os dele.
+  if (app.gestor) return <ClientesGestor clientes={dados} />;
   return <ClientesVendedor clientes={dados} />;
 }

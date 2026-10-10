@@ -13,6 +13,7 @@ import { Kbd } from "../ui/base";
 import { btn, link, linkNeutro } from "../ui/classes";
 import { ModalAvisarGestor, ModalNaoProcede, ModalTratarFora } from "../tema/ModaisTema";
 import { MenuUsuario } from "./MenuUsuario";
+import { Notificacoes } from "./Notificacoes";
 import { Paleta } from "./Paleta";
 import { Sidebar } from "./Sidebar";
 
@@ -95,7 +96,7 @@ export function AppLayout() {
       <div className="flex h-screen bg-nevoa">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-14 flex-none items-center gap-3 border-b border-linha bg-branco pr-5 pl-6 max-[640px]:pr-3 max-[640px]:pl-4">
+          <header className="flex h-14 flex-none items-center gap-3 border-b border-linha bg-branco pr-5 pl-6 ate-640:pr-3 ate-640:pl-4">
             <nav aria-label="Você está em" className="flex min-w-0 flex-1 items-center gap-1.5 text-[13px]">
               {app.trilha.map((t, idx) => (
                 <Fragment key={`${t.l}-${idx}`}>
@@ -115,11 +116,13 @@ export function AppLayout() {
             <div className="flex flex-none items-center gap-2">
               <button type="button" className={btn({ className: "text-ardosia!" })} onClick={() => setPaleta(true)} aria-label="Buscar e navegar">
                 <Search size={14} aria-hidden="true" />
-                <span className="max-[900px]:hidden">Buscar</span>
-                <span className="max-[900px]:hidden">
+                <span className="ate-900:hidden">Buscar</span>
+                <span className="ate-900:hidden">
                   <Kbd>{ATALHO_BUSCA}</Kbd>
                 </span>
               </button>
+              {/* O sino dos pedidos de apoio só existe para o gestor. */}
+              {app.gestor && <Notificacoes />}
               <MenuUsuario
                 onSair={() => {
                   sair();
@@ -129,7 +132,7 @@ export function AppLayout() {
             </div>
           </header>
           <BannerContingencia />
-          <main ref={mainRef} id="conteudo" className="flex-1 overflow-x-hidden overflow-y-auto px-7 pt-6 pb-10 max-[640px]:px-4 max-[640px]:pt-4 max-[640px]:pb-8">
+          <main ref={mainRef} id="conteudo" className="flex-1 overflow-x-hidden overflow-y-auto px-7 pt-6 pb-10 ate-640:px-4 ate-640:pt-4 ate-640:pb-8">
             <Outlet />
           </main>
           <Rodape />
@@ -177,7 +180,7 @@ function BannerContingencia() {
       ? "A LLM principal não está respondendo. As próximas análises seguem pela LLM secundária, sem perda de qualidade esperada."
       : "As duas LLMs não estão respondendo. As próximas análises seguem pelo modelo local, marcadas como contingência: sem resumo e sem leitura de quem falou. Reprocessam quando uma LLM voltar.";
   return (
-    <div className="flex items-center gap-2.5 border-b border-atencao-borda bg-atencao-fundo px-6 py-[9px] text-[13px] leading-[1.4] text-atencao max-[640px]:px-4" role="status">
+    <div className="flex items-center gap-2.5 border-b border-atencao-borda bg-atencao-fundo px-6 py-[9px] text-[13px] leading-[1.4] text-atencao ate-640:px-4" role="status">
       <AlertTriangle size={15} aria-hidden="true" className="flex-none" />
       <span className="min-w-0 flex-1">{texto}</span>
       <button type="button" className={cx(link, "whitespace-nowrap text-atencao!")} onClick={() => navigate(rotas.configuracoes)}>
@@ -194,7 +197,7 @@ function Rodape() {
   const itens: [string[], string][] = [...legenda, [[ATALHO_BUSCA], "buscar"], [["G", "I C P V"], "ir para"]];
   return (
     <footer
-      className="flex h-8 flex-none items-center gap-3.5 overflow-hidden border-t border-linha bg-branco pr-5 pl-6 text-xs text-ardosia max-[640px]:hidden"
+      className="flex h-8 flex-none items-center gap-3.5 overflow-hidden border-t border-linha bg-branco pr-5 pl-6 text-xs text-ardosia ate-640:hidden"
       aria-label="Atalhos de teclado desta tela"
     >
       <Keyboard size={13} aria-hidden="true" className="flex-none text-faint" />
@@ -216,7 +219,7 @@ function Toasts() {
   const { toasts, fecharToast } = useApp();
   return (
     <div
-      className="fixed bottom-11 left-[248px] z-70 grid max-w-[min(460px,calc(100vw-32px))] gap-2 max-[900px]:left-20 max-[640px]:bottom-4 max-[640px]:left-4"
+      className="fixed bottom-11 left-[248px] z-70 grid max-w-[min(460px,calc(100vw-32px))] gap-2 ate-900:left-20 ate-640:bottom-4 ate-640:left-4"
       aria-live="polite"
     >
       {toasts.map((t) => (

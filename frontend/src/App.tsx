@@ -13,9 +13,13 @@ import LoginPage from "./pages/acesso/LoginPage";
 import ClientePage from "./pages/cliente/ClientePage";
 import ClientesPage from "./pages/clientes/ClientesPage";
 import ConfiguracoesPage from "./pages/configuracoes/ConfiguracoesPage";
+import ConvitePage from "./pages/convite/ConvitePage";
 import InicioPage from "./pages/inicio/InicioPage";
 import NovaTranscricaoPage from "./pages/nova/NovaTranscricaoPage";
+import PadroesPage from "./pages/padroes/PadroesPage";
 import ReuniaoPage from "./pages/reuniao/ReuniaoPage";
+import VendedoresPage from "./pages/vendedores/VendedoresPage";
+import VisaoVendedorPage from "./pages/vendedores/VisaoVendedorPage";
 import type { Perfil } from "./types/api";
 
 /** Só entra quem está logado; os dados do usuário ficam disponíveis no AppProvider. */
@@ -86,6 +90,8 @@ export default function App() {
               </RotaPublica>
             }
           />
+          {/* Convite: público. Quem aceita entra com o acesso novo, mesmo que já houvesse outra sessão. */}
+          <Route path="/convite/:token" element={<ConvitePage />} />
           <Route element={<RotaProtegida />}>
             <Route element={<AppLayout />}>
               <Route
@@ -104,6 +110,34 @@ export default function App() {
                 element={
                   <SoPerfil perfil="vendedor">
                     <NovaTranscricaoPage />
+                  </SoPerfil>
+                }
+              />
+              {/* Telas do gestor (etapa 2). */}
+              {["/padroes", "/padroes/:chave"].map((p) => (
+                <Route
+                  key={p}
+                  path={p}
+                  element={
+                    <SoPerfil perfil="gestor">
+                      <PadroesPage />
+                    </SoPerfil>
+                  }
+                />
+              ))}
+              <Route
+                path={rotas.vendedores}
+                element={
+                  <SoPerfil perfil="gestor">
+                    <VendedoresPage />
+                  </SoPerfil>
+                }
+              />
+              <Route
+                path="/vendedores/:id"
+                element={
+                  <SoPerfil perfil="gestor">
+                    <VisaoVendedorPage />
                   </SoPerfil>
                 }
               />

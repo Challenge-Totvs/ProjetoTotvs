@@ -13,7 +13,7 @@ export function LayoutAcesso({ titulo, texto, children }: { titulo: string; text
     : undefined;
   return (
     <div className="flex min-h-screen bg-branco">
-      <aside className="flex w-[41.7%] flex-none items-center bg-ink px-[72px] py-12 text-branco max-[1024px]:hidden" style={fundo}>
+      <aside className="flex w-[41.7%] flex-none items-center bg-ink px-[72px] py-12 text-branco ate-1024:hidden" style={fundo}>
         <div className="max-w-[440px]">
           <Logo claro />
           <p className="mt-[22px] mb-0 text-[36px] leading-[1.15] font-semibold tracking-[-0.02em]">{titulo}</p>
@@ -22,7 +22,7 @@ export function LayoutAcesso({ titulo, texto, children }: { titulo: string; text
       </aside>
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-[380px]">
-          <div className="mb-7 hidden max-[1024px]:block">
+          <div className="mb-7 hidden ate-1024:block">
             <Logo />
           </div>
           {children}
