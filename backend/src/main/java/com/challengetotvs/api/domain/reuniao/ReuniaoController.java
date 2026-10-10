@@ -1,5 +1,6 @@
 package com.challengetotvs.api.domain.reuniao;
 
+import com.challengetotvs.api.domain.transcricao.EnviarTranscricaoResponse;
 import com.challengetotvs.api.domain.transcricao.TranscricaoRequest;
 import com.challengetotvs.api.domain.transcricao.TranscricaoResponse;
 import com.challengetotvs.api.domain.transcricao.TranscricaoService;
@@ -57,9 +58,8 @@ public class ReuniaoController {
     }
 
     @PostMapping("/{id}/transcricao")
-    public ResponseEntity<TranscricaoResponse> enviarTranscricao(@PathVariable Long id, @RequestBody @Valid TranscricaoRequest request, @AuthenticationPrincipal ConsultorUserDetails userDetails){
-        var consultor = userDetails.getConsultor();
-        var transcricao = transcricaoService.enviar(id, request, consultor);
-        return ResponseEntity.ok(transcricao);
+    public ResponseEntity<EnviarTranscricaoResponse> enviarTranscricao(@PathVariable Long id, @RequestBody @Valid TranscricaoRequest request, @AuthenticationPrincipal ConsultorUserDetails userDetails){
+        var resposta = transcricaoService.enviar(id, request, userDetails.getConsultor());
+        return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 }

@@ -28,11 +28,21 @@ public class Transcricao {
     @Column(nullable = false)
     private LocalDateTime criadoEm;
 
+    @Column(length = 64)
+    private String hashTexto;
+    private Integer caracteres;
+    private Integer turnos;
+    private Integer locutores;
     @Builder
-    public Transcricao(Reuniao reuniao, String conteudo, String formatoOrigem){
+    public Transcricao(Reuniao reuniao, String conteudo, String formatoOrigem,
+                       String hashTexto, int caracteres, int turnos, int locutores) {
         this.reuniao = reuniao;
         this.conteudo = conteudo;
         this.formatoOrigem = formatoOrigem;
+        this.hashTexto = hashTexto;
+        this.caracteres = caracteres;
+        this.turnos = turnos;
+        this.locutores = locutores;
         this.criadoEm = LocalDateTime.now();
     }
 }
