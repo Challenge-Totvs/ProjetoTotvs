@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
+import com.challengetotvs.api.domain.tema.IncorporadorTemas;
 
 import java.time.LocalDateTime;
 
@@ -19,8 +20,9 @@ public class GravadorAnalise {
     private final AnaliseRepository analiseRepository;
     private final ReuniaoRepository reuniaoRepository;
     private final ObjectMapper objectMapper;
+    private final IncorporadorTemas incorporadorTemas;
 
-    public Analise gravar(Transcricao transcricao, ContratoV3.Resposta bruta,
+    public IncorporadorTemas.Resumo gravar(Transcricao transcricao, ContratoV3.Resposta bruta,
                           Pseudonimizador pseudonimizador, long duracaoMs) {
         MotorUtilizado motor;
         SentimentoGeral sentimento;
@@ -55,10 +57,12 @@ public class GravadorAnalise {
         reuniao.setStatus(StatusReuniao.ANALISADA);
         reuniaoRepository.save(reuniao);
 
-        return analise;
+        return incorporadorTemas.incorporar(reuniao, resposta);
     }
 
     private String json(Object valor) {
         return objectMapper.writeValueAsString(valor);
     }
+
+
 }
