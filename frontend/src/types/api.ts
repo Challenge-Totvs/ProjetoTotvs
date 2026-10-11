@@ -187,8 +187,7 @@ export interface Citacao {
   turno: number;
   tratado: boolean | null;
   texto: string;
-  /** A citação foi localizada no texto original. */
-  conferida: boolean;
+  conferida?: boolean;
   locutor: number | null;
   papel: Papel | null;
   /** Turnos vizinhos (dois antes e dois depois), incluindo o citado. */
@@ -200,12 +199,12 @@ export interface RegistroFora {
   canal: string;
   data: DataISO;
   observacao: string | null;
-  por: VendedorRef;
+  por: string;
 }
 
 export interface MarcacaoNaoProcede {
   motivo: string | null;
-  por: VendedorRef;
+  por: string;
   em: DataISO;
 }
 
@@ -247,7 +246,7 @@ export interface Tema {
   registroFora: RegistroFora | null;
   naoProcede: MarcacaoNaoProcede | null;
   semelhanteNaoProcede: { texto: string; clienteNome: string } | null;
-  anterior: { id: Id; titulo: string } | null;
+  anteriorId: Id | null;
   avisos: AvisoGestor[];
 }
 

@@ -1,11 +1,13 @@
 package com.challengetotvs.api.domain.cliente;
 
 import com.challengetotvs.api.domain.analise.AnaliseRepository;
+import com.challengetotvs.api.domain.cliente.ClienteResponse.ReuniaoItem;
 import com.challengetotvs.api.domain.cliente.ClienteResponse.ReuniaoResumo;
 import com.challengetotvs.api.domain.reuniao.Reuniao;
 import com.challengetotvs.api.domain.reuniao.ReuniaoRepository;
 import com.challengetotvs.api.domain.reuniao.StatusReuniao;
 import com.challengetotvs.api.domain.tema.*;
+import com.challengetotvs.api.domain.transcricao.LeitorTurnos;
 import com.challengetotvs.api.domain.transcricao.TranscricaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class ClienteDetalhador {
     private final ReuniaoRepository reuniaoRepository;
     private final TranscricaoRepository transcricaoRepository;
     private final AnaliseRepository analiseRepository;
+
 
     public ClienteResponse montar(Cliente cliente, boolean completo) {
         var todos = montadorTemas.doCliente(cliente.getId(), completo);
@@ -50,11 +54,15 @@ public class ClienteDetalhador {
                 .filter(r -> r.getStatus() == StatusReuniao.AGENDADA && !r.getDataHora().isBefore(agora))
                 .min(Comparator.comparing(Reuniao::getDataHora));
 
+        var itensReuniao = completo
+                ? reunioes.stream().sorted(Comparator.comparing(Reuniao::getDataHora)).map(this::item).toList()
+                : List.<ReuniaoItem>of();
+
         return ClienteResponse.from(cliente, indicadores,
                 ultima.map(this::resumo).orElse(null),
                 ultimaAnalisada.map(this::resumo).orElse(null),
                 proxima.map(this::resumo).orElse(null),
-                temas);
+                temas, itensReuniao, List.of());   // compromissos: vazio até a E1
     }
 
     private ReuniaoResumo resumo(Reuniao r) {
@@ -68,5 +76,17 @@ public class ClienteDetalhador {
         }
         return new ReuniaoResumo(r.getId(), r.getTitulo(), r.getDataHora(), r.getDuracaoMin(), r.getStatus(),
                 r.foiConfirmada(), r.getContato() == null ? null : r.getContato().getNome(), motor, score);
+    }
+
+    private ReuniaoItem item(Reuniao r) {
+        var transcricao = transcricaoRepository.findByReuniaoId(r.getId());
+        var analise = transcricao.flatMap(t -> analiseRepository.findByTranscricaoId(t.getId()));
+        Integer turnos = transcricao.map(t -> LeitorTurnos.ler(t.getConteudo()).size()).orElse(null);
+        return new ReuniaoItem(
+                r.getId(), r.getTitulo(), r.getDataHora(), r.getStatus(), r.foiConfirmada(),
+                r.getContato() == null ? null : r.getContato().getNome(),
+                analise.map(a -> a.getMotor().valor()).orElse(null),
+                analise.map(a -> a.getScore()).orElse(null),
+                turnos);
     }
 }

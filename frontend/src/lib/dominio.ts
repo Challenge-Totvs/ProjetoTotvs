@@ -139,7 +139,7 @@ export function nomeMotivo(motivo: string | null): string {
 
 export const temRisco = (t: Tema) => t.tipos.includes("risco");
 export const temOport = (t: Tema) => t.tipos.includes("oportunidade");
-export const ultimaCitacao = (t: Tema) => t.citacoes[t.citacoes.length - 1];
+ export const ultimaCitacao = (t: Tema) => t.citacoes[0];
 
 export type EstadoGlifo = "aberto" | "tratado" | "indefinido";
 

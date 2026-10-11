@@ -191,7 +191,7 @@ export function ChipsTemas({ temas, max = 3, porPadrao }: { temas: Tema[]; max?:
           className="inline-flex max-w-[190px] items-center gap-[5px] rounded border border-linha bg-branco px-[7px] py-px text-xs text-ink"
           title={`${t.titulo} · ${ROTULO_SITUACAO[t.situacao]}`}
         >
-          <GlifosTema tipos={t.tipos} tratado={t.citacoes[t.citacoes.length - 1]?.tratado ?? null} tamanho={10} />
+          <GlifosTema tipos={t.tipos}   tratado={t.citacoes[0]?.tratado ?? null} />
           <span className="truncate">{porPadrao ? t.padraoNome : t.titulo}</span>
           {t.recorrente && <Repeat size={11} aria-label="recorrente" />}
         </span>

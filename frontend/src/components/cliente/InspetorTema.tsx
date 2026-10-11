@@ -35,7 +35,7 @@ export function InspetorTema({
   const navigate = useNavigate();
   // Avisos do mais novo para o mais antigo; citações da mais recente para a mais antiga.
   const avisos = [...tema.avisos].sort((a, b) => paraData(b.criadoEm).getTime() - paraData(a.criadoEm).getTime());
-  const cits = [...tema.citacoes].reverse();
+  const cits = [...tema.citacoes];
   const fora = tema.registroFora;
 
   return (
@@ -72,10 +72,10 @@ export function InspetorTema({
         </div>
       )}
       {/* O mesmo assunto já foi um tema que saiu de pauta */}
-      {tema.anterior && (
+      {tema.anteriorId && (
         <p className="mt-3 mb-0 text-[12.5px] leading-[1.45] text-ardosia">
           Este assunto já apareceu e saiu de pauta.{" "}
-          <button type="button" className={link} onClick={() => tema.anterior && navigate(rotas.cliente(tema.clienteId, tema.anterior.id))}>
+          <button type="button" className={link} onClick={() => tema.anteriorId && navigate(rotas.cliente(tema.clienteId, tema.anteriorId))}>
             Ver o tema anterior
           </button>
         </p>
@@ -144,7 +144,7 @@ export function InspetorTema({
               </>
             )}
             <dt>Registrado por</dt>
-            <dd>{fora.por.nome}</dd>
+            <dd>{fora.por}</dd>
           </dl>
         </div>
       )}

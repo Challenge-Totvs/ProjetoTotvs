@@ -18,6 +18,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.challengetotvs.api.domain.reuniao.ReuniaoDetalheResponse.ClienteRef;
+import com.challengetotvs.api.domain.reuniao.ReuniaoDetalheResponse.TemaNaReuniao;
+import com.challengetotvs.api.domain.reuniao.ReuniaoDetalheResponse.MetricasResponse;
+import java.util.Comparator;
+import java.util.Optional;
 
 import java.util.List;
 import java.util.Map;
@@ -41,12 +46,14 @@ public class ReuniaoDetalhador {
         var analise = transcricao.flatMap(t -> analiseRepository.findByTranscricaoId(t.getId()));
         Map<Integer, String> papeis = analise.map(a -> leitor.papeis(a.getPapeis())).orElse(Map.of());
 
-        var turnos = turnosLidos.stream()
-                .map(t -> new TurnoResponse(t.n(), t.locutor(), papeis.get(t.locutor()), t.texto()))
-                .toList();
-
-        var temasCitados = montadorTemas.doCliente(reuniao.getCliente().getId(), false).stream()
-                .filter(t -> t.citacoes().stream().anyMatch(c -> c.reuniaoId().equals(id)))
+        var temasNaReuniao = montadorTemas.doCliente(reuniao.getCliente().getId(), false).stream()
+                .filter(t -> t.naoProcede() == null)
+                .map(t -> t.citacoes().stream()
+                        .filter(c -> c.reuniaoId().equals(id))
+                        .findFirst()
+                        .map(c -> new TemaNaReuniao(t, c)))
+                .flatMap(Optional::stream)
+                .sorted(Comparator.comparingInt(x -> x.citacao().turno()))
                 .toList();
 
         var analiseDetalhe = analise.map(a -> new AnaliseDetalhe(
@@ -62,17 +69,21 @@ public class ReuniaoDetalhador {
                 leitor.lista(a.getDescartados(), ContratoV3.Descartado[].class),
                 a.getCriadoEm())).orElse(null);
 
-        var metricas = analise.map(a -> MetricasConversa.calcular(turnosLidos, papeis, reuniao.getDuracaoMin()))
+        var metricas = analise
+                .map(a -> MetricasResponse.de(MetricasConversa.calcular(turnosLidos, papeis, reuniao.getDuracaoMin())))
                 .orElse(null);
 
+        var cliente = reuniao.getCliente();
         var vendedor = reuniao.getConsultor();
         return new ReuniaoDetalheResponse(
-                reuniao.getId(), reuniao.getCliente().getId(), reuniao.getCliente().getNome(),
-                reuniao.getTitulo(), reuniao.getDataHora(), reuniao.getDuracaoMin(), reuniao.getStatus(),
-                reuniao.foiConfirmada(),
+                reuniao.getId(), reuniao.getTitulo(), reuniao.getDataHora(), reuniao.getDuracaoMin(),
+                reuniao.getStatus(), reuniao.foiConfirmada(),
                 reuniao.getContato() == null ? null : reuniao.getContato().getNome(),
-                new VendedorRef(vendedor.getId(), vendedor.getNome()),
-                turnos.size(), analiseDetalhe, temasCitados, List.of(), metricas, turnos);
+                turnosLidos.size(),
+                new ClienteRef(cliente.getId(), cliente.getNome(),
+                        new VendedorRef(vendedor.getId(), vendedor.getNome())),
+                analiseDetalhe, temasNaReuniao, List.of(), metricas,
+                transcricao.isPresent());
     }
 
     public List<TurnoResponse> transcricao(Long id, String versao, Consultor usuario) {
