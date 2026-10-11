@@ -12,6 +12,8 @@ public final class CalculadoraDesempenho {
     public record ResumoTemas(
             int temasCitados,
             Double taxaConversa,
+            int tratadosConversa,
+            int comLeitura,
             int tratadosFora,
             int oportTratadas,
             int oportIdentificadas,
@@ -55,8 +57,8 @@ public final class CalculadoraDesempenho {
         }
 
         Double taxa = comLeitura == 0 ? null : (double) respondidos / comLeitura;
-        return new ResumoTemas(citados, taxa, tratadosFora, oportTratadas, oportIdentificadas,
-                riscosSemRetorno, oportPerdidas);
+        return new ResumoTemas(citados, taxa, respondidos, comLeitura, tratadosFora, oportTratadas,
+                oportIdentificadas, riscosSemRetorno, oportPerdidas);
     }
 
     private static boolean naJanela(LocalDate data, int janela, LocalDate hoje) {

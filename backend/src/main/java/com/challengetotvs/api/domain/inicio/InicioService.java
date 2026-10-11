@@ -14,6 +14,8 @@ import com.challengetotvs.api.domain.tema.*;
 import com.challengetotvs.api.domain.transcricao.LeitorTurnos;
 import com.challengetotvs.api.domain.transcricao.MetricasConversa;
 import com.challengetotvs.api.domain.transcricao.TranscricaoRepository;
+import com.challengetotvs.api.domain.inicio.InicioResponse.MudancaResponse;
+import com.challengetotvs.api.domain.inicio.InicioResponse.VendedorRef;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +63,7 @@ public class InicioService {
                 .filter(r -> r.getStatus() == StatusReuniao.REALIZADA)
                 .sorted(Comparator.comparing(Reuniao::getDataHora).reversed())
                 .map(r -> new Pendente(r.getId(), r.getCliente().getId(), r.getCliente().getNome(),
-                        r.getTitulo(), r.getDataHora().toLocalDate()))
+                        r.getTitulo(), r.getDataHora()))
                 .toList();
 
         var agenda = reunioes.stream()
@@ -86,18 +90,21 @@ public class InicioService {
         var resumo = CalculadoraDesempenho.calcular(temas, janela, hoje);
         var desempenho = new Desempenho(
                 naJanela.size(), analisadas.size(),
-                resumo.temasCitados(), resumo.taxaConversa(), resumo.tratadosFora(),
+                resumo.temasCitados(), resumo.taxaConversa(),
+                resumo.tratadosConversa(), resumo.comLeitura(),      // NOVO
+                resumo.tratadosFora(),
                 resumo.oportTratadas(), resumo.oportIdentificadas(),
                 mediaFalaDoVendedor(analisadas),
                 resumo.riscosSemRetorno(), resumo.oportPerdidas(),
                 0, clientes.size());
 
         return new InicioResponse(
-                janela, clientes.size(), pendentes,
+                janela, new VendedorRef(vendedor.getId(), vendedor.getNome()), clientes.size(), pendentes,
                 ListasInicio.riscos(temas), ListasInicio.oportunidades(temas),
-                DetectorMudancas.detectar(temas, hoje),
+                mudancas(DetectorMudancas.detectar(temas, hoje), temas),
                 List.of(), agenda, desempenho);
     }
+
 
     private Double mediaFalaDoVendedor(List<Reuniao> analisadas) {
         double soma = 0;
@@ -119,4 +126,22 @@ public class InicioService {
         }
         return contadas == 0 ? null : soma / contadas;
     }
+
+    private static final Map<String, String> TIPO_NO_FRONT = Map.of(
+            "tratado_conversa", "tratado",
+            "citado_de_novo_sem_resposta", "de_novo_sem_resposta",
+            "voltou_a_aparecer", "voltou",
+            "virou_oportunidade_perdida", "virou_perdida",
+            "citado_sem_leitura", "sem_leitura");
+
+    private List<MudancaResponse> mudancas(List<DetectorMudancas.Mudanca> eventos, List<TemaResponse> temas) {
+        Map<Long, TemaResponse> porId = temas.stream().collect(Collectors.toMap(TemaResponse::id, t -> t));
+        return eventos.stream()
+                .map(e -> new MudancaResponse(
+                        e.tipo() + "-" + e.temaId() + "-" + e.data(),
+                        TIPO_NO_FRONT.getOrDefault(e.tipo(), e.tipo()),
+                        e.data(), porId.get(e.temaId())))
+                .toList();
+    }
+
 }
