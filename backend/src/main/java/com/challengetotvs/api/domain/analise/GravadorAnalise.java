@@ -1,5 +1,8 @@
 package com.challengetotvs.api.domain.analise;
 
+import com.challengetotvs.api.domain.compromisso.Compromisso;            // E1
+import com.challengetotvs.api.domain.compromisso.CompromissoRepository;   // E1
+import com.challengetotvs.api.domain.compromisso.PrazoPorRegra;           // E1
 import com.challengetotvs.api.domain.reuniao.ReuniaoRepository;
 import com.challengetotvs.api.domain.reuniao.StatusReuniao;
 import com.challengetotvs.api.domain.transcricao.Transcricao;
@@ -21,8 +24,13 @@ public class GravadorAnalise {
     private final ReuniaoRepository reuniaoRepository;
     private final ObjectMapper objectMapper;
     private final IncorporadorTemas incorporadorTemas;
+    private final CompromissoRepository compromissoRepository; // E1
 
-    public IncorporadorTemas.Resumo gravar(Transcricao transcricao, ContratoV3.Resposta bruta,
+    /** E1: o que a gravação produziu, para o AnalisarResponse ("2 temas novos, 2 atualizados, 1 compromisso"). */
+    public record Gravado(int novos, int atualizados, int compromissos) {
+    }
+
+    public Gravado gravar(Transcricao transcricao, ContratoV3.Resposta bruta,
                           Pseudonimizador pseudonimizador, long duracaoMs) {
         MotorUtilizado motor;
         SentimentoGeral sentimento;
@@ -57,7 +65,25 @@ public class GravadorAnalise {
         reuniao.setStatus(StatusReuniao.ANALISADA);
         reuniaoRepository.save(reuniao);
 
-        return incorporadorTemas.incorporar(reuniao, resposta);
+        var resumo = incorporadorTemas.incorporar(reuniao, resposta);
+
+        // E1: reprocessar uma reunião apaga os compromissos da análise anterior antes de criar os novos
+        compromissoRepository.deleteByReuniaoId(reuniao.getId());
+        var dataReuniao = reuniao.getDataHora().toLocalDate();
+        int criados = 0;
+        for (var c : resposta.compromissos()) {
+            compromissoRepository.save(Compromisso.builder()
+                    .cliente(reuniao.getCliente())
+                    .reuniao(reuniao)
+                    .turno(c.turno())
+                    .texto(c.texto())                                   // já restaurado (nomes reais)
+                    .regraPrazo(c.regra())
+                    .prazo(PrazoPorRegra.calcular(c.regra(), dataReuniao)) // nulo se não há regra
+                    .build());
+            criados++;
+        }
+
+        return new Gravado(resumo.novos(), resumo.atualizados(), criados);
     }
 
     private String json(Object valor) {

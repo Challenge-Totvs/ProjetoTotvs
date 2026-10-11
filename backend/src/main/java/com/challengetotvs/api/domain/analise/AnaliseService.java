@@ -52,9 +52,10 @@ public class AnaliseService {     // SEM @Transactional: a espera pelo Python n�
         if (resposta == null) {
             throw new AnaliseIndisponivelException("O serviço de análise devolveu uma resposta vazia.");
         }
-        var resumo = gravador.gravar(transcricao, resposta, pseudonimizador, duracaoMs);
+        var gravado = gravador.gravar(transcricao, resposta, pseudonimizador, duracaoMs);   // E1: era "resumo"
 
-        return new AnalisarResponse(reuniao.getId(), MotorUtilizado.de(resposta.motor()).valor(), resposta.tentativas(), resumo.novos(), resumo.atualizados(), 0);
+        return new AnalisarResponse(reuniao.getId(), MotorUtilizado.de(resposta.motor()).valor(), resposta.tentativas(),
+                gravado.novos(), gravado.atualizados(), gravado.compromissos());            // E1: o último era 0
     }
 
     private List<Entidade> entidadesDoCadastro(Reuniao reuniao) {

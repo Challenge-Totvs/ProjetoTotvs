@@ -1,6 +1,7 @@
 package com.challengetotvs.api.domain.reuniao;
 
 import com.challengetotvs.api.domain.analise.ContratoV3;
+import com.challengetotvs.api.domain.compromisso.CompromissoResponse; // E1
 import com.challengetotvs.api.domain.tema.TemaResponse;
 import com.challengetotvs.api.domain.tema.TemaResponse.CitacaoResponse;
 import com.challengetotvs.api.domain.transcricao.MetricasConversa;
@@ -22,8 +23,8 @@ public record ReuniaoDetalheResponse(
         ClienteRef cliente,
         AnaliseDetalhe analise,
         List<TemaNaReuniao> temas,
-        List<Object> compromissos,              // vazia até a E1
-        MetricasResponse metricas,              // (era MetricasConversa.Metricas) nulo se não foi analisada
+        List<CompromissoResponse> compromissos, // E1: era List<Object>
+        MetricasResponse metricas,              // nulo se não foi analisada
         boolean temTranscricao) {
 
     public record VendedorRef(Long id, String nome) {

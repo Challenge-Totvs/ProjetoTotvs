@@ -4,6 +4,7 @@ import com.challengetotvs.api.domain.analise.AnaliseRepository;
 import com.challengetotvs.api.domain.analise.ContratoV3;
 import com.challengetotvs.api.domain.analise.LeitorAnalise;
 import com.challengetotvs.api.domain.analise.Pseudonimizador;
+import com.challengetotvs.api.domain.compromisso.CompromissoService; // E1
 import com.challengetotvs.api.domain.consultor.Consultor;
 import com.challengetotvs.api.domain.reuniao.ReuniaoDetalheResponse.AnaliseDetalhe;
 import com.challengetotvs.api.domain.reuniao.ReuniaoDetalheResponse.TurnoResponse;
@@ -37,6 +38,7 @@ public class ReuniaoDetalhador {
     private final AnaliseRepository analiseRepository;
     private final MontadorTemas montadorTemas;
     private final LeitorAnalise leitor;
+    private final CompromissoService compromissoService; // E1
 
     public ReuniaoDetalheResponse montar(Long id, Consultor usuario) {
         var reuniao = buscar(id, usuario);
@@ -82,7 +84,9 @@ public class ReuniaoDetalhador {
                 turnosLidos.size(),
                 new ClienteRef(cliente.getId(), cliente.getNome(),
                         new VendedorRef(vendedor.getId(), vendedor.getNome())),
-                analiseDetalhe, temasNaReuniao, List.of(), metricas,
+                analiseDetalhe, temasNaReuniao,
+                compromissoService.daReuniao(id),   // E1: era List.of()
+                metricas,
                 transcricao.isPresent());
     }
 

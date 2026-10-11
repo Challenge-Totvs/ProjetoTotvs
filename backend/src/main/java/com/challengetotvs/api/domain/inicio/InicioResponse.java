@@ -1,5 +1,6 @@
 package com.challengetotvs.api.domain.inicio;
 
+import com.challengetotvs.api.domain.compromisso.CompromissoResponse;
 import com.challengetotvs.api.domain.tema.TemaResponse;
 
 import java.time.LocalDate;
@@ -15,7 +16,7 @@ public record InicioResponse(
         List<TemaResponse> riscos,
         List<TemaResponse> oportunidades,
         List<MudancaResponse> mudancas,
-        List<Object> compromissos,
+        List<CompromissoResponse> compromissos,
         List<AgendaItem> agenda,
         Desempenho desempenho) {
 

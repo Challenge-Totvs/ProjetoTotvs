@@ -1,5 +1,6 @@
 package com.challengetotvs.api.domain.cliente;
 
+import com.challengetotvs.api.domain.compromisso.CompromissoResponse; // E1
 import com.challengetotvs.api.domain.reuniao.StatusReuniao;   // enum da reunião (agendada, aguardando, analisada)
 import com.challengetotvs.api.domain.tema.Indicadores;        // indicadores do cliente (J10a)
 import com.challengetotvs.api.domain.tema.TemaResponse;       // tema já calculado
@@ -20,7 +21,7 @@ public record ClienteResponse(
         ReuniaoResumo proximaReuniao,
         List<TemaResponse> temas,
         List<ReuniaoItem> reunioes,
-        List<Object> compromissos
+        List<CompromissoResponse> compromissos   // E1: era List<Object>
 ) {
 
     public record VendedorRef(Long id, String nome) {
@@ -46,7 +47,7 @@ public record ClienteResponse(
     public static ClienteResponse from(Cliente cliente, Indicadores indicadores, ReuniaoResumo ultima,
                                        ReuniaoResumo ultimaAnalisada, ReuniaoResumo proxima,
                                        List<TemaResponse> temas, List<ReuniaoItem> reunioes,
-                                       List<Object> compromissos) {
+                                       List<CompromissoResponse> compromissos) {   // E1: era List<Object>
         var dono = cliente.getVendedor();
         return new ClienteResponse(
                 cliente.getId(),

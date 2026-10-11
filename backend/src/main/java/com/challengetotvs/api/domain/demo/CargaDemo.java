@@ -4,6 +4,9 @@ import com.challengetotvs.api.domain.analise.*;
 import com.challengetotvs.api.domain.cliente.Cliente;
 import com.challengetotvs.api.domain.cliente.ClienteRepository;
 import com.challengetotvs.api.domain.cliente.TipoCliente;
+import com.challengetotvs.api.domain.compromisso.Compromisso;          // E1
+import com.challengetotvs.api.domain.compromisso.CompromissoRepository; // E1
+import com.challengetotvs.api.domain.compromisso.PrazoPorRegra;         // E1
 import com.challengetotvs.api.domain.consultor.Consultor;
 import com.challengetotvs.api.domain.consultor.ConsultorRepository;
 import com.challengetotvs.api.domain.reuniao.Reuniao;
@@ -58,6 +61,7 @@ public class CargaDemo implements ApplicationRunner {
     private final TemaRepository temaRepository;
     private final CitacaoRepository citacaoRepository;
     private final EventoTemaRepository eventoTemaRepository;
+    private final CompromissoRepository compromissoRepository; // E1
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
     private final PlatformTransactionManager transactionManager;
@@ -72,8 +76,9 @@ public class CargaDemo implements ApplicationRunner {
         }
         var seed = lerSeed();
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> carregar(seed));
-        log.info("Carga da demo concluída: {} clientes, {} reuniões, {} temas.",
-                seed.clientes().size(), seed.reunioes().size(), seed.temas().size());
+        log.info("Carga da demo concluída: {} clientes, {} reuniões, {} temas, {} compromissos.",
+                seed.clientes().size(), seed.reunioes().size(), seed.temas().size(),
+                seed.compromissos() == null ? 0 : seed.compromissos().size());
     }
 
     private SeedDemo lerSeed() {
@@ -162,6 +167,26 @@ public class CargaDemo implements ApplicationRunner {
                         .build();
                 evento.setCriadoEm(hoje.plusDays(np.d()).atTime(LocalTime.parse(np.h())));
                 eventoTemaRepository.save(evento);
+            }
+        }
+
+        // E1: compromissos. O prazo vem da regra e da data da reunião, igual ao que a análise faz de verdade.
+        if (seed.compromissos() != null) {
+            for (var cp : seed.compromissos()) {
+                var reuniaoDoCompromisso = reunioes.get(cp.reuniao());
+                var compromisso = Compromisso.builder()
+                        .cliente(clientes.get(cp.cliente()))
+                        .reuniao(reuniaoDoCompromisso)
+                        .turno(cp.turno())
+                        .texto(cp.texto())
+                        .regraPrazo(cp.regra())
+                        .prazo(PrazoPorRegra.calcular(cp.regra(), reuniaoDoCompromisso.getDataHora().toLocalDate()))
+                        .build();
+                if (Boolean.TRUE.equals(cp.cumprido())) {
+                    // cumprido há 2 dias, pelo dono do cliente: aparece no Início (cumpridos há até 3 dias)
+                    compromisso.cumprir(reuniaoDoCompromisso.getConsultor(), hoje.minusDays(2).atTime(10, 0));
+                }
+                compromissoRepository.save(compromisso);
             }
         }
     }
