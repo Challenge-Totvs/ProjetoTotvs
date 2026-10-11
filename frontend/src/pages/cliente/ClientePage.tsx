@@ -80,7 +80,7 @@ function PaginaCliente({ id }: { id: Id }) {
   const idx = sel ? visiveis.indexOf(sel) : -1;
   // Só o vendedor dono do cliente age nos temas.
   const podeAgir = !!cliente && !app.gestor && cliente.vendedor.id === app.usuario.id;
-  const reunioes = cliente ? cliente.reunioes : [];
+  const reunioes = cliente ? (cliente.reunioes ?? []) : [];
   const analisadas = reunioes.filter((r) => r.status === "analisada");
 
   const selecionar = (temaId: Id) => {
@@ -156,7 +156,7 @@ function PaginaCliente({ id }: { id: Id }) {
   const proxima = cliente.proximaReuniao;
   // Compromissos pelo prazo; sem prazo conta como hoje (igual à demo).
   const prazo = (p: string | null) => (p ? paraData(p) : hoje()).getTime();
-  const compromissos = [...cliente.compromissos].sort((a, b) => prazo(a.prazo) - prazo(b.prazo));
+  const compromissos = [...(cliente.compromissos ?? [])].sort((a, b) => prazo(a.prazo) - prazo(b.prazo));
   const tratados = ind.tratadosConversa + ind.tratadosFora;
 
   return (
