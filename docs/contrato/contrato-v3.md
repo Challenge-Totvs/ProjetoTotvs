@@ -231,6 +231,10 @@ Vem da própria LLM, por tema e por evento de conduta, de 0 a 1; valores fora do
 
 Até 40 `temas`, 20 `compromissos`, 20 `eventosConduta`, 60 pontos em `sentimentoSerie`, 20 `interesse`. O excedente é cortado em ordem de `confianca` decrescente e o serviço acrescenta `avisos: ["saida_parcial"]`. Existem para a saída caber em `max_tokens` (hoje 4.000, insuficiente **[verificado]**). O Java consolida vários temas do mesmo padrão em um só (`ConsolidadorTemas`), então o Python não precisa deduplicar por padrão.
 
+### 7.6.1 Um tema por padrão por reunião **[decidido 12/10]**
+
+Um tema por padrão por reunião: se o mesmo padrão aparecer duas vezes, escolher a primeira ocorrência sem resposta. Vale como instrução ao motor (prompt da LLM e regras); o serviço não deduplica depois, e o `ConsolidadorTemas` do Java segue como rede de segurança (7.6).
+
 ### 7.7 Segurança e privacidade **[decidido, D3 revisada, e D9]**
 
 - O Java pseudonimiza com os nomes do cadastro (cliente, contatos, vendedor) **antes** de chamar o Python, e o Python nunca vê esses nomes (SDD §5.6) **[verificado]**. A pendência de LGPD que sobra: nomes que **não** estão no cadastro, até o reconhecimento automático de entidades (E8). O texto segue cru para Anthropic e OpenAI com essa ressalva; não prometer conformidade completa no pitch.
@@ -350,7 +354,7 @@ Foram conferidas por script: cada `texto` e `citacao` existe literalmente no tur
 | A6 | Transcrição sem `[LOCUTOR n]` | **Fechada:** o Java recusa com 422 `sem_locutor` (SDD §5.2) | — |
 | A7 | Outros valores de `correcoesAnteriores.correcao` | **Fechada** para a Release 1: só `nao_procede` | Release 2 |
 | A8 | As 14 expressões por padrão (conteúdo, dono, teste) | Aberta; nova tarefa do João Paulo (P4) | João Paulo |
-| A9 | Status HTTP de falha total: 503 (este documento) ou 500 (SDD §6.2) | Proposta 503; combinar com o Kelwin | Kelwin |
+| A9 | Status HTTP de falha total: 503 (este documento) ou 500 (SDD §6.2) | **Fechada [12/10]:** falha total responde 503; o Java trata qualquer erro HTTP como "análise indisponível" | — |
 | A10 | O SDD §6.2 passa a apontar para este arquivo e incorpora `confianca` e `eventosConduta` como opcionais | Aberta | Kelwin + João Paulo |
 
 ---

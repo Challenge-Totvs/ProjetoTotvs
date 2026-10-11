@@ -56,3 +56,14 @@ Decisão de leitura do §7.2(c): todas as janelas (1, 2 e 3 turnos) ficam dentro
 ....................................................................... [ 72%]
 100 passed in 4.38s
 ```
+
+## Decisões de 12/10 (autorizadas pelo João Paulo)
+| # | Decisão | Onde |
+|---|---|---|
+| D10 | Um tema por padrão por reunião; se o padrão aparecer duas vezes, escolher a primeira ocorrência sem resposta. Instrução ao motor (prompt e regras), sem deduplicação posterior | `contrato-v3.md` §7.6.1 |
+| D11 | A9 fechada: falha total responde 503; o Java trata qualquer erro HTTP como "análise indisponível" | `contrato-v3.md` §12 |
+
+## Bloqueios
+(nenhum até agora)
+
+## Registro de execução — lote de 12/10
