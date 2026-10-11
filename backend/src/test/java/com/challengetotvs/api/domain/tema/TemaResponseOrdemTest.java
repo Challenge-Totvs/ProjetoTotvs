@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TemaResponseOrdemTest {
 
     private static TemaResponse tema(long id, Situacao situacao, boolean recorrente, LocalDate ultimaAtividade) {
-        return new TemaResponse(id, 1L, "p", "P", "t", List.of("risco"), situacao, true, false, recorrente, 1, true,
+        return new TemaResponse(id, 1L, "Cliente", "p", "P", "t", List.of("risco"), situacao, true, false, recorrente, 1, true,
                 0, ultimaAtividade, null, null, "", List.of(), null, null, null, null, List.of());
     }
 

@@ -7,6 +7,7 @@ import java.util.List;
 public record TemaResponse(
         Long id,
         Long clienteId,
+        String clienteNome,
         String padrao,
         String padraoNome,
         String titulo,

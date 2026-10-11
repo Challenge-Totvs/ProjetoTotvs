@@ -85,7 +85,7 @@ public class MontadorTemas {
             if (tema.isOportunidade()) tipos.add("oportunidade");
 
             saida.add(new TemaResponse(
-                    tema.getId(), clienteId,
+                    tema.getId(), clienteId, tema.getCliente().getNome(),
                     tema.getPadrao().getChave(), tema.getPadrao().getNome(), tema.getTitulo(), tipos,
                     r.situacao(), r.emPauta(), r.atencao(), r.recorrente(), r.reunioesNaJanela(),
                     ultima.getTratado() != null,

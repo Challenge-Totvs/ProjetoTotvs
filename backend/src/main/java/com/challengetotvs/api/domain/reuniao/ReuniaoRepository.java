@@ -15,4 +15,6 @@ public interface ReuniaoRepository extends JpaRepository<Reuniao, Long> {
     Page<Reuniao> findByConsultorWithCliente(@Param("consultor") Consultor consultor, Pageable pageable);
 
     List<Reuniao> findByClienteIdOrderByDataHoraDesc(Long clienteId);
+
+    List<Reuniao> findByClienteVendedorIdOrderByDataHoraAsc(Long vendedorId);
 }
