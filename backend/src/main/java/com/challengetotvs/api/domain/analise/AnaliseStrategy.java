@@ -2,5 +2,5 @@ package com.challengetotvs.api.domain.analise;
 
 public interface AnaliseStrategy {
 
-    ResultadoAnalise analisar(String texto);
+    ContratoV3.Resposta analisar(ContratoV3.Pedido pedido);
 }

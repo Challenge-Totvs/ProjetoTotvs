@@ -8,57 +8,47 @@ import java.time.LocalDateTime;
 
 @Table(name = "ANALISE")
 @Entity(name = "Analise")
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
 public class Analise {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transcricao_id", nullable = false, unique = true)
     private Transcricao transcricao;
-    @Lob
-    private String pontosInteresse;
-    @Lob
-    private String pontosDesinteresse;
-    @Lob
-    private String oportunidadesVenda;
-    @Column(nullable = false)
-    private int scoreEngajamento;
 
     @Enumerated(EnumType.STRING)
-    private SentimentoGeral sentimentoGeral;
+    @Column(nullable = false, length = 10)
+    private MotorUtilizado motor;
+
+    @Lob
+    private String tentativas;
+
+    private Integer score;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private SentimentoGeral sentimento;
+
+    @Lob private String resumo;
+    @Lob private String papeis;
+    @Lob private String interesse;
+    @Lob private String proximosPassos;
+    @Lob private String sentimentoSerie;
+    @Lob private String descartados;
+    @Lob private String entidades;
+
+    private Long duracaoMs;
+
     @Column(nullable = false)
     private LocalDateTime criadoEm;
-    @Lob
-    private String recomendacaoProximosPassos;
-    @Enumerated(EnumType.STRING)
-    private MotorUtilizado motorUtilizado;
 
-    @Builder
-    public Analise(Transcricao transcricao, String pontosInteresse, String pontosDesinteresse, String oportunidadesVenda, int scoreEngajamento, SentimentoGeral sentimentoGeral, String recomendacaoProximosPassos, MotorUtilizado motorUtilizado){
+    public Analise(Transcricao transcricao) {
         this.transcricao = transcricao;
-        this.pontosInteresse = pontosInteresse;
-        this.pontosDesinteresse = pontosDesinteresse;
-        this.oportunidadesVenda = oportunidadesVenda;
-        this.scoreEngajamento = scoreEngajamento;
-        this.sentimentoGeral = sentimentoGeral;
         this.criadoEm = LocalDateTime.now();
-        this.recomendacaoProximosPassos = recomendacaoProximosPassos;
-        this.motorUtilizado = motorUtilizado;
-    }
-
-    public void atualizar(String pontosInteresse, String pontosDesinteresse, String oportunidadesVenda,
-                          int scoreEngajamento, SentimentoGeral sentimentoGeral,
-                          String recomendacaoProximosPassos, MotorUtilizado motorUtilizado) {
-        this.pontosInteresse = pontosInteresse;
-        this.pontosDesinteresse = pontosDesinteresse;
-        this.oportunidadesVenda = oportunidadesVenda;
-        this.scoreEngajamento = scoreEngajamento;
-        this.sentimentoGeral = sentimentoGeral;
-        this.recomendacaoProximosPassos = recomendacaoProximosPassos;
-        this.motorUtilizado = motorUtilizado;
     }
 }

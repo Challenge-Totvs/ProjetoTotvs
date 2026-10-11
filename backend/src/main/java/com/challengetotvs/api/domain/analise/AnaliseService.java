@@ -1,84 +1,81 @@
 package com.challengetotvs.api.domain.analise;
 
-import tools.jackson.core.type.TypeReference;
+import com.challengetotvs.api.domain.analise.Pseudonimizador.Entidade;
+import com.challengetotvs.api.domain.analise.Pseudonimizador.Tipo;
 import com.challengetotvs.api.domain.consultor.Consultor;
+import com.challengetotvs.api.domain.reuniao.Reuniao;
+import com.challengetotvs.api.domain.tema.Padrao;
+import com.challengetotvs.api.domain.tema.PadraoRepository;
+import com.challengetotvs.api.domain.transcricao.LeitorTurnos;
 import com.challengetotvs.api.domain.transcricao.TranscricaoRepository;
+import com.challengetotvs.api.exception.AnaliseIndisponivelException;
+import com.challengetotvs.api.exception.ApiException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AnaliseService {
+public class AnaliseService {     // SEM @Transactional: a espera pelo Python não pode segurar o banco
 
     private final TranscricaoRepository transcricaoRepository;
-    private final AnaliseRepository analiseRepository;
+    private final PadraoRepository padraoRepository;
     private final AnaliseStrategy strategy;
-    private final ObjectMapper objectMapper;
+    private final GravadorAnalise gravador;
 
-    public ResultadoAnalise analisar(Long transcricaoId, Consultor consultor){
+    public AnalisarResponse analisar(Long transcricaoId, Consultor consultor) {
         var transcricao = transcricaoRepository.findById(transcricaoId)
-                    .orElseThrow(() -> new EntityNotFoundException("Transcrição não encontrada"));
+                .filter(t -> t.getReuniao().pertenceA(consultor))
+                .orElseThrow(() -> new EntityNotFoundException("Transcrição não encontrada!"));
+        Reuniao reuniao = transcricao.getReuniao();
 
-        if(!transcricao.getReuniao().pertenceA(consultor)){
-            throw new AccessDeniedException("Você não tem permissão para acessar essa transcrição!");
+        var pseudonimizador = new Pseudonimizador(entidadesDoCadastro(reuniao));
+
+        var turnos = LeitorTurnos.ler(transcricao.getConteudo()).stream()
+                .map(t -> new ContratoV3.TurnoPedido(t.n(), t.locutor(), pseudonimizador.pseudonimizar(t.texto())))
+                .toList();
+        if (turnos.isEmpty()) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "sem_locutor",
+                    "Não encontrei marcações [LOCUTOR n] na transcrição.");
         }
 
-        var resultado = strategy.analisar(transcricao.getConteudo());
+        var padroes = padraoRepository.findByAtivoTrueOrderByNomeAsc().stream().map(Padrao::getChave).toList();
+        var pedido = new ContratoV3.Pedido(turnos, reuniao.getDataHora().toLocalDate().toString(), padroes, List.of());
 
-        String interesse = objectMapper.writeValueAsString(resultado.pontosInteresse());
-        String desinteresse = objectMapper.writeValueAsString(resultado.pontosDesinteresse());
-        String oportunidades = objectMapper.writeValueAsString(resultado.oportunidadesVenda());
-        SentimentoGeral sentimento = resultado.sentimentoGeral();
-
-        var existente = analiseRepository.findByTranscricaoId(transcricaoId);
-
-        if (existente.isPresent()) {
-            var analise = existente.get();
-            analise.atualizar(interesse, desinteresse, oportunidades, resultado.scoreEngajamento(),
-                    sentimento, resultado.recomendacaoProximosPassos(), resultado.motorUtilizado());
-            analiseRepository.save(analise);
-        } else {
-            analiseRepository.save(Analise.builder()
-                    .transcricao(transcricao)
-                    .pontosInteresse(interesse)
-                    .pontosDesinteresse(desinteresse)
-                    .oportunidadesVenda(oportunidades)
-                    .scoreEngajamento(resultado.scoreEngajamento())
-                    .sentimentoGeral(sentimento)
-                    .recomendacaoProximosPassos(resultado.recomendacaoProximosPassos())
-                    .motorUtilizado(resultado.motorUtilizado())
-                    .build());
+        long inicio = System.nanoTime();
+        var resposta = strategy.analisar(pedido);
+        long duracaoMs = (System.nanoTime() - inicio) / 1_000_000;
+        if (resposta == null) {
+            throw new AnaliseIndisponivelException("O serviço de análise devolveu uma resposta vazia.");
         }
 
-        return resultado;
+        var analise = gravador.gravar(transcricao, resposta, pseudonimizador, duracaoMs);
+
+        return new AnalisarResponse(reuniao.getId(), analise.getMotor().valor(), resposta.tentativas(), 0, 0, 0);
     }
 
-    public ResultadoAnalise buscar(Long transcricaoId, Consultor consultor) {
-        var transcricao = transcricaoRepository.findById(transcricaoId)
-                .orElseThrow(() -> new EntityNotFoundException("Transcrição não encontrada"));
-
-        if (!transcricao.getReuniao().pertenceA(consultor)) {
-            throw new AccessDeniedException("Você não tem permissão para acessar essa transcrição!");
-        }
-
-        var analise = analiseRepository.findByTranscricaoId(transcricaoId)
-                .orElseThrow(() -> new EntityNotFoundException("Análise não encontrada"));
-
-        return new ResultadoAnalise(
-                paraLista(analise.getPontosInteresse()),
-                paraLista(analise.getPontosDesinteresse()),
-                paraLista(analise.getOportunidadesVenda()),
-                analise.getScoreEngajamento(),
-                analise.getSentimentoGeral(),
-                analise.getRecomendacaoProximosPassos(),
-                analise.getMotorUtilizado());
+    private List<Entidade> entidadesDoCadastro(Reuniao reuniao) {
+        var lista = new ArrayList<Entidade>();
+        var cliente = reuniao.getCliente();
+        lista.add(new Entidade(cliente.getNome(), Tipo.EMPRESA));
+        cliente.getContatos().forEach(c -> adicionarPessoa(lista, c.getNome()));
+        adicionarPessoa(lista, reuniao.getConsultor().getNome());
+        return lista;
     }
 
-    private List<ItemAnalise> paraLista(String json) {
-        return objectMapper.readValue(json, new TypeReference<List<ItemAnalise>>() {});
+    private void adicionarPessoa(List<Entidade> lista, String nome) {
+        if (nome == null || nome.isBlank()) {
+            return;
+        }
+        String completo = nome.strip();
+        lista.add(new Entidade(completo, Tipo.PESSOA));
+        String primeiro = completo.split("\\s+")[0];
+        if (!primeiro.equals(completo) && primeiro.length() >= 3) {   // nome de uma palavra só não duplica; "Zé" curto demais é ignorado
+            lista.add(new Entidade(primeiro, Tipo.PESSOA));
+        }
     }
 }
