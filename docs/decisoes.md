@@ -45,3 +45,14 @@ Decisão de leitura do §7.2(c): todas as janelas (1, 2 e 3 turnos) ficam dentro
 .                                                                        [100%]
 73 passed in 2.19s
 ```
+### P5 — health por motor e erros estruturados
+- `/health`: `llm1`/`llm2` ok = chave **e** modelo definidos (sem chamar API); `local` = artefato existe e `joblib.load` funciona (carga preguiçosa, em cache); `regras` sempre true. `status`: ok / degradado / indisponivel (§8.3).
+- 503/500 no formato do §8.1 com o header `X-Insightcall-Pipeline`; o 500 não loga nem devolve a mensagem da exceção (só o tipo).
+- `app/cadeia.py`: `executar_cadeia(pedido, [(motor, fn)])` escreve `motor`, `tentativas`, `versaoContrato` e os avisos de contingência pelo código. Ainda NÃO está ligada ao router: depende dos motores v3 (P2/P4). Até lá, `PIPELINE_VERSAO=real` responde 503 com `tentativas: []`.
+- A9 (503 vs 500): segui o §8.1 (503 quando nenhum motor responde, 500 só para defeito inesperado). Sem divergência do Java, que trata qualquer 4xx/5xx igual.
+- Teste da P0 `test_ac7_health_no_formato_do_contrato` passou a definir chaves fictícias, pois o `ok` fixo era provisório.
+- Observação: nenhum código carrega `analise-service/.env` (`load_dotenv` não é chamado). Para o modo `real`, as variáveis precisam estar no ambiente do processo. Fica para o João Paulo decidir (dependência `python-dotenv` já existe em requirements).
+```
+....................................................................... [ 72%]
+100 passed in 4.38s
+```

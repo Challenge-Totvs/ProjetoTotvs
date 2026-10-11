@@ -121,7 +121,11 @@ def test_ac7_app_importa_sem_chaves_e_sem_carregar_joblib():
 
 
 @pytest.mark.parametrize("versao", ["real", "mock"])
-def test_ac7_health_no_formato_do_contrato(cliente, pipeline_versao, versao):
+def test_ac7_health_no_formato_do_contrato(cliente, pipeline_versao, monkeypatch, versao):
+    for chave in ("LLM_PRINCIPAL_API_KEY", "LLM_SECUNDARIA_API_KEY"):
+        monkeypatch.setenv(chave, "chave-ficticia")
+    for modelo in ("LLM_PRINCIPAL_MODEL", "LLM_SECUNDARIA_MODEL"):
+        monkeypatch.setenv(modelo, "modelo-ficticio")
     pipeline_versao(versao)
     resposta = cliente.get("/health")
     assert resposta.status_code == 200
