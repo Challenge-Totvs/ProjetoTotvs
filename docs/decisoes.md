@@ -124,3 +124,29 @@ Interesse (palavras-chave): `\b(ajuda\s+bastante|ajuda\s+muito|gostei\w*|interes
 ..................................................................       [100%]
 210 passed in 7.40s
 ```
+
+### Item 5 — P6 suíte do orquestrador e do contrato
+Nenhum bug de produção encontrado pelos testes novos. O prompt e o AC10 (smoke real) ficam pendentes de propósito.
+
+| AC | Testes (arquivo::função) | Estado |
+|---|---|---|
+| AC1 | `test_p0_mock::test_ac1_aceita_pedidos_v3`, `::test_ac1_recusa_pedido_invalido_com_422_estruturado` | coberto |
+| AC2 | `test_p1_schemas::test_ac2_fixtures_validam`, `test_p6_contrato::*` (enums e campos contra `MotorUtilizado.java`, `SentimentoGeral.java`, `ContratoV3.Resposta`) | coberto |
+| AC3 | `test_p2_llm::test_llm1_responde_e_a_saida_bate_com_a_fixture`, `test_p1_schemas::test_saida_llm_schema_e_estrito` | coberto com client simulado; **prompt NÃO validado com LLM real** |
+| AC4 | `test_p3_citacoes` (acerto, espaços/aspas, vizinho, entre dois turnos, inexistente, fixtures) | coberto |
+| AC5 | `test_p6_orquestrador` (llm1; llm1→llm2; duas fora→local; local fora→regras; tudo fora→503; LLM lenta com relógio simulado, total <= 100 s) | coberto |
+| AC6 | `test_p4_regras` (um teste por padrão, 14), `test_modelo_local_engine` | coberto |
+| AC7 | `test_p0_mock::test_ac7_*`, `test_p5_health` | coberto |
+| AC8 | `test_p0_mock::test_ac8_mock_devolve_fixture_e_header` | coberto |
+| AC9 | lado Python: `test_p1_schemas::test_ac2_fixtures_validam`, `test_p6_contrato::test_fixtures_usam_so_valores_que_o_java_aceita` | **lado Java pendente (Kelwin)** |
+| AC10 | `test_rede_bloqueada`, `test_p6_rastreabilidade::test_ac10_sem_rede_e_sem_chaves`; suíte em ~8 s (< 30 s) | **smoke real pendente (João Paulo)**: `scripts/smoke_llm.py` → `docs/evidencias/smoke-12-10.md` |
+
+`test_p6_rastreabilidade.py` confere por código que cada teste citado na tabela existe.
+
+**Pendências abertas (contrato §12):** A2 (lista definitiva de eventos de conduta, João Paulo) · A3 (classificador → 14 padrões, Release 2) · A5 (unidade de treino do classificador; hoje por turno) · A8 (aprovar as 14 expressões da seção do item 2, João Paulo) · A10 (SDD §6.2 apontar para o contrato v3, Kelwin + João Paulo). Fechadas: A1, A4, A6, A7, **A9 (503, hoje)**.
+**Kelwin precisa:** (1) AC9, teste Java lendo `docs/contrato/resposta-v3-*.json` em `ContratoV3.Resposta`; (2) A10, atualizar o SDD §6.2; (3) saber que `PIPELINE_VERSAO=real` agora responde de verdade (llm1 → llm2 → local → regras) e que sem chaves as duas LLMs aparecem em `tentativas` como `nao_configurado`; (4) `tentativas[].duracaoMs`, `erro`, `avisos` e `versaoContrato` são campos extras que o Java ignora.
+**Para o João Paulo decidir:** §8.3 diz `ok` de `regras` = sempre `true`, mas o item 4 permite `false` após falha real; o filtro de `interesse` do `local` (palavra-chave + risco < 0,3) é proposta minha; validar `compromissos` só do vendedor no código não foi feito.
+```
+.......................                                                  [100%]
+239 passed in 7.49s
+```
