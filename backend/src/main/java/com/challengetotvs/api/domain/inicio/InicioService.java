@@ -3,6 +3,7 @@ package com.challengetotvs.api.domain.inicio;
 import com.challengetotvs.api.domain.analise.AnaliseRepository;
 import com.challengetotvs.api.domain.analise.LeitorAnalise;
 import com.challengetotvs.api.domain.cliente.ClienteRepository;
+import com.challengetotvs.api.domain.compromisso.CompromissoService;
 import com.challengetotvs.api.domain.consultor.Consultor;
 import com.challengetotvs.api.domain.inicio.InicioResponse.AgendaItem;
 import com.challengetotvs.api.domain.inicio.InicioResponse.Desempenho;
@@ -44,6 +45,7 @@ public class InicioService {
     private final AnaliseRepository analiseRepository;
     private final MontadorTemas montadorTemas;
     private final LeitorAnalise leitorAnalise;
+    private final CompromissoService compromissoService; // E1
 
     @Value("${insightcall.janela-dias:30}")
     private int janela;
@@ -87,22 +89,24 @@ public class InicioService {
                 .toList();
         var analisadas = naJanela.stream().filter(r -> r.getStatus() == StatusReuniao.ANALISADA).toList();
 
+        var compromissos = compromissoService.doInicio(vendedor.getId(), hoje); // E1: lista ordenada + vencidos
+
         var resumo = CalculadoraDesempenho.calcular(temas, janela, hoje);
         var desempenho = new Desempenho(
                 naJanela.size(), analisadas.size(),
                 resumo.temasCitados(), resumo.taxaConversa(),
-                resumo.tratadosConversa(), resumo.comLeitura(),      // NOVO
+                resumo.tratadosConversa(), resumo.comLeitura(),
                 resumo.tratadosFora(),
                 resumo.oportTratadas(), resumo.oportIdentificadas(),
                 mediaFalaDoVendedor(analisadas),
                 resumo.riscosSemRetorno(), resumo.oportPerdidas(),
-                0, clientes.size());
+                compromissos.vencidos(), clientes.size());                       // E1: era 0
 
         return new InicioResponse(
                 janela, new VendedorRef(vendedor.getId(), vendedor.getNome()), clientes.size(), pendentes,
                 ListasInicio.riscos(temas), ListasInicio.oportunidades(temas),
                 mudancas(DetectorMudancas.detectar(temas, hoje), temas),
-                List.of(), agenda, desempenho);
+                compromissos.lista(), agenda, desempenho);                       // E1: era List.of()
     }
 
 
