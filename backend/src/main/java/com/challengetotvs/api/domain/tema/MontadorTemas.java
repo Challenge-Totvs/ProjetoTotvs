@@ -1,14 +1,15 @@
 package com.challengetotvs.api.domain.tema;
 
 import com.challengetotvs.api.domain.analise.AnaliseRepository;
+import com.challengetotvs.api.domain.analise.LeitorAnalise;
 import com.challengetotvs.api.domain.reuniao.Reuniao;
 import com.challengetotvs.api.domain.tema.TemaResponse.*;
 import com.challengetotvs.api.domain.transcricao.LeitorTurnos;
 import com.challengetotvs.api.domain.transcricao.TranscricaoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import com.challengetotvs.api.domain.analise.LeitorAnalise;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -40,68 +41,85 @@ public class MontadorTemas {
         List<TemaResponse> saida = new ArrayList<>();
 
         for (Tema tema : temaRepository.findByClienteId(clienteId)) {
-            var citacoes = new ArrayList<>(citacaoRepository.findByTemaIdOrderByReuniaoDataHoraAsc(tema.getId()));
-            if (citacoes.isEmpty()) {
-                continue;
+            TemaResponse resposta = montar(tema, hoje, comContexto, cache);
+            if (resposta != null) {
+                saida.add(resposta);
             }
-            citacoes.sort(Comparator.comparing((Citacao c) -> c.getReuniao().getDataHora())
-                    .thenComparingInt(Citacao::getTurno));
-
-            var fora = eventoTemaRepository.findFirstByTemaIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(
-                    tema.getId(), TipoEvento.TRATADO_FORA);
-            var naoProcede = eventoTemaRepository.findFirstByTemaIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(
-                    tema.getId(), TipoEvento.NAO_PROCEDE);
-
-            var entradas = citacoes.stream()
-                    .map(c -> new CitacaoEntrada(c.getReuniao().getDataHora(), c.getReuniao().getId(),
-                            c.getTurno(), c.getTratado()))
-                    .toList();
-            LocalDate dataFora = fora.map(EventoTema::getDataAcao).orElse(null);
-
-            ResultadoSituacao r = CalculadoraSituacao.calcular(
-                    entradas, tema.isOportunidade(), dataFora, naoProcede.isPresent(), janela, hoje);
-
-            Citacao ultima = citacoes.get(citacoes.size() - 1);
-            LocalDate ultimaData = ultima.getReuniao().getDataHora().toLocalDate();
-
-            var explicacao = ExplicadorTema.explicar(new ExplicadorTema.Entrada(
-                    r, tema.isRisco(), tema.isOportunidade(), janela, hoje,
-                    ultima.getReuniao().getTitulo(), ultimaData,
-                    fora.map(f -> f.getPor().getNome()).orElse(null),
-                    fora.map(EventoTema::getAcao).orElse(null),
-                    fora.map(EventoTema::getCanal).orElse(null),
-                    dataFora,
-                    naoProcede.map(n -> n.getPor().getNome()).orElse(null),
-                    naoProcede.map(EventoTema::getMotivo).orElse(null),
-                    naoProcede.map(n -> n.getCriadoEm().toLocalDate()).orElse(null)));
-
-            List<CitacaoResponse> citacoesResposta = new ArrayList<>();
-            for (int i = citacoes.size() - 1; i >= 0; i--) {
-                citacoesResposta.add(paraResposta(citacoes.get(i), comContexto, cache));
-            }
-
-            List<String> tipos = new ArrayList<>();
-            if (tema.isRisco()) tipos.add("risco");
-            if (tema.isOportunidade()) tipos.add("oportunidade");
-
-            saida.add(new TemaResponse(
-                    tema.getId(), clienteId, tema.getCliente().getNome(),
-                    tema.getPadrao().getChave(), tema.getPadrao().getNome(), tema.getTitulo(), tipos,
-                    r.situacao(), r.emPauta(), r.atencao(), r.recorrente(), r.reunioesNaJanela(),
-                    ultima.getTratado() != null,
-                    ChronoUnit.DAYS.between(ultimaData, hoje),
-                    r.ultimaAtividade(), r.venceEm(), r.perdidaEm(), explicacao,
-                    citacoesResposta,
-                    fora.map(f -> new RegistroFora(f.getAcao(), f.getCanal(), f.getDataAcao(),
-                            f.getObservacao(), f.getPor().getNome())).orElse(null),
-                    naoProcede.map(n -> new NaoProcede(n.getMotivo(), n.getPor().getNome(),
-                            n.getCriadoEm().toLocalDate())).orElse(null),
-                    null,
-                    tema.getAnterior() == null ? null : tema.getAnterior().getId(),
-                    List.of()));
         }
         saida.sort(TemaResponse.ORDEM);
         return saida;
+    }
+
+    public TemaResponse doTema(Long temaId, boolean comContexto) {
+        Tema tema = temaRepository.findById(temaId)
+                .orElseThrow(() -> new EntityNotFoundException("Tema não encontrado!"));
+        TemaResponse resposta = montar(tema, LocalDate.now(FUSO), comContexto, new HashMap<>());
+        if (resposta == null) {
+            throw new EntityNotFoundException("Tema sem citações!");
+        }
+        return resposta;
+    }
+
+    private TemaResponse montar(Tema tema, LocalDate hoje, boolean comContexto, Map<Long, DadosReuniao> cache) {
+        var citacoes = new ArrayList<>(citacaoRepository.findByTemaIdOrderByReuniaoDataHoraAsc(tema.getId()));
+        if (citacoes.isEmpty()) {
+            return null;
+        }
+        citacoes.sort(Comparator.comparing((Citacao c) -> c.getReuniao().getDataHora())
+                .thenComparingInt(Citacao::getTurno));
+
+        var fora = eventoTemaRepository.findFirstByTemaIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(
+                tema.getId(), TipoEvento.TRATADO_FORA);
+        var naoProcede = eventoTemaRepository.findFirstByTemaIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(
+                tema.getId(), TipoEvento.NAO_PROCEDE);
+
+        var entradas = citacoes.stream()
+                .map(c -> new CitacaoEntrada(c.getReuniao().getDataHora(), c.getReuniao().getId(),
+                        c.getTurno(), c.getTratado()))
+                .toList();
+        LocalDate dataFora = fora.map(EventoTema::getDataAcao).orElse(null);
+
+        ResultadoSituacao r = CalculadoraSituacao.calcular(
+                entradas, tema.isOportunidade(), dataFora, naoProcede.isPresent(), janela, hoje);
+
+        Citacao ultima = citacoes.get(citacoes.size() - 1);
+        LocalDate ultimaData = ultima.getReuniao().getDataHora().toLocalDate();
+
+        var explicacao = ExplicadorTema.explicar(new ExplicadorTema.Entrada(
+                r, tema.isRisco(), tema.isOportunidade(), janela, hoje,
+                ultima.getReuniao().getTitulo(), ultimaData,
+                fora.map(f -> f.getPor().getNome()).orElse(null),
+                fora.map(EventoTema::getAcao).orElse(null),
+                fora.map(EventoTema::getCanal).orElse(null),
+                dataFora,
+                naoProcede.map(n -> n.getPor().getNome()).orElse(null),
+                naoProcede.map(EventoTema::getMotivo).orElse(null),
+                naoProcede.map(n -> n.getCriadoEm().toLocalDate()).orElse(null)));
+
+        List<CitacaoResponse> citacoesResposta = new ArrayList<>();
+        for (int i = citacoes.size() - 1; i >= 0; i--) {
+            citacoesResposta.add(paraResposta(citacoes.get(i), comContexto, cache));
+        }
+
+        List<String> tipos = new ArrayList<>();
+        if (tema.isRisco()) tipos.add("risco");
+        if (tema.isOportunidade()) tipos.add("oportunidade");
+
+        return new TemaResponse(
+                tema.getId(), tema.getCliente().getId(), tema.getCliente().getNome(),
+                tema.getPadrao().getChave(), tema.getPadrao().getNome(), tema.getTitulo(), tipos,
+                r.situacao(), r.emPauta(), r.atencao(), r.recorrente(), r.reunioesNaJanela(),
+                ultima.getTratado() != null,
+                ChronoUnit.DAYS.between(ultimaData, hoje),
+                r.ultimaAtividade(), r.venceEm(), r.perdidaEm(), explicacao,
+                citacoesResposta,
+                fora.map(f -> new RegistroFora(f.getAcao(), f.getCanal(), f.getDataAcao(),
+                        f.getObservacao(), f.getPor().getNome())).orElse(null),
+                naoProcede.map(n -> new NaoProcede(n.getMotivo(), n.getPor().getNome(),
+                        n.getCriadoEm().toLocalDate())).orElse(null),
+                null,
+                tema.getAnterior() == null ? null : tema.getAnterior().getId(),
+                List.of());
     }
 
     private CitacaoResponse paraResposta(Citacao c, boolean comContexto, Map<Long, DadosReuniao> cache) {
@@ -114,12 +132,12 @@ public class MontadorTemas {
 
         List<Contexto> contexto = List.of();
         if (comContexto) {
+            int fim = c.getTurnoFim() == null ? c.getTurno() : c.getTurnoFim();
             int de = c.getTurno() - 2;
-            int ate = (c.getTurnoFim() == null ? c.getTurno() : c.getTurnoFim()) + 2;
+            int ate = fim + 2;
             contexto = dados.turnos().stream()
                     .filter(t -> t.n() >= de && t.n() <= ate)
-                    .filter(t -> t.n() < c.getTurno()
-                            || t.n() > (c.getTurnoFim() == null ? c.getTurno() : c.getTurnoFim()))
+                    .filter(t -> t.n() < c.getTurno() || t.n() > fim)
                     .map(t -> new Contexto(t.n(), t.locutor(), dados.papeis().get(t.locutor()), t.texto()))
                     .toList();
         }
@@ -140,5 +158,4 @@ public class MontadorTemas {
             return new DadosReuniao(turnos, papeis);
         });
     }
-
 }
