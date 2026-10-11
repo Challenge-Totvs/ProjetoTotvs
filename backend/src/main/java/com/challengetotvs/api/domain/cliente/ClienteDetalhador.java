@@ -3,6 +3,8 @@ package com.challengetotvs.api.domain.cliente;
 import com.challengetotvs.api.domain.analise.AnaliseRepository;
 import com.challengetotvs.api.domain.cliente.ClienteResponse.ReuniaoItem;
 import com.challengetotvs.api.domain.cliente.ClienteResponse.ReuniaoResumo;
+import com.challengetotvs.api.domain.compromisso.CompromissoResponse;  // E1
+import com.challengetotvs.api.domain.compromisso.CompromissoService;   // E1
 import com.challengetotvs.api.domain.reuniao.Reuniao;
 import com.challengetotvs.api.domain.reuniao.ReuniaoRepository;
 import com.challengetotvs.api.domain.reuniao.StatusReuniao;
@@ -27,6 +29,7 @@ public class ClienteDetalhador {
     private final ReuniaoRepository reuniaoRepository;
     private final TranscricaoRepository transcricaoRepository;
     private final AnaliseRepository analiseRepository;
+    private final CompromissoService compromissoService;   // E1
 
 
     public ClienteResponse montar(Cliente cliente, boolean completo) {
@@ -58,11 +61,16 @@ public class ClienteDetalhador {
                 ? reunioes.stream().sorted(Comparator.comparing(Reuniao::getDataHora)).map(this::item).toList()
                 : List.<ReuniaoItem>of();
 
+        // E1: só a página de detalhe mostra os compromissos; a listagem de clientes segue sem eles
+        List<CompromissoResponse> compromissos = completo
+                ? compromissoService.doCliente(cliente.getId())
+                : List.of();
+
         return ClienteResponse.from(cliente, indicadores,
                 ultima.map(this::resumo).orElse(null),
                 ultimaAnalisada.map(this::resumo).orElse(null),
                 proxima.map(this::resumo).orElse(null),
-                temas, itensReuniao, List.of());   // compromissos: vazio até a E1
+                temas, itensReuniao, compromissos);
     }
 
     private ReuniaoResumo resumo(Reuniao r) {

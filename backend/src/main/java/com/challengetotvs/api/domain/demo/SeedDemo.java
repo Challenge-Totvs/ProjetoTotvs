@@ -8,7 +8,8 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SeedDemo(List<UsuarioSeed> usuarios, List<ClienteSeed> clientes,
-                       List<ReuniaoSeed> reunioes, List<TemaSeed> temas) {
+                       List<ReuniaoSeed> reunioes, List<TemaSeed> temas,
+                       List<CompromissoSeed> compromissos) {   // E1
 
     public record UsuarioSeed(String email, String senha, String nome, String perfil, String vendedorId) {
     }
@@ -39,5 +40,9 @@ public record SeedDemo(List<UsuarioSeed> usuarios, List<ClienteSeed> clientes,
 
     public record TemaSeed(String id, String cliente, String padrao, String titulo, List<String> tipos,
                            List<CitacaoSeed> citacoes, NaoProcedeSeed naoProcede) {
+    }
+
+    public record CompromissoSeed(String id, String cliente, String reuniao, int turno, String texto,
+                                  String regra, Boolean cumprido) {
     }
 }
