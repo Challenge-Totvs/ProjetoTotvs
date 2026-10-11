@@ -1,11 +1,6 @@
 package com.challengetotvs.api.domain.analise;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,6 +44,23 @@ public final class Pseudonimizador {
                 .map(Pattern::quote)
                 .collect(Collectors.joining("|"));
         this.termos = Pattern.compile("(?<!\\p{L})(?:" + alternativas + ")(?!\\p{L})");
+    }
+
+    public static Pseudonimizador deMapa(Map<String, String> originalPorPseudonimo) {
+        List<Entidade> entidades = new ArrayList<>();
+        for (Map.Entry<String, String> e : originalPorPseudonimo.entrySet()) {
+            String chave = e.getKey();
+            int fim = chave.indexOf('_');
+            if (!chave.startsWith("[") || fim < 0) {
+                continue;
+            }
+            try {
+                entidades.add(new Entidade(e.getValue(), Tipo.valueOf(chave.substring(1, fim))));
+            } catch (IllegalArgumentException ex) {
+                // tipo desconhecido: ignora
+            }
+        }
+        return new Pseudonimizador(entidades);
     }
 
     public String pseudonimizar(String texto) {

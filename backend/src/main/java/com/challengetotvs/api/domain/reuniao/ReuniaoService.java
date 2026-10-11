@@ -70,17 +70,6 @@ public class ReuniaoService {
                         "O contato não pertence a este cliente."));
     }
 
-    public ReuniaoResponse listarPorId(Long id, Consultor consultor) {
-        var reuniao = reuniaoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Reunião não encontrada!"));
-
-        if (!reuniao.pertenceA(consultor)) {
-            throw new AccessDeniedException("Você não tem permissão para acessar essa reunião!");
-        }
-
-        return ReuniaoResponse.from(reuniao);
-    }
-
     public Page<ReuniaoResponse> listar(Pageable pagination, Consultor consultor) {
         return reuniaoRepository.findByConsultorWithCliente(consultor, pagination)
                 .map(ReuniaoResponse::from);

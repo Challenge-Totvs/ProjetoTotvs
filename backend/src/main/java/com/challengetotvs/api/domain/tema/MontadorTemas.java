@@ -8,7 +8,7 @@ import com.challengetotvs.api.domain.transcricao.TranscricaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
+import com.challengetotvs.api.domain.analise.LeitorAnalise;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -26,7 +26,7 @@ public class MontadorTemas {
     private final EventoTemaRepository eventoTemaRepository;
     private final TranscricaoRepository transcricaoRepository;
     private final AnaliseRepository analiseRepository;
-    private final ObjectMapper objectMapper;
+    private final LeitorAnalise leitorAnalise;
 
     @Value("${insightcall.janela-dias:30}")
     private int janela;
@@ -135,27 +135,10 @@ public class MontadorTemas {
             }
             var turnos = LeitorTurnos.ler(transcricao.get().getConteudo());
             var papeis = analiseRepository.findByTranscricaoId(transcricao.get().getId())
-                    .map(a -> lerPapeis(a.getPapeis()))
+                    .map(a -> leitorAnalise.papeis(a.getPapeis()))
                     .orElse(Map.of());
             return new DadosReuniao(turnos, papeis);
         });
     }
 
-    private Map<Integer, String> lerPapeis(String json) {
-        if (json == null || json.isBlank()) {
-            return Map.of();
-        }
-        try {
-            Map<?, ?> bruto = objectMapper.readValue(json, Map.class);
-            Map<Integer, String> papeis = new HashMap<>();
-            bruto.forEach((chave, valor) -> {
-                if (valor != null) {
-                    papeis.put(Integer.parseInt(chave.toString()), valor.toString());
-                }
-            });
-            return papeis;
-        } catch (RuntimeException e) {
-            return Map.of();
-        }
-    }
 }
