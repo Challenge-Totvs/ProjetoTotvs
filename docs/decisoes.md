@@ -67,3 +67,8 @@ Decisão de leitura do §7.2(c): todas as janelas (1, 2 e 3 turnos) ficam dentro
 (nenhum até agora)
 
 ## Registro de execução — lote de 12/10
+### Item 1 — .env via python-dotenv
+`carregar_dotenv()` em `app/config.py`, chamado por `main.py`: só carrega se `analise-service/.env` existir, `override=False`. O `conftest.py` liga `INSIGHTCALL_IGNORAR_DOTENV=1` para que nenhum teste leia o `.env` real. O arquivo nunca foi lido por mim.
+```
+105 passed in 5.70s
+```

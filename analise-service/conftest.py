@@ -4,9 +4,13 @@ Nenhum teste chama rede: conexões só são aceitas para loopback (o asyncio no 
 usa um socketpair em 127.0.0.1 internamente, e o TestClient depende disso).
 """
 import ipaddress
+import os
 import socket
 
 import pytest
+
+# Antes de qualquer import de app.main: nenhum teste lê o .env real nem usa chaves (regra 4).
+os.environ["INSIGHTCALL_IGNORAR_DOTENV"] = "1"
 
 _HOSTS_LOCAIS = {"localhost", ""}
 

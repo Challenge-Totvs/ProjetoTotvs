@@ -14,6 +14,26 @@ _VARIAVEIS_LLM = {
 }
 
 
+CAMINHO_ENV = Path(__file__).resolve().parent.parent / ".env"
+VARIAVEL_IGNORAR_DOTENV = "INSIGHTCALL_IGNORAR_DOTENV"  # os testes a ligam: nenhum teste lê o .env real
+
+
+def carregar_dotenv(caminho: Path | None = None) -> bool:
+    """Carrega o .env só se existir e sem sobrescrever variáveis já definidas no ambiente.
+
+    Sem `caminho`, usa `analise-service/.env` e respeita VARIAVEL_IGNORAR_DOTENV.
+    """
+    if caminho is None:
+        if os.environ.get(VARIAVEL_IGNORAR_DOTENV):
+            return False
+        caminho = CAMINHO_ENV
+    if not caminho.is_file():
+        return False
+    from dotenv import load_dotenv
+
+    return load_dotenv(caminho, override=False)
+
+
 @dataclass(frozen=True)
 class Config:
     pipeline_versao: str
