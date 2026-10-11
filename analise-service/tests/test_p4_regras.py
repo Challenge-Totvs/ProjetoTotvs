@@ -58,8 +58,8 @@ def test_um_tema_por_padrao_com_a_primeira_ocorrencia():
 
 
 def test_contraexemplo_suprime_o_turno():
-    textos = ["Bom dia, tudo bem?", "Vamos cancelar a reserva do salão de eventos.", "Estamos avaliando cancelar o contrato."]
-    contra = [{"padrao": "cancelamento_citado", "texto": "Vamos cancelar a reserva do salão de eventos.", "motivo": "fora_contexto"}]
+    textos = ["Bom dia, tudo bem?", "Vamos cancelar a assinatura do boletim interno.", "Estamos avaliando cancelar o contrato."]
+    contra = [{"padrao": "cancelamento_citado", "texto": "Vamos cancelar a assinatura do boletim interno.", "motivo": "fora_contexto"}]
     sem = [t for t in regras_engine.analisar(_pedido(textos))["temas"] if t["padrao"] == "cancelamento_citado"]
     com = [t for t in regras_engine.analisar(_pedido(textos, contraexemplos=contra))["temas"]
            if t["padrao"] == "cancelamento_citado"]
@@ -79,9 +79,9 @@ def test_texto_longo_e_recortado_em_ate_600_caracteres():
 
 
 def test_trecho_curto_vai_para_descartados():
-    saida = regras_engine.analisar(_pedido(["Bom dia.", "Cancelar!"]))
+    saida = regras_engine.analisar(_pedido(["Bom dia.", "Upgrade!"]))
     assert saida["temas"] == []
-    assert saida["descartados"][0]["motivo"] == "trecho_curto" and saida["descartados"][0]["padrao"] == "cancelamento_citado"
+    assert saida["descartados"][0]["motivo"] == "trecho_curto" and saida["descartados"][0]["padrao"] == "upgrade_licencas"
 
 
 def test_sem_trechos_analisaveis_levanta_erro_explicito():

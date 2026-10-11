@@ -1,6 +1,7 @@
 """Motor `regras`: uma expressão regular por padrão (contrato v3 §5, SDD §6.3).
 
-Primeira versão das 14 expressões, pendente de revisão do João Paulo (A8). As expressões casam
+Expressões v2 (A8): cinco padrões e as palavras de interesse exigem contexto de demanda/objeto.
+Proposta v2 por contagem no corpus; calibrar com o conjunto ouro. Pendente de revisão do João Paulo. As expressões casam
 sobre o texto SEM acentos e em minúsculas; o recorte devolvido é sempre do texto recebido.
 """
 import logging
@@ -43,13 +44,15 @@ _DEFINICOES: dict[str, tuple[str, str, str]] = {
     ),
     "concorrente_citado": (
         "Concorrente citado", "risco",
-        r"\b(concorrent\w*|outro\s+fornecedor|outra\s+empresa|outro\s+sistema|outra\s+solucao"
-        r"|sap|oracle|omie|bling)\b",
+        r"\b(concorrent\w*|outro\s+fornecedor|outra\s+solucao|omie|bling|sap|oracle)\b"
     ),
     "cancelamento_citado": (
         "Cancelamento citado", "risco",
-        r"\b(cancel\w*|rescind\w*|rescis\w*|encerrar\s+(o\s+)?contrato"
-        r"|nao\s+(vamos|vou|pretendemos)\s+renovar|deixar\s+de\s+usar)\b",
+        r"\b(cancel\w*|rescind\w*|rescis\w*)\b.{0,40}\b(contrato|assinatura|licenca\w*|plano|servico|sistema|produto|conta)\b"
+        r"|\b(contrato|assinatura|licenca\w*|plano|servico|sistema|produto|conta)\b.{0,40}\b(cancel\w*|rescind\w*|rescis\w*)\b"
+        r"|\bencerrar\s+(o\s+)?contrato\b"
+        r"|\bnao\s+(vamos|vou|pretendemos)\s+renovar\b"
+        r"|\bdeixar\s+de\s+usar\b"
     ),
     "adocao_resistencia": (
         "Resistência da equipe", "risco",
@@ -79,12 +82,14 @@ _DEFINICOES: dict[str, tuple[str, str, str]] = {
     ),
     "modulo_adicional": (
         "Módulo adicional", "oportunidade",
-        r"\b(modulos?|add-?on|business\s+intelligence|telemedicina)\b"
-        r"|\b(queremos|querem|gostaria\w*|interesse\s+em|precisamos\s+de)\b.{0,40}\b(dashboard|painel|bi)\b",
+        r"\b(queremos|querem|quero|gostaria\w*|interesse\s+em|precisamos\s+de|contratar|adquirir|comprar|adicionar|incluir|acrescentar|adicional)\b.{0,40}\b(modulos?|add-?on|business\s+intelligence|telemedicina|dashboard|painel|bi)\b"
+        r"|\bmodulos?\s+(adicional|adicionais|extra|extras|novo|novos)\b"
+        r"|\b(add-?on|business\s+intelligence|telemedicina)\b"
     ),
     "integracao": (
         "Integração com outro sistema", "oportunidade",
-        r"\b(integra\w*|api|webservice|web\s+service|sincroniz\w*|conectar\s+com)\b",
+        r"\b(integra\w*|api|webservice|web\s+service|sincroniz\w*|conectar\s+com)\b.{0,60}\b(queremos|querem|quero|preciso|precisamos|gostaria\w*|necessidade|tem\s+como|da\s+para|consegue\w*|possivel|possibilidade)\b"
+        r"|\b(queremos|querem|quero|preciso|precisamos|gostaria\w*|necessidade\s+de|tem\s+como|da\s+para|consegue\w*|possibilidade\s+de)\b.{0,60}\b(integra\w*|api|webservice|web\s+service|sincroniz\w*|conectar\s+com)\b"
     ),
     "renovacao": (
         "Renovação do contrato", "oportunidade",
@@ -98,7 +103,9 @@ _DEFINICOES: dict[str, tuple[str, str, str]] = {
     ),
     "treinamento": (
         "Treinamento da equipe", "oportunidade",
-        r"\b(treinament\w*|treinar|capacita\w*|onboarding|workshop|reciclagem|aprender\s+a\s+usar)\b",
+        r"\b(precisamos|queremos|quero|preciso|gostaria\w*|necessidade\s+de|solicit\w*|agendar|contratar|oferecer|fazer|novo|novos)\b.{0,30}\b(treinament\w*|capacita\w*|workshop|onboarding|reciclagem)\b"
+        r"|\b(treinament\w*|capacita\w*)\s+(adicional|adicionais|extra|extras|para\s+(a\s+|o\s+|os\s+|as\s+)?(equipe|time|usuarios|funcionarios|colaboradores))\b"
+        r"|\baprender\s+a\s+usar\b"
     ),
 }
 
@@ -107,8 +114,7 @@ TITULO_DO_PADRAO = {p: d[0] for p, d in _DEFINICOES.items()}
 TIPO_DO_PADRAO = {p: d[1] for p, d in _DEFINICOES.items()}
 
 EXPRESSAO_INTERESSE = re.compile(
-    r"\b(ajuda\s+bastante|ajuda\s+muito|gostei\w*|interessante|interessad[oa]|otimo|excelente|perfeito"
-    r"|combinado|fechado|vamos\s+fechar|pode\s+enviar|manda\s+a\s+proposta|queremos\s+avancar)\b"
+    r"\b(ajuda\s+bastante|ajuda\s+muito|gostei\w*|interessante|interessad[oa]|excelente|vamos\s+fechar|pode\s+enviar|manda\s+a\s+proposta|queremos\s+avancar)\b"
 )
 
 

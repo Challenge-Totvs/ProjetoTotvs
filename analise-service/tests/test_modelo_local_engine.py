@@ -39,7 +39,7 @@ TRANSCRICAO_B = [
     "Bom dia, como está o uso do sistema?",
     "Bom dia. Sendo bem sincero, não estamos satisfeitos.",
     "O suporte demora demais para responder, já abrimos 3 chamados esse mês.",
-    "Estamos avaliando seriamente cancelar e migrar para outro fornecedor.",
+    "Estamos avaliando seriamente cancelar o contrato e migrar para outro fornecedor.",
 ]
 
 
@@ -68,7 +68,7 @@ def test_score_100_sem_risco_e_0_com_tudo_risco(pipeline_falso):
 
 def test_interesse_exige_palavra_chave_e_baixo_risco_no_classificador(pipeline_falso):
     pipeline_falso([0.05, 0.9, 0.1])
-    textos = ["Isso ajuda bastante, gostei.", "Ótimo, mas vamos cancelar mesmo assim.", "Combinado, podemos seguir."]
+    textos = ["Isso ajuda bastante, gostei.", "Excelente, mas vamos cancelar mesmo assim.", "Gostei, podemos seguir."]
     saida = modelo_local_engine.analisar(_pedido(textos))
     assert [i["turno"] for i in saida["interesse"]] == [1, 3]
 
