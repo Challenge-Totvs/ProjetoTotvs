@@ -2,7 +2,8 @@
 
 Recebe transcrições de reuniões comerciais e devolve análise: temas de risco e
 oportunidade com citação literal, score, sentimento e próximos passos.
-Prazos: banca TOTVS 14/10/2026 · entrega FIAP 21/10/2026.
+Prazos: banca TOTVS 15/10/2026 (define o top 4 para o Next, 24/10) · entrega FIAP
+21/10/2026 (secundária). O produto continua depois do Challenge: releases contínuas.
 
 ## Mapa do repositório
 - `analise-service/` — Python/FastAPI, motores de análise. Foco das sessões aqui.
@@ -53,7 +54,7 @@ O Java espera no máximo 120 s.
   `/p4-regras`, `/p5-health`, `/p6-testes`. Uma tarefa por sessão (`/clear` entre elas).
 - Ciclo fixo: ler contrato e tarefa -> baseline do pytest -> PLANO e esperar aprovação
   -> testes primeiro (devem falhar pelo motivo certo) -> implementar o mínimo -> pytest
-  verde -> commit `tipo(ID): resumo` -> resumo de 5 linhas.
+  verde -> commit `tipo(ID): resumo` -> resumo de 5 linhas. (Sempre commit em meu nome: Joao basta. e sempre commit apos cada mudança para, se caso necessario, poder voltar a versao anterior)
 - Só diga que terminou mostrando a saída de `python -m pytest -q`.
 - Nomes de domínio em português; campos JSON em camelCase como o contrato.
 
