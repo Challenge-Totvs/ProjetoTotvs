@@ -13,6 +13,7 @@ import java.util.List;
 public class ClienteService {
 
     private final ClienteRepository repository;
+    private final ClienteDetalhador detalhador;
 
     @Transactional
     public ClienteResponse criar(ClienteRequest request, Consultor vendedor) {
@@ -27,14 +28,14 @@ public class ClienteService {
         var clientes = ehGestor(usuario)
                 ? repository.findByVendedorIsNotNullOrderByNomeAsc()
                 : repository.findByVendedorOrderByNomeAsc(usuario);
-        return clientes.stream().map(ClienteResponse::from).toList();
+        return clientes.stream().map(c -> detalhador.montar(c, false)).toList();
     }
 
     @Transactional(readOnly = true)
     public ClienteResponse buscar(Long id, Consultor usuario) {
         return repository.findById(id)
                 .filter(c -> podeVer(c, usuario))
-                .map(ClienteResponse::from)
+                .map(c -> detalhador.montar(c, true))
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado"));
     }
 

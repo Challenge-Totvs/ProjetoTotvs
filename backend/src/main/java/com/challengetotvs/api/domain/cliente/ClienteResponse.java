@@ -1,5 +1,10 @@
 package com.challengetotvs.api.domain.cliente;
 
+import com.challengetotvs.api.domain.reuniao.StatusReuniao;
+import com.challengetotvs.api.domain.tema.Indicadores;
+import com.challengetotvs.api.domain.tema.TemaResponse;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record ClienteResponse(
@@ -10,10 +15,10 @@ public record ClienteResponse(
         VendedorRef vendedor,
         List<ContatoResponse> contatos,
         Indicadores indicadores,
-        Object ultimaReuniao,
-        Object ultimaAnalisada,
-        Object proximaReuniao,
-        List<Object> temasEmPauta
+        ReuniaoResumo ultimaReuniao,
+        ReuniaoResumo ultimaAnalisada,
+        ReuniaoResumo proximaReuniao,
+        List<TemaResponse> temas
 ) {
 
     public record VendedorRef(Long id, String nome) {
@@ -22,17 +27,18 @@ public record ClienteResponse(
     public record ContatoResponse(Long id, String nome, String cargo) {
     }
 
-    public record Indicadores(
-            int emPauta, int riscosSemRetorno, int riscosRecorrentes, int oportPerdidas,
-            int oportSemRetorno, int tratadosConversa, int tratadosFora, int foraDePauta,
-            int naoProcede, int recorrentes, int atencao
-    ) {
-        public static Indicadores zerados() {
-            return new Indicadores(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-        }
+    public record ReuniaoResumo(Long id, String titulo, LocalDateTime dataHora, Integer duracaoMin,
+                                StatusReuniao status, boolean confirmada, String contato,
+                                String motor, Integer score) {
     }
 
     public static ClienteResponse from(Cliente cliente) {
+        return from(cliente, Indicadores.zerados(), null, null, null, List.of());
+    }
+
+    public static ClienteResponse from(Cliente cliente, Indicadores indicadores, ReuniaoResumo ultima,
+                                       ReuniaoResumo ultimaAnalisada, ReuniaoResumo proxima,
+                                       List<TemaResponse> temas) {
         var dono = cliente.getVendedor();
         return new ClienteResponse(
                 cliente.getId(),
@@ -43,9 +49,7 @@ public record ClienteResponse(
                 cliente.getContatos().stream()
                         .map(c -> new ContatoResponse(c.getId(), c.getNome(), c.getCargo()))
                         .toList(),
-                Indicadores.zerados(),
-                null, null, null,
-                List.of()
+                indicadores, ultima, ultimaAnalisada, proxima, temas
         );
     }
 }
