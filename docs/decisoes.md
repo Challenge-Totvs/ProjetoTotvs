@@ -38,3 +38,10 @@ Nota: o `AnaliseResponse` v1 virou `AnaliseResponseV1` (usado só por `orchestra
 ..................................................                       [100%]
 50 passed in 2.10s
 ```
+### P3 — conferência de citações
+Decisão de leitura do §7.2(c): todas as janelas (1, 2 e 3 turnos) ficam dentro de n−2..n+2; um trecho que comece fora desse intervalo é descartado. `conferir_citacoes(turnos, itens, *, origem, campo_texto)` devolve `(confirmados, descartados)`; `turnoFim` é sempre preenchido (quem monta o `Interesse` o ignora).
+```
+........................................................................ [ 98%]
+.                                                                        [100%]
+73 passed in 2.19s
+```
