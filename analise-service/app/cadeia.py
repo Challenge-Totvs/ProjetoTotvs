@@ -10,12 +10,30 @@ from typing import Any, Callable, Sequence
 
 from pydantic import ValidationError
 
+from app import config
 from app.erros import AnaliseIndisponivel, ErroMotor
 from app.schemas import AnaliseResponse, Tentativa
 
 logger = logging.getLogger(__name__)
 
 Motor = Callable[[Any], dict]
+
+
+class Prazo:
+    """Prazo compartilhado de uma requisição: total menos a reserva, medido por um relógio injetável."""
+
+    def __init__(
+        self,
+        total: float = config.PRAZO_TOTAL_S,
+        reserva: float = config.RESERVA_S,
+        relogio: Callable[[], float] = time.monotonic,
+    ):
+        self._relogio = relogio
+        self._inicio = relogio()
+        self._util = total - reserva
+
+    def restante(self) -> float:
+        return self._util - (self._relogio() - self._inicio)
 
 _AVISO_DE_CONTINGENCIA = {"local": "contingencia_modelo_local", "regras": "contingencia_regras"}
 

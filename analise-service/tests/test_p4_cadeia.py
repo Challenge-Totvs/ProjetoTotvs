@@ -49,8 +49,8 @@ def test_sem_joblib_cai_para_regras(pedido, monkeypatch, tmp_path):
     assert r.temas
 
 
-def test_sem_llms_ligadas_a_cadeia_comeca_no_local(pedido):
-    r = orchestrator.analisar(pedido)
+def test_sem_llms_a_cadeia_comeca_no_local(pedido):
+    r = orchestrator.analisar(pedido, llms=())
     assert r.motor == "local" and [t.motor for t in r.tentativas] == ["local"]
 
 
@@ -80,7 +80,8 @@ def test_router_real_devolve_200_no_formato_das_fixtures_de_contingencia(cliente
     fixture = _json("resposta-v3-local.json")
     assert set(corpo) == set(fixture)
     assert all(t["tratado"] is None and "confianca" not in t for t in corpo["temas"])
-    assert all(set(t) == {"motor", "ok", "duracaoMs"} for t in corpo["tentativas"])
+    assert [(t["motor"], t["ok"], t.get("erro")) for t in corpo["tentativas"]] == [
+        ("llm1", False, "nao_configurado"), ("llm2", False, "nao_configurado"), ("local", True, None)]
 
 
 def test_router_real_sem_joblib_responde_regras(cliente_real, monkeypatch, tmp_path):
@@ -98,4 +99,5 @@ def test_router_real_tudo_fora_e_503_estruturado(cliente_real, monkeypatch):
     corpo = r.json()
     assert corpo["codigo"] == "analise_indisponivel"
     assert [(t["motor"], t["erro"]) for t in corpo["tentativas"]] == [
+        ("llm1", "nao_configurado"), ("llm2", "nao_configurado"),
         ("local", "modelo_indisponivel"), ("regras", "erro_interno")]

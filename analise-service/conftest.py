@@ -71,6 +71,13 @@ def bloquear_rede(monkeypatch):
     monkeypatch.setattr(socket, "getaddrinfo", getaddrinfo)
 
 
+@pytest.fixture(autouse=True)
+def sem_chaves_no_ambiente(monkeypatch):
+    """Nenhum teste usa chave: o que estiver no ambiente do desenvolvedor é removido (regra 4)."""
+    for variavel in ("LLM_PRINCIPAL_API_KEY", "LLM_PRINCIPAL_MODEL", "LLM_SECUNDARIA_API_KEY", "LLM_SECUNDARIA_MODEL"):
+        monkeypatch.delenv(variavel, raising=False)
+
+
 @pytest.fixture
 def pipeline_versao(monkeypatch):
     """Define PIPELINE_VERSAO para o teste e limpa o cache da configuração."""

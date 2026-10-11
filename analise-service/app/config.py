@@ -34,6 +34,11 @@ def carregar_dotenv(caminho: Path | None = None) -> bool:
     return load_dotenv(caminho, override=False)
 
 
+PRAZO_TOTAL_S = 100.0  # D6: total <= 100 s, o Java espera 120 s
+RESERVA_S = 10.0
+TIMEOUT_LLM_S = {"llm1": 55.0, "llm2": 35.0}
+
+
 @dataclass(frozen=True)
 class Config:
     pipeline_versao: str
@@ -49,6 +54,17 @@ def obter_config() -> Config:
     return Config(pipeline_versao=pipeline_versao)
 
 
+def chave_llm(motor: str) -> str | None:
+    return os.environ.get(_VARIAVEIS_LLM[motor][0], "").strip() or None
+
+
+def credenciais_llm(motor: str) -> tuple[str, str] | None:
+    """(chave, modelo) do motor, ou None se faltar um dos dois."""
+    chave = chave_llm(motor)
+    modelo = os.environ.get(_VARIAVEIS_LLM[motor][1], "").strip()
+    return (chave, modelo) if chave and modelo else None
+
+
 def llm_configurada(motor: str) -> bool:
     """True se chave e modelo do motor estão definidos. Não chama a API."""
-    return all(os.environ.get(variavel, "").strip() for variavel in _VARIAVEIS_LLM[motor])
+    return credenciais_llm(motor) is not None

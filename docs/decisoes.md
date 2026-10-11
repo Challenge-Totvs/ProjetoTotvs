@@ -100,3 +100,17 @@ Interesse (palavras-chave): `\b(ajuda\s+bastante|ajuda\s+muito|gostei\w*|interes
 ......                                                                   [100%]
 150 passed in 4.99s
 ```
+
+### Item 3 — P2 prompt e llm_engine v3
+**Prompt NÃO validado com LLM real.** Todos os testes usam clients simulados; a validação é o smoke manual `analise-service/scripts/smoke_llm.py` (AC10), a cargo do João Paulo. Constante `PROMPT_VALIDADO_COM_LLM_REAL = False` em `llm_engine.py`.
+- `montar_prompt`: turnos `[turno N | locutor L]`, só os padrões ativos, regra D10 ("um tema por padrão por reunião..."), extras só se presentes, contraexemplos + correções sem duplicata por `(padrao, texto)`, `neutralizar()` para `transcricao`, `contraexemplos`, `contexto_cliente`, `glossario_time` em todos os campos vindos do pedido. Efeito colateral: uma citação que contenha uma dessas marcações chega à LLM trocada por colchetes e é descartada na conferência.
+- Clients criados com `timeout` (55 s / 35 s) e `max_retries=0`, SDKs importados só na hora do uso, uma tentativa por motor (sem retry interno). `Prazo` compartilhado (100 s − 10 s de reserva) limita o `timeout` de cada chamada; sem prazo restante vira `timeout` sem chamar a API.
+- Erros dos SDKs traduzidos pelo nome da classe para os códigos do §6.5; `max_tokens` = 8.000 (4.000 era insuficiente, §7.6); `stop_reason=max_tokens` vira `truncado`.
+- `processar_saida` (ponto de extensão): `conferir_citacoes` (P3), padrão/evento fora da lista, limites do §7.6, `papeis`/`sentimentoSerie` montados em código, `avisos=["saida_parcial"]` se houve descarte ou corte.
+- Não implementado: validar que `compromissos` são do vendedor no código (fica só no prompt; não há motivo de descarte previsto no §6.7).
+- Pipeline real: llm1 → llm2 → local → regras → 503. Sem chaves, as duas LLMs aparecem em `tentativas` como `nao_configurado`.
+- `conftest.py` agora remove `LLM_*` do ambiente em todo teste.
+```
+.....................................................                    [100%]
+197 passed in 7.39s
+```
