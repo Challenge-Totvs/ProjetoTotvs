@@ -127,11 +127,18 @@ export interface MarcaRegua {
   temaId: Id | null;
 }
 
+// MUDOU (1/3): o backend (J10a) passou a devolver mais campos da reunião
+// (duracaoMin, confirmada, contato, motor, score). Só acrescentei; nada foi removido.
 export interface ReuniaoResumo {
   id: Id;
   titulo: string;
   dataHora: DataISO;
+  duracaoMin: number | null; // duração em minutos; nula se não informada
   status: StatusReuniao;
+  confirmada: boolean; // reunião agendada já confirmada?
+  contato: string | null; // nome do contato da reunião
+  motor: Motor | null; // motor que analisou (nulo se ainda não analisada)
+  score: number | null; // nota da análise (nula se não analisada)
 }
 
 /** Linha da lista de clientes (GET /api/clientes). */
@@ -145,12 +152,16 @@ export interface ClienteResumo {
   indicadores: Indicadores;
   /** Reunião mais recente que já aconteceu (não agendada). */
   ultimaReuniao: ReuniaoResumo | null;
-  /** Reunião analisada mais recente, com as marcas da régua em miniatura. */
-  ultimaAnalisada: (ReuniaoResumo & { turnos: number; marcas: MarcaRegua[] }) | null;
+  // MUDOU (2/3): o backend ainda NÃO manda `turnos` nem `marcas` aqui (a
+  // régua em miniatura). Marquei como opcionais (?) para o TypeScript
+  // obrigar quem usa a tratar o "undefined" em vez de quebrar em runtime.
+  /** Reunião analisada mais recente. As marcas da régua podem não vir. */
+  ultimaAnalisada: (ReuniaoResumo & { turnos?: number; marcas?: MarcaRegua[] }) | null;
   /** Agendada mais próxima a partir de hoje. */
   proximaReuniao: ReuniaoResumo | null;
-  /** Temas em pauta, já na ordem do mapa (handoff 8.11). */
-  temasEmPauta: Tema[];
+  // MUDOU (3/3): era `temasEmPauta`. O backend renomeou para `temas`.
+  // Na LISTA vêm só os temas em pauta; no DETALHE (/clientes/{id}) vêm todos.
+  temas: Tema[];
 }
 
 export interface NovoClienteRequest {
@@ -261,9 +272,8 @@ export interface ReuniaoItem {
   turnos: number | null;
 }
 
+// `temas` saiu daqui porque agora já vem de ClienteResumo (herdado via extends).
 export interface ClienteDetalhe extends ClienteResumo {
-  /** Todos os temas (em pauta e histórico), na ordem do mapa. */
-  temas: Tema[];
   /** Reuniões do cliente, da mais antiga para a mais recente. */
   reunioes: ReuniaoItem[];
   compromissos: Compromisso[];

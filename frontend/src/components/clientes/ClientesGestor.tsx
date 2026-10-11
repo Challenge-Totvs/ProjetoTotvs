@@ -209,7 +209,7 @@ export function ClientesGestor({ clientes: todos }: { clientes: ClienteResumo[] 
                             </td>
                           )}
                           <td className={cx(td, compacto ? "max-w-[240px]" : "max-w-[340px]")}>
-                            <ChipsTemas temas={c.temasEmPauta} porPadrao max={compacto ? 2 : 3} />
+                            <ChipsTemas temas={c.temas} porPadrao max={compacto ? 2 : 3} />
                           </td>
                           <TdIndicadores ind={c.indicadores} />
                         </tr>

@@ -16,7 +16,7 @@ export function PreviaCliente({ cliente }: { cliente: ClienteResumo }) {
   const app = useApp();
   const navigate = useNavigate();
   const ind = cliente.indicadores;
-  const temas = cliente.temasEmPauta.filter((t) => t.emPauta);
+  const temas = cliente.temas.filter((t) => t.emPauta); 
   const ultima = cliente.ultimaReuniao ? paraData(cliente.ultimaReuniao.dataHora) : null;
   const proxima = cliente.proximaReuniao ? paraData(cliente.proximaReuniao.dataHora) : null;
 

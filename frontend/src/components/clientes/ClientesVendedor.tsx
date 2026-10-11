@@ -135,7 +135,7 @@ export function ClientesVendedor({ clientes: todos }: { clientes: ClienteResumo[
                         <CelulaUltimaReuniao cliente={c} />
                       </td>
                       <td className={cx(td, compacto ? "max-w-[240px]" : "max-w-[320px]")}>
-                        <ChipsTemas temas={c.temasEmPauta} max={compacto ? 2 : 3} />
+                        <ChipsTemas temas={c.temas} max={compacto ? 2 : 3} />
                       </td>
                       <TdIndicadores ind={c.indicadores} />
                       {!compacto && (

@@ -24,7 +24,7 @@ export function CelulaUltimaReuniao({ cliente }: { cliente: ClienteResumo }) {
       {ultima.status === "aguardando" ? (
         <div className="mt-[3px] text-[11.5px] text-atencao">Aguardando transcrição</div>
       ) : (
-        r && (
+        r && r.turnos !== undefined && r.marcas && (
           // Na miniatura só entram os temas; os interesses ficam de fora.
           <Regua
             mini

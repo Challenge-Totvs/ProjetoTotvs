@@ -87,7 +87,7 @@ export function Paleta({ fechar, onSair }: { fechar: () => void; onSair: () => v
       acao: () => ir(rotas.cliente(c.id)),
     }));
     const temas = clientes
-      .flatMap((c) => c.temasEmPauta)
+      .flatMap((c) => c.temas)
       .filter((t) => t.emPauta)
       .sort(compararTemas)
       .map((t) => ({
