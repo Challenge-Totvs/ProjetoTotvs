@@ -289,7 +289,7 @@ Formato que o Java já lê (`MotorStatusService`: lista `motores` com `motor` e 
 }
 ```
 
-`ok` das LLMs = chave configurada (não chama a API, não gasta token). `ok` de `local` = artefato carregado. `ok` de `regras` = sempre `true`. `status`: `ok` (alguma LLM ok), `degradado` (só `local`/`regras`), `indisponivel` (nenhum motor ok). O app sobe mesmo sem chaves e sem o `.joblib` (AC7).
+`ok` de cada motor = **configurado** E a **última tentativa real** desse motor **não falhou nos últimos 5 minutos** (estado em memória, por processo; um reinício zera). "Configurado": `llm1`/`llm2` têm chave e modelo definidos; `local` tem o artefato carregável; `regras` está sempre disponível. Uma tentativa bem-sucedida depois da falha recupera o `ok` na hora. Não contam como tentativa real as que não chamaram o motor (`nao_configurado`, sem prazo restante). O `/health` **nunca chama a API de uma LLM** (não gasta token): só lê configuração e o estado em memória. `regras` deixou de ser "sempre `true`": nasce `true` e cai para `false` por 5 minutos se falhar de verdade. `status`: `ok` (alguma LLM ok), `degradado` (só `local`/`regras`), `indisponivel` (nenhum motor ok). O app sobe mesmo sem chaves e sem o `.joblib` (AC7).
 
 ---
 

@@ -118,7 +118,7 @@ Interesse (palavras-chave): `\b(ajuda\s+bastante|ajuda\s+muito|gostei\w*|interes
 ### Item 4 — P5 ajuste: /health por tentativa real e FORCAR_FALHA
 - `ok` de cada motor = configurado **e** não forçado **e** a última tentativa real dele não falhou nos últimos 300 s (estado em memória, por processo; reinício zera). Uma tentativa bem-sucedida depois da falha recupera na hora.
 - Não contam como tentativa real: `nao_configurado` e "sem prazo restante" (`ErroMotor(..., real=False)`), porque a API não foi chamada.
-- Divergência consciente do contrato §8.3 ("`ok` de `regras` = sempre `true`"): com esta regra, `regras`/`local` também ficam `false` por 5 min se falharem de verdade. Atualizar o §8.3 fica para o João Paulo decidir (não mexi no contrato, fora das autorizações).
+- Divergência consciente do contrato §8.3 ("`ok` de `regras` = sempre `true`"): com esta regra, `regras`/`local` também ficam `false` por 5 min se falharem de verdade. **Decidido e aplicado ao contrato §8.3 (commit docs(contrato): semantica do /health).**
 - `FORCAR_FALHA=llm1` (lista separada por vírgula; vazia por padrão; nomes inválidos ignorados) faz a `cadeia` registrar falha `erro_provedor` desse motor sem chamar a API, e o `/health` o mostra com `ok: false` imediatamente (para a demo "derrubar a LLM principal"). Vale para qualquer um dos quatro motores. Lida a cada chamada, então pode ir no `.env`.
 ```
 ..................................................................       [100%]
@@ -150,3 +150,7 @@ Nenhum bug de produção encontrado pelos testes novos. O prompt e o AC10 (smoke
 .......................                                                  [100%]
 239 passed in 7.49s
 ```
+
+### §8.3 — semântica do /health (decisão)
+- `ok` do motor = configurado E última tentativa real não falhou nos últimos 5 min (memória, por processo). A frase "`ok` de `regras` = sempre `true`" saiu do contrato. O `/health` nunca chama a API da LLM.
+- `health.json` não muda (é o estado saudável). Testes que citam `regras: True` (`test_p5_estado.py`, `test_p5_health.py`) tratam estado saudável e continuam válidos; nenhum teste ou fixture afirma "regras sempre true" como regra.
