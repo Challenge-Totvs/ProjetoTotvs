@@ -1,0 +1,37 @@
+{
+  "motor": "regras",
+  "tentativas": [
+    {"motor": "llm1", "ok": false, "erro": "nao_configurado", "duracaoMs": 1},
+    {"motor": "llm2", "ok": false, "erro": "nao_configurado", "duracaoMs": 1},
+    {"motor": "local", "ok": false, "erro": "modelo_indisponivel", "duracaoMs": 3},
+    {"motor": "regras", "ok": true, "duracaoMs": 12}
+  ],
+  "score": 33,
+  "sentimento": "negativo",
+  "interesse": [
+    {"texto": "Palavra de interesse encontrada", "turno": 7, "citacao": "Isso ajuda bastante."}
+  ],
+  "temas": [
+    {
+      "padrao": "suporte_insatisfacao",
+      "titulo": "Insatisfação com o suporte",
+      "tipos": ["risco"],
+      "turno": 3,
+      "turnoFim": 3,
+      "tratado": null,
+      "texto": "Abrimos um chamado sobre o fechamento do faturamento há três semanas e até hoje ninguém retornou."
+    },
+    {
+      "padrao": "orcamento_restrito",
+      "titulo": "Orçamento restrito",
+      "tipos": ["risco"],
+      "turno": 10,
+      "turnoFim": 10,
+      "tratado": null,
+      "texto": "Só que o orçamento deste ano está bem apertado."
+    }
+  ],
+  "descartados": [],
+  "versaoContrato": "v3",
+  "avisos": ["contingencia_regras"]
+}

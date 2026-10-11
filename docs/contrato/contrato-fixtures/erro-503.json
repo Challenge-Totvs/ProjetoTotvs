@@ -1,0 +1,9 @@
+{
+  "codigo": "analise_indisponivel",
+  "mensagem": "Nenhum motor de análise respondeu dentro do prazo.",
+  "tentativas": [
+    {"motor": "LLM_PRIMARIA", "ok": false, "erro": "timeout", "duracaoMs": 55000},
+    {"motor": "LLM_SECUNDARIA", "ok": false, "erro": "autenticacao", "duracaoMs": 420},
+    {"motor": "MODELO_LOCAL", "ok": false, "erro": "modelo_indisponivel", "duracaoMs": 3}
+  ]
+}

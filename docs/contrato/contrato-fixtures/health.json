@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "pipelineVersao": "v2",
+  "motores": [
+    {"motor": "LLM_PRIMARIA", "configurado": true},
+    {"motor": "LLM_SECUNDARIA", "configurado": true},
+    {"motor": "MODELO_LOCAL", "configurado": true, "carregado": true}
+  ]
+}

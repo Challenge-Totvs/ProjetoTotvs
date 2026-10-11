@@ -1,0 +1,50 @@
+{
+  "turnos": [
+    {"n": 1, "locutor": 1, "texto": "Bom dia, [PESSOA_1]. Obrigado pelo horário, vamos falar da renovação."},
+    {"n": 2, "locutor": 2, "texto": "Bom dia. Antes de tudo, preciso falar do suporte."},
+    {
+      "n": 3,
+      "locutor": 2,
+      "texto": "Abrimos um chamado sobre o fechamento do faturamento há três semanas e até hoje ninguém retornou."
+    },
+    {"n": 4, "locutor": 1, "texto": "Certo. Passando para a proposta de renovação então."},
+    {
+      "n": 5,
+      "locutor": 3,
+      "texto": "Na TI a migração dos cadastros terminou no mês passado, sem perda de histórico."
+    },
+    {
+      "n": 6,
+      "locutor": 1,
+      "texto": "Ótimo. Posso fechar o reajuste fixo por dois anos e dar quinze por cento de desconto agora."
+    },
+    {"n": 7, "locutor": 2, "texto": "Isso ajuda bastante."},
+    {"n": 8, "locutor": 2, "texto": "A diretoria quer oferecer telemedicina para os pacientes da ala nova."},
+    {"n": 9, "locutor": 1, "texto": "Temos um módulo para isso, posso mostrar na próxima reunião."},
+    {"n": 10, "locutor": 3, "texto": "Só que o orçamento deste ano está bem apertado."},
+    {
+      "n": 11,
+      "locutor": 1,
+      "texto": "Te envio a proposta de renovação até segunda, com os valores fechados para os dois anos."
+    },
+    {"n": 12, "locutor": 2, "texto": "Combinado. Obrigada."}
+  ],
+  "dataReuniao": "2026-10-07",
+  "padroes": [
+    "suporte_insatisfacao",
+    "preco_objecao",
+    "prazo_implantacao",
+    "concorrente_citado",
+    "cancelamento_citado",
+    "adocao_resistencia",
+    "fiscal_problema",
+    "orcamento_restrito",
+    "expansao_unidade",
+    "modulo_adicional",
+    "integracao",
+    "renovacao",
+    "upgrade_licencas",
+    "treinamento"
+  ],
+  "contraexemplos": []
+}
