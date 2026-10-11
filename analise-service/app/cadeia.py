@@ -10,7 +10,7 @@ from typing import Any, Callable, Sequence
 
 from pydantic import ValidationError
 
-from app import config
+from app import config, saude
 from app.erros import AnaliseIndisponivel, ErroMotor
 from app.schemas import AnaliseResponse, Tentativa
 
@@ -57,6 +57,9 @@ def executar_cadeia(pedido: Any, motores: Sequence[tuple[str, Motor]]) -> Analis
     for nome, motor in motores:
         inicio = time.perf_counter()
         try:
+            if nome in config.motores_forcados():
+                logger.warning("motor %s: falha simulada por FORCAR_FALHA", nome)
+                raise ErroMotor("erro_provedor")
             campos = dict(motor(pedido))
             for reservado in ("motor", "tentativas", "versaoContrato"):
                 campos.pop(reservado, None)
@@ -64,6 +67,7 @@ def executar_cadeia(pedido: Any, motores: Sequence[tuple[str, Motor]]) -> Analis
             avisos = list(campos.pop("avisos", None) or [])
             if nome in _AVISO_DE_CONTINGENCIA:
                 avisos.append(_AVISO_DE_CONTINGENCIA[nome])
+            saude.registrar_tentativa(nome, ok=True)
             return AnaliseResponse(
                 **campos,
                 motor=nome,
@@ -74,5 +78,7 @@ def executar_cadeia(pedido: Any, motores: Sequence[tuple[str, Motor]]) -> Analis
         except Exception as e:  # um motor pode falhar de qualquer forma; a cadeia segue
             codigo = _codigo_do_erro(e)
             logger.warning("motor %s falhou: %s", nome, codigo)
+            if getattr(e, "real", True):
+                saude.registrar_tentativa(nome, ok=False)
             tentativas.append(Tentativa(motor=nome, ok=False, erro=codigo, duracaoMs=_ms_desde(inicio)))
     raise AnaliseIndisponivel(tentativas)

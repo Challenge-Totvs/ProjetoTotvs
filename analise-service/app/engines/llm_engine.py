@@ -142,7 +142,7 @@ def _criar_cliente(motor: str) -> Any:
     """Client com `timeout` explícito e `max_retries=0` (a política de retry é do nosso código)."""
     chave = config.chave_llm(motor)
     if chave is None:
-        raise ErroMotor("nao_configurado")
+        raise ErroMotor("nao_configurado", real=False)
     timeout = config.TIMEOUT_LLM_S[motor]
     if motor == "llm1":
         import anthropic
@@ -326,11 +326,11 @@ def criar_motor(motor: str, prazo: Prazo) -> Motor:
     def executar(pedido: PedidoAnalise) -> dict:
         credenciais = config.credenciais_llm(motor)
         if credenciais is None:
-            raise ErroMotor("nao_configurado")
+            raise ErroMotor("nao_configurado", real=False)
         _, modelo = credenciais
         timeout = min(config.TIMEOUT_LLM_S[motor], prazo.restante())
         if timeout < TIMEOUT_MINIMO_S:
-            raise ErroMotor("timeout")
+            raise ErroMotor("timeout", real=False)
         prompt = montar_prompt(pedido)
         logger.info("%s: chamando (turnos=%d, prompt=%d caracteres, timeout=%.0fs)", motor, len(pedido.turnos),
                     len(prompt), timeout)

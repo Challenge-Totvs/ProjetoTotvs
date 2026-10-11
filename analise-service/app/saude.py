@@ -1,12 +1,30 @@
 """Estado de cada motor para o GET /health (contrato v3 §8.3). Nunca chama a API de uma LLM."""
 import logging
+import time
 from functools import lru_cache
 
 from app import config
 
 logger = logging.getLogger(__name__)
 
-MOTORES = ("llm1", "llm2", "local", "regras")
+MOTORES = config.MOTORES_VALIDOS
+JANELA_FALHA_S = 300.0  # uma falha derruba o `ok` do motor por 5 minutos
+
+relogio = time.monotonic
+_ultimas: dict[str, tuple[float, bool]] = {}  # motor -> (instante, ok) da última tentativa real; em memória
+
+
+def registrar_tentativa(motor: str, ok: bool) -> None:
+    _ultimas[motor] = (relogio(), ok)
+
+
+def limpar_estado() -> None:
+    _ultimas.clear()
+
+
+def falhou_recentemente(motor: str) -> bool:
+    ultima = _ultimas.get(motor)
+    return ultima is not None and not ultima[1] and relogio() - ultima[0] <= JANELA_FALHA_S
 
 
 @lru_cache
@@ -26,12 +44,15 @@ def modelo_local_carrega() -> bool:
 
 
 def estado_dos_motores() -> dict[str, bool]:
-    return {
+    """ok = configurado E não forçado a falhar E a última tentativa real não falhou nos últimos 5 minutos."""
+    configurado = {
         "llm1": config.llm_configurada("llm1"),
         "llm2": config.llm_configurada("llm2"),
         "local": modelo_local_carrega(),
         "regras": True,
     }
+    forcados = config.motores_forcados()
+    return {m: configurado[m] and m not in forcados and not falhou_recentemente(m) for m in MOTORES}
 
 
 def calcular_status(ok: dict[str, bool]) -> str:

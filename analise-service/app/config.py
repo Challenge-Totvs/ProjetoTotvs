@@ -5,6 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 
 VERSOES_PIPELINE = ("real", "mock")
+MOTORES_VALIDOS = ("llm1", "llm2", "local", "regras")
 
 CAMINHO_MODELO_LOCAL = Path(__file__).resolve().parent / "modelos" / "classificador_risco.joblib"
 
@@ -68,3 +69,9 @@ def credenciais_llm(motor: str) -> tuple[str, str] | None:
 def llm_configurada(motor: str) -> bool:
     """True se chave e modelo do motor estão definidos. Não chama a API."""
     return credenciais_llm(motor) is not None
+
+
+def motores_forcados() -> frozenset[str]:
+    """Motores que devem falhar de propósito (FORCAR_FALHA="llm1,llm2"): só para a demo. Vazia por padrão."""
+    itens = (item.strip().lower() for item in os.environ.get("FORCAR_FALHA", "").split(","))
+    return frozenset(item for item in itens if item in MOTORES_VALIDOS)

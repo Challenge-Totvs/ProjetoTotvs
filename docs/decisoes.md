@@ -114,3 +114,13 @@ Interesse (palavras-chave): `\b(ajuda\s+bastante|ajuda\s+muito|gostei\w*|interes
 .....................................................                    [100%]
 197 passed in 7.39s
 ```
+
+### Item 4 — P5 ajuste: /health por tentativa real e FORCAR_FALHA
+- `ok` de cada motor = configurado **e** não forçado **e** a última tentativa real dele não falhou nos últimos 300 s (estado em memória, por processo; reinício zera). Uma tentativa bem-sucedida depois da falha recupera na hora.
+- Não contam como tentativa real: `nao_configurado` e "sem prazo restante" (`ErroMotor(..., real=False)`), porque a API não foi chamada.
+- Divergência consciente do contrato §8.3 ("`ok` de `regras` = sempre `true`"): com esta regra, `regras`/`local` também ficam `false` por 5 min se falharem de verdade. Atualizar o §8.3 fica para o João Paulo decidir (não mexi no contrato, fora das autorizações).
+- `FORCAR_FALHA=llm1` (lista separada por vírgula; vazia por padrão; nomes inválidos ignorados) faz a `cadeia` registrar falha `erro_provedor` desse motor sem chamar a API, e o `/health` o mostra com `ok: false` imediatamente (para a demo "derrubar a LLM principal"). Vale para qualquer um dos quatro motores. Lida a cada chamada, então pode ir no `.env`.
+```
+..................................................................       [100%]
+210 passed in 7.40s
+```

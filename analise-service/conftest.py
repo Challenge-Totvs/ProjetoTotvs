@@ -76,6 +76,16 @@ def sem_chaves_no_ambiente(monkeypatch):
     """Nenhum teste usa chave: o que estiver no ambiente do desenvolvedor é removido (regra 4)."""
     for variavel in ("LLM_PRINCIPAL_API_KEY", "LLM_PRINCIPAL_MODEL", "LLM_SECUNDARIA_API_KEY", "LLM_SECUNDARIA_MODEL"):
         monkeypatch.delenv(variavel, raising=False)
+    monkeypatch.delenv("FORCAR_FALHA", raising=False)
+
+
+@pytest.fixture(autouse=True)
+def estado_de_saude_limpo():
+    from app import saude
+
+    saude.limpar_estado()
+    yield
+    saude.limpar_estado()
 
 
 @pytest.fixture

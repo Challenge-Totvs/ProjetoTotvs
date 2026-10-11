@@ -15,11 +15,13 @@ logger = logging.getLogger(__name__)
 class ErroMotor(Exception):
     """Falha de um motor, identificada só por um código do contrato (§6.5), nunca por mensagem livre."""
 
-    def __init__(self, codigo: str):
+    def __init__(self, codigo: str, real: bool = True):
+        """`real=False`: nenhuma chamada ao motor aconteceu (sem chave, sem prazo); não conta para o /health."""
         if codigo not in get_args(ErroTentativa):
             raise ValueError(f"código de erro fora do contrato: {codigo!r}")
         super().__init__(codigo)
         self.codigo = codigo
+        self.real = real
 
 
 class AnaliseIndisponivel(Exception):
