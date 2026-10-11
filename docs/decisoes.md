@@ -25,3 +25,16 @@ A numeração D1–D9 é deste arquivo; no contrato, "D2", "D3", "D4" e "D9" cit
 | A9 | 503 ou 500 quando a análise falha | João Paulo e Kelwin |
 | A10 | Atualizar SDD §6.2 para apontar ao `contrato-v3.md` | Kelwin |
 | AC9 | Teste Java lendo as fixtures v3 | Kelwin |
+
+## Registro de execução (pytest)
+### P0 — commit e50a25b
+```
+...................                                                      [100%]
+19 passed in 2.67s
+```
+### P1 — schemas v3
+Nota: o `AnaliseResponse` v1 virou `AnaliseResponseV1` (usado só por `orchestrator` e `engines`, que P2/P4 reescrevem). Limites do §3.2 e `padrao_desconhecido` do pedido ficaram na P1 (a P0 os adiou).
+```
+..................................................                       [100%]
+50 passed in 2.10s
+```

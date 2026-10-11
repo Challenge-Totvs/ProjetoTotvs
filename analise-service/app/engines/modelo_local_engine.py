@@ -1,7 +1,7 @@
 import joblib
 from pathlib import Path
 import re
-from app.schemas import AnaliseResponse, ItemAnalise, SentimentoGeral, MotorUtilizado
+from app.schemas import AnaliseResponseV1, ItemAnalise, SentimentoGeral, MotorUtilizado
 
 
 _pipeline = joblib.load(Path(__file__).parent.parent / "modelos" / "classificador_risco.joblib")
@@ -10,7 +10,7 @@ def _dividir_em_trechos(conteudo: str) -> list[str]:
     partes = re.split(r'(?=\[\d{2}:\d{2}\])', conteudo)
     return [p.strip() for p in partes if p.strip()]
 
-def analisar(conteudo: str) -> AnaliseResponse:
+def analisar(conteudo: str) -> AnaliseResponseV1:
     trechos = _dividir_em_trechos(conteudo)
 
     if not trechos:
@@ -33,7 +33,7 @@ def analisar(conteudo: str) -> AnaliseResponse:
     else:
         sentimento = SentimentoGeral.NEGATIVO
 
-    return AnaliseResponse(
+    return AnaliseResponseV1(
         pontosInteresse=[],
         pontosDesinteresse=pontos_desinteresse,
         oportunidadesVenda=[],

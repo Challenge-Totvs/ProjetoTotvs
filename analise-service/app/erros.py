@@ -27,8 +27,13 @@ async def tratar_pedido_invalido(request: Request, exc: RequestValidationError) 
     for erro in exc.errors():
         caminho = [str(parte) for parte in erro.get("loc", ()) if parte != "body"]
         detalhes.append({"campo": ".".join(caminho) or "corpo", "problema": _problema(erro)})
-    logger.info("pedido inválido: %d problema(s)", len(detalhes))
-    return JSONResponse(
-        status_code=422,
-        content=corpo_erro("pedido_invalido", "O pedido não segue o contrato v3.", detalhes=detalhes),
+    padrao_desconhecido = any(
+        erro.get("type") == "literal_error" and "padroes" in erro.get("loc", ()) for erro in exc.errors()
     )
+    logger.info("pedido inválido: %d problema(s)", len(detalhes))
+    codigo, mensagem = (
+        ("padrao_desconhecido", "O pedido tem um padrão fora da lista dos 14.")
+        if padrao_desconhecido
+        else ("pedido_invalido", "O pedido não segue o contrato v3.")
+    )
+    return JSONResponse(status_code=422, content=corpo_erro(codigo, mensagem, detalhes=detalhes))

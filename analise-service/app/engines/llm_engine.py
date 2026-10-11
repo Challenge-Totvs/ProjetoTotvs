@@ -1,6 +1,6 @@
 from anthropic import RateLimitError, APITimeoutError, APIConnectionError, Anthropic
 import os
-from app.schemas import AnaliseResponse, MotorUtilizado
+from app.schemas import AnaliseResponseV1, MotorUtilizado
 from pydantic import ValidationError
 from openai import OpenAI, RateLimitError as OpenAIRateLimitError, APITimeoutError as OpenAIAPITimeoutError, APIConnectionError as OpenAIAPIConnectionError  
 
@@ -48,7 +48,7 @@ def montar_prompt(conteudo : str):
     """
     return prompt
 
-def _chamar_anthropic(prompt: str) -> AnaliseResponse:
+def _chamar_anthropic(prompt: str) -> AnaliseResponseV1:
     resposta = _get_client("anthropic").messages.create(
                     model=os.environ["LLM_PRINCIPAL_MODEL"],
                     max_tokens=4000,
@@ -56,29 +56,29 @@ def _chamar_anthropic(prompt: str) -> AnaliseResponse:
                                 {
                                     "name": "registrar_analise",
                                     "description": "Registra o resultado estruturado da análise da transcrição",
-                                    "input_schema": AnaliseResponse.model_json_schema()
+                                    "input_schema": AnaliseResponseV1.model_json_schema()
                                 }
                             ],
                     tool_choice={"type": "tool", "name": "registrar_analise"},
                     messages=[{"role": "user", "content": prompt}]
                 )
     bloco = resposta.content[0]
-    analise = AnaliseResponse(**bloco.input)
+    analise = AnaliseResponseV1(**bloco.input)
     return analise
 
-def _chamar_openai(prompt: str) -> AnaliseResponse:
+def _chamar_openai(prompt: str) -> AnaliseResponseV1:
     resposta = _get_client("openai").responses.parse(
                     model=os.environ["LLM_SECUNDARIA_MODEL"],
                     input=[
                                 {"role": "user", "content": prompt}
                             ],
-                    text_format=AnaliseResponse
+                    text_format=AnaliseResponseV1
                 )
 
     analise = resposta.output_parsed
     return analise
 
-def analisar(conteudo: str, provider: str) -> AnaliseResponse:
+def analisar(conteudo: str, provider: str) -> AnaliseResponseV1:
     prompt = montar_prompt(conteudo)   
     chamada = _chamar_anthropic if provider == "anthropic" else _chamar_openai
     motor = MotorUtilizado.LLM_PRIMARIA if provider == "anthropic" else MotorUtilizado.LLM_SECUNDARIA
