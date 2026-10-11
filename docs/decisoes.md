@@ -72,3 +72,31 @@ Decisão de leitura do §7.2(c): todas as janelas (1, 2 e 3 turnos) ficam dentro
 ```
 105 passed in 5.70s
 ```
+
+### Item 2 — P4 regras e modelo local
+- `regras_engine`: 14 expressões (casam sem acento), primeira ocorrência por padrão (D10), respeita `padroes` e suprime turnos iguais a `contraexemplos`/`correcoesAnteriores`. Score = interesse + temas de oportunidade sobre todos os sinais; 50 sem sinais; limiares 70/45 (constantes nomeadas).
+- `modelo_local_engine` v3: carga preguiçosa (`ErroMotor modelo_indisponivel`), trechos por turno (A5), classificador dá `score` e filtra o `interesse` (palavra-chave E risco < 0,3, proposta); temas vêm das regex.
+- `orchestrator.py` v3 sobre `cadeia.py`: llm1/llm2 entram pelo parâmetro `llms` (item 3). Pipeline real passou a responder 200 (local/regras) ou 503.
+- Testes provisórios ajustados: o 503 de 'pipeline não migrado' (P0, P5) e a checagem de módulo no AC7 (agora: `joblib`/`sklearn` não carregam no import).
+
+#### A8 — as 14 expressões, para aprovação do João Paulo (primeira versão)
+1. `suporte_insatisfacao` (risco): `\b(suporte|atendimento|chamado|ticket)\b.{0,80}\b(demor\w*|ninguem\s+(retorn\w*|respond\w*)|sem\s+(retorno|resposta)|nao\s+(retorn\w*|respond\w*|resolv\w*)|lent[oa]|pessim\w*|ruim|horriv\w*|insatisf\w*|reclam\w*)|\b(demor\w*|ninguem\s+retorn\w*)\b.{0,80}\b(suporte|atendimento|chamado)\b`
+2. `preco_objecao` (risco): `\b(muito\s+caro|ficou\s+caro|esta\s+caro|e\s+caro|salgad[oa]|preco\s+(\w+\s+){0,2}(alto|elevado|puxado)|valor\s+(\w+\s+){0,2}(alto|elevado|puxado|salgad[oa])|mais\s+barat[oa]|acima\s+do\s+(nosso\s+)?(orcamento|mercado))\b`
+3. `prazo_implantacao` (risco): `\b(prazo|cronograma)\b.{0,60}\b(implanta\w*|implementa\w*|go[- ]?live|virada|migra\w*)|\b(implanta\w*|implementa\w*|migra\w*)\b.{0,60}\b(prazo|atras\w*|demor\w*)|\batras\w*\b.{0,40}\b(implanta\w*|projeto|go[- ]?live|cronograma)`
+4. `concorrente_citado` (risco): `\b(concorrent\w*|outro\s+fornecedor|outra\s+empresa|outro\s+sistema|outra\s+solucao|sap|oracle|omie|bling)\b`
+5. `cancelamento_citado` (risco): `\b(cancel\w*|rescind\w*|rescis\w*|encerrar\s+(o\s+)?contrato|nao\s+(vamos|vou|pretendemos)\s+renovar|deixar\s+de\s+usar)\b`
+6. `adocao_resistencia` (risco): `\b(equipe|time|pessoal|usuarios|funcionarios|colaboradores)\b.{0,60}\b(resist\w*|nao\s+(usa\w*|quer\w*|adaptou|se\s+adapt\w*|gost\w*)|dificuldade)|\b(resistencia|ninguem\s+usa)\b`
+7. `fiscal_problema` (risco): `\b(fiscal|sped|nfe|nf-e|imposto\w*|tribut\w*|apuracao)\b.{0,80}\b(erro\w*|problema\w*|falh\w*|travou|nao\s+(fecha|fechou|bate|gera\w*)|divergen\w*|rejei\w*)|\b(erro\w*|problema\w*|falh\w*|divergen\w*|rejei\w*)\b.{0,80}\b(fiscal|sped|nfe|nf-e|imposto\w*|tribut\w*|apuracao)\b`
+8. `orcamento_restrito` (risco): `\b(orcamento|verba|caixa|budget)\b.{0,60}\b(apertad\w*|curto|limitad\w*|restrit\w*|cortad\w*|congelad\w*|estourad\w*|sem\s+folga)|\b(sem\s+verba|sem\s+orcamento|corte\s+de\s+(custos|orcamento)|congelamento\s+de\s+(gastos|orcamento)|congel\w+\s+(novas\s+)?compras)\b`
+9. `expansao_unidade` (oportunidade): `\b(nova|novo|outra|mais\s+uma)\s+(unidade|filial|loja|sede|clinica)\b|\b(unidade|filial|loja|sede)\s+nova\b|\b(abrir|abrindo|inaugur\w*|expandir)\b.{0,50}\b(unidade|filial|loja|sede|clinica)\b|\bexpansao\b`
+10. `modulo_adicional` (oportunidade): `\b(modulos?|add-?on|business\s+intelligence|telemedicina)\b|\b(queremos|querem|gostaria\w*|interesse\s+em|precisamos\s+de)\b.{0,40}\b(dashboard|painel|bi)\b`
+11. `integracao` (oportunidade): `\b(integra\w*|api|webservice|web\s+service|sincroniz\w*|conectar\s+com)\b`
+12. `renovacao` (oportunidade): `\b(renova\w*|prorrog\w*|continuidade\s+do\s+contrato|estender\s+o\s+contrato)\b`
+13. `upgrade_licencas` (oportunidade): `\b(mais|novas|adicionais|ampliar|aumentar|comprar)\b.{0,30}\blicenc\w*|\blicenc\w*\b.{0,30}\b(adicionais|extras?)\b|\bupgrade\b|\bmais\s+usuarios\b|\busuarios\s+adicionais\b|\bplano\s+(maior|superior)\b`
+14. `treinamento` (oportunidade): `\b(treinament\w*|treinar|capacita\w*|onboarding|workshop|reciclagem|aprender\s+a\s+usar)\b`
+
+Interesse (palavras-chave): `\b(ajuda\s+bastante|ajuda\s+muito|gostei\w*|interessante|interessad[oa]|otimo|excelente|perfeito|combinado|fechado|vamos\s+fechar|pode\s+enviar|manda\s+a\s+proposta|queremos\s+avancar)\b`
+```
+......                                                                   [100%]
+150 passed in 4.99s
+```

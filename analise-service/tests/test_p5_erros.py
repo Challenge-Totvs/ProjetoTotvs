@@ -61,12 +61,6 @@ def test_503_igual_a_fixture():
         Tentativa.model_validate(t)
 
 
-def test_503_do_pipeline_real_nao_migrado_e_estruturado():
-    r = TestClient(app).post("/analisar", json=_fixture("pedido-v3.json"))
-    assert r.status_code == 503
-    assert set(r.json()) == {"codigo", "mensagem", "tentativas"} and r.json()["codigo"] == "analise_indisponivel"
-
-
 def test_500_sem_stack_e_sem_texto_da_transcricao():
     r = _app_de_teste().get("/defeito")
     assert r.status_code == 500

@@ -42,6 +42,7 @@ def executar_cadeia(pedido: Any, motores: Sequence[tuple[str, Motor]]) -> Analis
             campos = dict(motor(pedido))
             for reservado in ("motor", "tentativas", "versaoContrato"):
                 campos.pop(reservado, None)
+            campos.setdefault("descartados", [])
             avisos = list(campos.pop("avisos", None) or [])
             if nome in _AVISO_DE_CONTINGENCIA:
                 avisos.append(_AVISO_DE_CONTINGENCIA[nome])

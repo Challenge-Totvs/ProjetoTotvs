@@ -4,8 +4,8 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from app.config import obter_config
-from app.erros import AnaliseIndisponivel
 from app.mock import carregar_resposta_mock
+from app.orchestrator import analisar
 from app.saude import MOTORES, calcular_status, estado_dos_motores
 from app.schemas import PedidoAnalise
 
@@ -22,10 +22,11 @@ def post_analisar(pedido: PedidoAnalise) -> JSONResponse:
     if versao == "mock":
         return JSONResponse(content=carregar_resposta_mock(), headers={"X-Insightcall-Pipeline": versao})
 
-    # O orchestrator ainda fala o contrato v1 (e carrega o .joblib no import), então não é
-    # importado aqui: o app sobe sem .joblib e sem chaves (AC7). P2/P4 ligam os motores v3
-    # à `cadeia.executar_cadeia`; até lá o handler devolve o 503 estruturado.
-    raise AnaliseIndisponivel([])
+    resposta = analisar(pedido)
+    return JSONResponse(
+        content=resposta.model_dump(mode="json", exclude_unset=True),
+        headers={"X-Insightcall-Pipeline": versao},
+    )
 
 
 @router.get("/health")

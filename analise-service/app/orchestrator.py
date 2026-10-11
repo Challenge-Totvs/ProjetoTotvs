@@ -1,20 +1,18 @@
-from app.engines import llm_engine, modelo_local_engine
-from app.schemas import AnaliseResponseV1
-from functools import partial
+"""Orquestrador v3: llm1 -> llm2 -> local -> regras -> 503 (SDD §6.1).
+
+Os motores LLM entram por `llms` (item P2); sem eles a cadeia começa no `local`. A mecânica de
+`motor`, `tentativas` e erros está em `app/cadeia.py`.
+"""
+from typing import Sequence
+
+from app.cadeia import Motor, executar_cadeia
+from app.engines import modelo_local_engine, regras_engine
+from app.schemas import AnaliseResponse, PedidoAnalise
 
 
-def analisar(conteudo: str) -> AnaliseResponseV1:
-    engines = [
-            partial(llm_engine.analisar, provider="anthropic"),
-            partial(llm_engine.analisar, provider="openai"),
-            modelo_local_engine.analisar
-        ]
-    ultimo_erro = None
+def montar_motores(llms: Sequence[tuple[str, Motor]] = ()) -> list[tuple[str, Motor]]:
+    return [*llms, ("local", modelo_local_engine.analisar), ("regras", regras_engine.analisar)]
 
-    for engine in engines:
-        try:
-            return engine(conteudo)
-        except Exception as e:
-            ultimo_erro = e
 
-    raise ultimo_erro
+def analisar(pedido: PedidoAnalise, llms: Sequence[tuple[str, Motor]] = ()) -> AnaliseResponse:
+    return executar_cadeia(pedido, montar_motores(llms))

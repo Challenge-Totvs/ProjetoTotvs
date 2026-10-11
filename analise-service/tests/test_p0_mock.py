@@ -96,12 +96,12 @@ def test_mock_sem_fixture_da_erro_explicito(monkeypatch, tmp_path):
     mock.carregar_resposta_mock.cache_clear()
 
 
-def test_real_ainda_nao_migrado_responde_503_estruturado(cliente, pipeline_versao):
+def test_real_responde_200_com_header_real(cliente, pipeline_versao):
     pipeline_versao("real")
     resposta = cliente.post("/analisar", json=_fixture("pedido-v3.json"))
-    assert resposta.status_code == 503
+    assert resposta.status_code == 200
     assert resposta.headers["X-Insightcall-Pipeline"] == "real"
-    assert resposta.json()["codigo"] == "analise_indisponivel"
+    assert resposta.json()["motor"] in ("local", "regras")
 
 
 # --- AC7: sobe sem .joblib e sem chaves; /health ---
@@ -111,8 +111,7 @@ def test_ac7_app_importa_sem_chaves_e_sem_carregar_joblib():
     env.pop("PIPELINE_VERSAO", None)
     codigo = (
         "import sys, app.main; "
-        "assert 'app.engines.modelo_local_engine' not in sys.modules; "
-        "assert 'joblib' not in sys.modules"
+        "assert 'joblib' not in sys.modules and 'sklearn' not in sys.modules"
     )
     resultado = subprocess.run(
         [sys.executable, "-c", codigo], cwd=RAIZ_SERVICO, env=env, capture_output=True, text=True, timeout=60
