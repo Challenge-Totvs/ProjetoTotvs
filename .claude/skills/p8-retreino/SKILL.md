@@ -12,8 +12,10 @@ Leia: `docs/escopo-rag-retreino.md` inteiro; `docs/decisoes.md` (A8 v2, filtro d
 REGRAS DE DADOS (invioláveis nesta tarefa)
 - O corpus real (CSV da TOTVS), as planilhas de rotulagem e o `holdout_reunioes.csv` ficam em
   `analise-service/dados_locais/`, que DEVE estar no `.gitignore` (confira e corrija ANTES de criar qualquer arquivo).
-- Você NUNCA lê, imprime nem copia texto real de transcrição, nem abre as planilhas preenchidas. Escreva os scripts e
-  teste com dados SINTÉTICOS em `tests/fixtures/`. Quem roda os scripts nos dados reais é o João Paulo.
+- Decisão do João Paulo (12/10): o corpus `ANON_nome_transcricao.csv` é anonimizado pela TOTVS, então você PODE ler
+  cabeçalhos e amostras dele em `dados_locais/` para depurar. Continua proibido: commitar trechos (regra 11), pôr texto
+  em log ou relatório (regra 8), abrir `*_PRONTO.xlsx` e `ouro_final.csv` (o ouro preenchido mede, não calibra). Escreva
+  os scripts e teste com dados SINTÉTICOS em `tests/fixtures/`.
 - Relatórios e logs só com métricas e contagens, jamais com texto de trecho.
 - Chaves só em `.env` (nunca ler). Teste nunca chama API real. A destilação usa o cliente de LLM simulado nos testes.
 - Não edite `*.joblib`. Os candidatos treinados ficam em `dados_locais/candidatos/`; a PROMOÇÃO para `app/` é manual,
