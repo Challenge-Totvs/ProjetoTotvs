@@ -18,6 +18,7 @@ TEXTO = "Frase sintética número {} da reunião inventada."
 def planilha(caminho: Path, linhas: list[list], titulo: bool = True) -> Path:
     livro = openpyxl.Workbook()
     aba = livro.active
+    aba.title = "Rotular"  # o conciliar_ouro lê SEMPRE a aba Rotular
     if titulo:
         aba.append(["Planilha de rotulagem (sintética)"])  # o cabeçalho não precisa estar na 1ª linha
     aba.append(CABECALHO)
@@ -93,7 +94,7 @@ def test_valores_invalidos_sao_contados_sem_imprimir(tmp_path, capsys):
     linhas[1][5] = "talvez"
     planilha(tmp_path / co.ARQUIVOS[1], linhas)
     _, meta = _rodar(tmp_path)
-    assert meta["invalidos"] == {"padrao": 1, "interesse": 1, "ids_repetidos": 0}
+    assert meta["invalidos"] == {"padrao": 1, "interesse": 1, "ids_repetidos": 0, "fora_da_lista": 0}
     assert "padrao_que_nao_existe" not in capsys.readouterr().out
 
 
@@ -155,6 +156,7 @@ def test_verificar_mostra_so_colunas(tmp_path, capsys):
 def test_colunas_com_outros_nomes(tmp_path):
     livro = openpyxl.Workbook()
     aba = livro.active
+    aba.title = "Rotular"
     aba.append(["ID", "Fala alvo", "Padrão 1", "Padrão 2", "Interesse?", "Dúvida"])
     aba.append(["G1", TEXTO.format(1), "Renovação", "", "Sim", "x"])
     livro.save(tmp_path / co.ARQUIVOS[1])

@@ -13,7 +13,9 @@ kappa de Cohen TESTE-RETESTE (o rotulador contra ele mesmo) para `padrao` e `int
 Kappa < 0,6 em algum campo => aviso: revisar as definições antes de usar o campo.
 
 O ouro MEDE, nunca treina. Lê `.xlsx` com `openpyxl` (só `requirements-treino.txt`). Colunas por NOME de cabeçalho
-(`--col-*`). Saídas: `ouro_final.csv`, `ouro_final.json` (modo, completo/parcial, kappas) e um relatório só com métricas
+(`--col-*`, sem distinguir maiúsculas; `--col-texto` aceita alternativas separadas por `|`). Lê SEMPRE a aba `Rotular`
+(cabeçalho na linha 1: ID | contexto | contexto | TRECHO ALVO | padrao_1 | padrao_2 | interesse | duvida |
+observacao) e valida `padrao_1`/`padrao_2` contra a aba `Listas` (fora da lista: só contagem). Saídas: `ouro_final.csv`, `ouro_final.json` (modo, completo/parcial, kappas) e um relatório só com métricas
 em `docs/evidencias/ouro-<data>.md`. Nunca imprime texto de trecho.
 """
 import argparse
@@ -39,15 +41,18 @@ ARQUIVOS = {
 }
 RETESTE, MAPA_RETESTE = "ouro_reteste_PRONTO.xlsx", "reteste_mapa.csv"
 DIVERGENCIAS, DIVERGENCIAS_PRONTO = "divergencias.xlsx", "divergencias_PRONTO.xlsx"
+ABA_ROTULAR, ABA_LISTAS = "Rotular", "Listas"
+COL_ID, COL_TEXTO = "ID", "TRECHO ALVO|texto"  # layout real da planilha | layout antigo
 LIMITACAO_UNICO = ("Rotulador único (João Paulo), sem validação cruzada entre pessoas; ele também escreveu as "
                    "expressões regulares. A concordância medida é teste-reteste (consigo mesmo).")
 
 
 class Colunas:
     def __init__(self, args: argparse.Namespace | None = None):
-        a = args or argparse.Namespace(col_id="id", col_texto="texto", col_padrao1="padrao_1", col_padrao2="padrao_2",
-                                       col_interesse="interesse", col_duvida="duvida")
-        self.id, self.texto, self.padrao1 = a.col_id, a.col_texto, a.col_padrao1
+        a = args or argparse.Namespace(col_id=COL_ID, col_texto=COL_TEXTO, col_padrao1="padrao_1",
+                                       col_padrao2="padrao_2", col_interesse="interesse", col_duvida="duvida")
+        self.id, self.padrao1 = a.col_id, a.col_padrao1
+        self.texto = [_chave(n) for n in a.col_texto.split("|") if n.strip()]
         self.padrao2, self.interesse, self.duvida = a.col_padrao2, a.col_interesse, a.col_duvida
 
 
@@ -57,13 +62,24 @@ def _chave(nome: object) -> str:
     return sem_acento(str(nome or "")).replace(" ", "_")
 
 
-def ler_planilha(caminho: Path, col_id: str) -> list[dict[str, object]]:
-    """Linhas da primeira aba como dicts pelo cabeçalho (achado nas 10 primeiras linhas pela coluna de id)."""
+def _slug_padrao(valor: object) -> str:
+    return sem_acento(str(valor or "")).replace(" ", "_").replace("-", "_")
+
+
+def ler_planilha(caminho: Path, col_id: str, aba: str | None = ABA_ROTULAR) -> list[dict[str, object]]:
+    """Linhas da aba `aba` (None = a primeira) como dicts pelo cabeçalho (achado nas 10 primeiras linhas pela coluna
+    de id). Colunas ocultas (a C do layout real) são lidas normalmente."""
     import openpyxl
 
     livro = openpyxl.load_workbook(caminho, read_only=True, data_only=True)
     try:
-        linhas = list(livro.worksheets[0].iter_rows(values_only=True))
+        if aba is None:
+            planilha = livro.worksheets[0]
+        elif aba in livro.sheetnames:
+            planilha = livro[aba]
+        else:
+            raise SystemExit(f"erro: {caminho.name} sem a aba {aba!r} (abas: {', '.join(livro.sheetnames)})")
+        linhas = list(planilha.iter_rows(values_only=True))
     finally:
         livro.close()
     for i, linha in enumerate(linhas[:10]):
@@ -78,26 +94,60 @@ def ler_planilha(caminho: Path, col_id: str) -> list[dict[str, object]]:
     raise SystemExit(f"erro: {caminho.name} sem a coluna {col_id!r} nas 10 primeiras linhas (use --verificar)")
 
 
+def lista_de_padroes(caminho: Path) -> set[str] | None:
+    """Vocabulário permitido para padrao_1/padrao_2: todo valor textual da aba `Listas`, normalizado.
+    None se a planilha não tem a aba (então não há o que validar)."""
+    import openpyxl
+
+    livro = openpyxl.load_workbook(caminho, read_only=True, data_only=True)
+    try:
+        if ABA_LISTAS not in livro.sheetnames:
+            return None
+        return {_slug_padrao(v) for linha in livro[ABA_LISTAS].iter_rows(values_only=True) for v in linha
+                if isinstance(v, str) and v.strip()}
+    finally:
+        livro.close()
+
+
 def cabecalho_planilha(caminho: Path, col_id: str) -> dict:
     linhas = ler_planilha(caminho, col_id)
-    return {"colunas": sorted(linhas[0]) if linhas else [], "linhas": len(linhas)}
+    lista = lista_de_padroes(caminho)
+    return {"colunas": sorted(linhas[0]) if linhas else [], "linhas": len(linhas),
+            "valores_na_aba_listas": None if lista is None else len(lista)}
 
 
-def rotulos(linhas: list[dict], c: Colunas, metade: str) -> tuple[dict[str, dict], dict]:
+def _padrao(valor: object, permitidos: set[str] | None, invalidos: dict) -> str | None:
+    """Padrão normalizado. Fora da aba Listas ou não-padrão => None, só contado (o valor nunca é impresso)."""
+    padrao = normalizar_padrao(valor)
+    if padrao == SEM_PADRAO:
+        return padrao
+    if permitidos is not None and _slug_padrao(valor) not in permitidos:
+        invalidos["fora_da_lista"] += 1
+        return None
+    invalidos["padrao"] += padrao is None
+    return padrao
+
+
+def _texto(linha: dict, c: Colunas) -> str:
+    return next((str(linha[n]) for n in c.texto if linha.get(n) not in (None, "")), "")
+
+
+def rotulos(linhas: list[dict], c: Colunas, metade: str,
+            permitidos: set[str] | None = None) -> tuple[dict[str, dict], dict]:
     """id -> rótulo normalizado; e contagens de valores inválidos (sem imprimir os valores)."""
     saida: dict[str, dict] = {}
-    invalidos = {"padrao": 0, "interesse": 0, "ids_repetidos": 0}
+    invalidos = {"padrao": 0, "interesse": 0, "ids_repetidos": 0, "fora_da_lista": 0}
     for linha in linhas:
         id_ = str(linha.get(_chave(c.id))).strip()
         if id_ in saida:
             invalidos["ids_repetidos"] += 1
             continue
-        p1, p2 = normalizar_padrao(linha.get(_chave(c.padrao1))), normalizar_padrao(linha.get(_chave(c.padrao2)))
+        p1 = _padrao(linha.get(_chave(c.padrao1)), permitidos, invalidos)
+        p2 = _padrao(linha.get(_chave(c.padrao2)), permitidos, invalidos)
         interesse = normalizar_sim_nao(linha.get(_chave(c.interesse)))
-        invalidos["padrao"] += (p1 is None) + (p2 is None)
         invalidos["interesse"] += interesse is None
         saida[id_] = {
-            "id": id_, "texto": str(linha.get(_chave(c.texto)) or ""), "metade": metade,
+            "id": id_, "texto": _texto(linha, c), "metade": metade,
             "padrao_1": p1 or "", "padrao_2": p2 or "", "interesse": interesse,
             "duvida": bool(normalizar_sim_nao(linha.get(_chave(c.duvida)))),
         }
@@ -196,15 +246,19 @@ def _somar(invalidos: dict, novo: dict) -> None:
         invalidos[k] = invalidos.get(k, 0) + v
 
 
+def _rotulos_do_arquivo(caminho: Path, c: Colunas, metade: str) -> tuple[dict[str, dict], dict]:
+    return rotulos(ler_planilha(caminho, c.id), c, metade, lista_de_padroes(caminho))
+
+
 def modo_unico(pasta: Path, c: Colunas) -> tuple[list[dict] | None, dict]:
     if not (pasta / ARQUIVOS[1]).is_file():
         raise SystemExit(f"erro: falta {ARQUIVOS[1]} (metade A) em {pasta.name}/")
     invalidos: dict = {}
-    a, inv = rotulos(ler_planilha(pasta / ARQUIVOS[1], c.id), c, "A")
+    a, inv = _rotulos_do_arquivo(pasta / ARQUIVOS[1], c, "A")
     _somar(invalidos, inv)
     ouro, metades = dict(a), ["A"]
     if (pasta / ARQUIVOS[3]).is_file():
-        b, inv = rotulos(ler_planilha(pasta / ARQUIVOS[3], c.id), c, "B")
+        b, inv = _rotulos_do_arquivo(pasta / ARQUIVOS[3], c, "B")
         _somar(invalidos, inv)
         if set(a) & set(b):
             raise SystemExit("erro: há ids repetidos entre a metade A e a metade B")
@@ -212,7 +266,7 @@ def modo_unico(pasta: Path, c: Colunas) -> tuple[list[dict] | None, dict]:
         metades.append("B")
     medidos, pares = {}, {}
     if (pasta / RETESTE).is_file() and (pasta / MAPA_RETESTE).is_file():
-        reteste, inv = rotulos(ler_planilha(pasta / RETESTE, c.id), c, "reteste")
+        reteste, inv = _rotulos_do_arquivo(pasta / RETESTE, c, "reteste")
         mapa = _ler_mapa(pasta / MAPA_RETESTE)
         ids_r = [r for r in reteste if mapa.get(r) in ouro]
         if ids_r:
@@ -282,7 +336,7 @@ def modo_pares(pasta: Path, c: Colunas) -> tuple[list[dict] | None, dict]:
     invalidos: dict = {}
     lidos = {}
     for k in sorted(presentes):
-        lidos[k], inv = rotulos(ler_planilha(pasta / ARQUIVOS[k], c.id), c, "A" if k in (1, 2) else "B")
+        lidos[k], inv = _rotulos_do_arquivo(pasta / ARQUIVOS[k], c, "A" if k in (1, 2) else "B")
         _somar(invalidos, inv)
     pares = [(1, 2)] + ([(3, 4)] if {3, 4} <= presentes else [])
     medidos, n_pares, divergencias, ouro = {}, {}, [], {}
@@ -307,7 +361,7 @@ def modo_pares(pasta: Path, c: Colunas) -> tuple[list[dict] | None, dict]:
                                   f"decisao) e salve como {DIVERGENCIAS_PRONTO}")
             return None, meta
         decisoes = {(str(d.get("id")).strip(), _chave(d.get("campo"))): d.get("decisao")
-                    for d in ler_planilha(pronto, "id")}
+                    for d in ler_planilha(pronto, "id", aba=None)}
         faltando = 0
         for d in divergencias:
             decisao = decisoes.get((d["id"], d["campo"]))
@@ -325,8 +379,9 @@ def main(argv: list[str]) -> int:
     p.add_argument("--relatorio", type=Path, default=None,
                    help="relatório só com métricas (padrão docs/evidencias/ouro-<data>.md)")
     p.add_argument("--verificar", action="store_true", help="imprime só nomes de colunas e contagens das planilhas")
-    p.add_argument("--col-id", default="id")
-    p.add_argument("--col-texto", default="texto", help="coluna com o texto do turno ALVO")
+    p.add_argument("--col-id", default=COL_ID, help="coluna do id (sem distinguir maiúsculas)")
+    p.add_argument("--col-texto", default=COL_TEXTO,
+                   help="coluna com o texto do turno ALVO; alternativas separadas por | (a primeira preenchida vale)")
     p.add_argument("--col-padrao1", default="padrao_1")
     p.add_argument("--col-padrao2", default="padrao_2")
     p.add_argument("--col-interesse", default="interesse")

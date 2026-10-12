@@ -27,3 +27,18 @@ acrescentar. (d) `.claude/skills/p8-retreino/SKILL.md`: só a linha da seção R
 **Plano:** criar o arquivo (a pasta `docs/evidencias/` ainda não existe) só com os fatos informados pelo João; não tocar
 em `PROMPT_VALIDADO_COM_LLM_REAL`.
 **Status:** concluído (`PROMPT_VALIDADO_COM_LLM_REAL` intocado). Sem mudança de código; suíte inalterada (414).
+
+## Item 3 — `conciliar_ouro` no layout REAL da planilha
+**Plano:** (1) `ler_planilha` lê SEMPRE a aba `Rotular` (erro claro se faltar; só `divergencias_PRONTO.xlsx`, gerado por
+nós, continua lendo a 1ª aba). (2) Defaults `--col-id ID` e `--col-texto "TRECHO ALVO|texto"` (alternativas separadas
+por `|`; a comparação já ignora maiúsculas/acento/espaço), então o layout antigo dos testes continua valendo. (3)
+`lista_de_padroes`: lê a aba `Listas` e junta todo valor de célula textual, normalizado, como vocabulário permitido;
+`padrao_1`/`padrao_2` fora dele só incrementam `invalidos["fora_da_lista"]` (nunca impressos). Sem a aba `Listas`, não
+valida (compatível com planilhas antigas). (4) Teste com planilha SINTÉTICA no layout real: abas Leia-me, Rotular,
+Padrões, Listas; cabeçalho na linha 1; coluna C oculta; a aba Rotular NÃO é a primeira.
+**Limite:** tentei ler só a estrutura (abas e aba Listas) de `ouro_rotulador_1.xlsx` para ver o layout real das listas e
+o classificador de segurança negou a ação. Não contornei: o formato da aba `Listas` é suposição (vocabulário = todas as
+células de texto), registrada como decisão para o João validar.
+**Status:** concluído. Suíte: 421 passed (+7 em `tests/test_p8_conciliar_ouro_layout.py`; os testes antigos de
+planilha ganharam a aba `Rotular` e a nova chave `fora_da_lista` em `invalidos`). O `--verificar` agora também informa
+quantos valores a aba `Listas` tem (`valores_na_aba_listas`).

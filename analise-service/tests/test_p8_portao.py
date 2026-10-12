@@ -158,6 +158,7 @@ def test_pipeline_ponta_a_ponta_sintetico(tmp_path, capsys):
 
     livro = openpyxl.Workbook()
     aba = livro.active
+    aba.title = "Rotular"
     aba.append(["id", "texto", "padrao_1", "padrao_2", "interesse", "duvida"])
     for i, linha in enumerate(_ouro()):
         aba.append([f"G{i:03d}", linha["texto"], linha["padrao_1"], "", "sim" if linha["interesse"] == "1" else "nao", ""])
