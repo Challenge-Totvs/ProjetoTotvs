@@ -12,10 +12,10 @@ Prazos: banca TOTVS 15/10/2026 (define o top 4 para o Next, 24/10) · entrega FI
 - `docs/contrato/` — `contrato-v3.md` e as fixtures JSON. Fonte única do contrato.
 - `docs/SDD.md` (v3.0) e `docs/DIVISAO_TRABALHO.md` (tarefas P0–P6 e prazos).
 
-## Estado de partida (11/10)
-O Java em `main` já envia e lê o contrato v3 (`ContratoV3.java`). O Python em
-`main` ainda fala o contrato v1 (`conteudo`, `formatoOrigem`, 7 campos): hoje os
-dois são incompatíveis. Prioridade: P0 (mock) e P1 (schemas v3), nessa ordem.
+## Estado atual (12/10)
+P0 a P6 e a A8 v2 (regexes mais específicas) estão commitadas na branch `analise-service(joao)`: o Python fala o
+contrato v3, a cadeia real roda e o `/health` usa a última tentativa real (`FORCAR_FALHA` para a demo). Falta o smoke
+com LLMs reais (`docs/evidencias/smoke-12-10.md`; o prompt ainda não foi validado com LLM real). Próximas: P7 e P8.
 
 ## Comandos (rode a partir de `analise-service/`)
 - Testar tudo: `python -m pytest -q` · um arquivo: `python -m pytest tests/test_x.py -q`
@@ -26,7 +26,7 @@ dois são incompatíveis. Prioridade: P0 (mock) e P1 (schemas v3), nessa ordem.
 ## Arquitetura
 router -> orchestrator -> cadeia: llm1 (Anthropic) -> llm2 (OpenAI) -> local
 (classificador sklearn + regex por padrão) -> regras (só regex) -> 503 estruturado.
-Hoje só existem as duas LLMs e o modelo local; o regex por padrão (P4) ainda não existe.
+Os quatro motores existem (llm1, llm2, local, regras) e o contrato v3 vale ponta a ponta.
 O Java espera no máximo 120 s.
 
 ## Regras invioláveis
@@ -51,7 +51,8 @@ O Java espera no máximo 120 s.
 
 ## Como trabalhar
 - Tarefas por ID: `/p0-mock`, `/p1-schemas`, `/p2-prompt`, `/p3-citacoes`,
-  `/p4-regras`, `/p5-health`, `/p6-testes`. Uma tarefa por sessão (`/clear` entre elas).
+  `/p4-regras`, `/p5-health`, `/p6-testes`, `/p7-similares`, `/p8-retreino`.
+  Uma tarefa por sessão (`/clear` entre elas).
 - Ciclo fixo: ler contrato e tarefa -> baseline do pytest -> PLANO e esperar aprovação
   -> testes primeiro (devem falhar pelo motivo certo) -> implementar o mínimo -> pytest
   verde -> commit `tipo(ID): resumo` -> resumo de 5 linhas. (Sempre commit em meu nome: Joao basta. e sempre commit apos cada mudança para, se caso necessario, poder voltar a versao anterior)
@@ -59,9 +60,11 @@ O Java espera no máximo 120 s.
 - Nomes de domínio em português; campos JSON em camelCase como o contrato.
 
 ## Fora do escopo (não faça sem pedir)
-RAG, spaCy/reconhecimento de entidades (E8), retreino do modelo local, mapeamento do
-classificador para os 14 padrões (Release 2), regras de conduta (são do backend),
-qualquer mudança em `backend/` ou `frontend/`.
+spaCy/reconhecimento de entidades (E8), `/evidencias`, mapeamento do classificador para
+os 14 padrões (Release 2), regras de conduta (são do backend), qualquer mudança em
+`backend/` ou `frontend/`.
+P7 (/similares) e P8 (retreino) autorizadas; ver docs/escopo-rag-retreino.md. Dados reais
+só em `analise-service/dados_locais/` (ignorado pelo git), nunca lidos nem impressos.
 
 ## Ler sob demanda (não carregue inteiro)
 - `docs/contrato/contrato-v3.md`: §3 pedido · §4 resposta · §7.2 citações · §8 erros e health
