@@ -71,11 +71,21 @@ def rodar(motor: str, pedido: PedidoAnalise) -> dict:
 
 def main(argv: list[str]) -> int:
     config.carregar_dotenv()
-    motores = [m for m in argv if m in ("llm1", "llm2")] or ["llm1", "llm2"]
-    pedido = PedidoAnalise.model_validate(json.loads(PEDIDO.read_text(encoding="utf-8")))
+    args = list(argv)
+    caminho = PEDIDO
+    if "--pedido" in args:  # pedido alternativo, ex.: o sintético de tamanho P90 (scripts/gerar_pedido_sintetico.py)
+        i = args.index("--pedido")
+        caminho = Path(args[i + 1])
+        del args[i : i + 2]
+    motores = [m for m in args if m in ("llm1", "llm2")] or ["llm1", "llm2"]
+    pedido = PedidoAnalise.model_validate(json.loads(caminho.read_text(encoding="utf-8")))
     print("SMOKE MANUAL — prompt NÃO validado com LLM real até este resultado ser registrado.")
+    print(json.dumps({"entrada": caminho.name, "turnos": len(pedido.turnos),
+                      "caracteres": sum(len(t.texto) for t in pedido.turnos)}, ensure_ascii=False))
     falhou = False
     for motor in motores:
+        credenciais = config.credenciais_llm(motor)  # só o NOME do modelo é impresso, nunca a chave
+        print(f"{motor}: modelo={credenciais[1] if credenciais else 'nao_configurado'}")
         resultado = rodar(motor, pedido)
         falhou |= not resultado["ok"]
         print(json.dumps(resultado, ensure_ascii=False, indent=2))
