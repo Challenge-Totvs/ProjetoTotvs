@@ -42,3 +42,16 @@ células de texto), registrada como decisão para o João validar.
 **Status:** concluído. Suíte: 421 passed (+7 em `tests/test_p8_conciliar_ouro_layout.py`; os testes antigos de
 planilha ganharam a aba `Rotular` e a nova chave `fora_da_lista` em `invalidos`). O `--verificar` agora também informa
 quantos valores a aba `Listas` tem (`valores_na_aba_listas`).
+
+## Item 4 — P9: `treino/validar_professora.py`
+**Plano (duas etapas, um commit por etapa):**
+- Etapa 1, núcleo puro: `comparar(ouro, cache)` (por grupo risco/oportunidade/interesse: n, positivos, revocação nos
+  positivos, alarme falso = FP/negativos, precisão, F1 via `portao.metricas`, kappa LLM × João via
+  `conciliar_ouro.kappa_cohen`) e `veredito` (`usar` se kappa >= 0,6 e revocação >= 0,7; senão "NÃO usar para rótulos
+  fracos nesse grupo"). Trechos com `duvida`=1, rótulo vazio e itens sem resposta da LLM ficam fora (contados).
+- Etapa 2, CLI: lê `ouro_final.csv` (+ `ouro_final.json` para modo e completo/parcial), roda
+  `rotulos_fracos.destilar` (cliente injetável, cache e retomada em `dados_locais/professora/`, separado do cache da
+  destilação porque os ids do ouro são outros), `--teto-usd` obrigatório e <= 0,5 (validado antes de `destilar`, que
+  continua com o seu limite de US$ 2), preços por milhão obrigatórios; escreve `docs/evidencias/professora-<data>.md`
+  só com métricas. Testes sintéticos com cliente simulado.
+- Não vou rodar o script sobre o `ouro_final.csv` real (regra do lote: não abrir) nem com API.
