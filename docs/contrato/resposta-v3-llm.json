@@ -1,0 +1,76 @@
+{
+  "motor": "llm1",
+  "tentativas": [
+    {"motor": "llm1", "ok": true, "duracaoMs": 18200}
+  ],
+  "score": 68,
+  "sentimento": "neutro",
+  "papeis": {"1": "vendedor", "2": "cliente", "3": "cliente"},
+  "resumo": "Reunião de renovação. O cliente reclamou de um chamado de faturamento sem retorno, reagiu bem ao reajuste fixo, citou interesse em telemedicina e disse que o orçamento do ano está apertado. O vendedor se comprometeu a enviar a proposta até segunda.",
+  "interesse": [
+    {"texto": "Reagiu bem ao reajuste fixo com desconto", "turno": 7, "citacao": "Isso ajuda bastante."}
+  ],
+  "proximosPassos": [
+    "Responder o chamado de faturamento aberto há três semanas",
+    "Enviar a proposta de renovação com valores fechados para dois anos",
+    "Agendar a demonstração do módulo de telemedicina"
+  ],
+  "temas": [
+    {
+      "padrao": "suporte_insatisfacao",
+      "titulo": "Chamado de faturamento sem retorno",
+      "tipos": ["risco"],
+      "turno": 3,
+      "turnoFim": 3,
+      "tratado": false,
+      "texto": "Abrimos um chamado sobre o fechamento do faturamento há três semanas e até hoje ninguém retornou.",
+      "confianca": 0.9
+    },
+    {
+      "padrao": "modulo_adicional",
+      "titulo": "Telemedicina para a ala nova",
+      "tipos": ["oportunidade"],
+      "turno": 8,
+      "turnoFim": 8,
+      "tratado": true,
+      "texto": "A diretoria quer oferecer telemedicina para os pacientes da ala nova.",
+      "confianca": 0.82
+    },
+    {
+      "padrao": "orcamento_restrito",
+      "titulo": "Orçamento do ano apertado",
+      "tipos": ["risco"],
+      "turno": 10,
+      "turnoFim": 10,
+      "tratado": false,
+      "texto": "o orçamento deste ano está bem apertado",
+      "confianca": 0.7
+    }
+  ],
+  "compromissos": [
+    {
+      "turno": 11,
+      "texto": "Te envio a proposta de renovação até segunda, com os valores fechados para os dois anos.",
+      "regra": "segunda"
+    }
+  ],
+  "sentimentoSerie": [[2, -0.2], [3, -0.6], [7, 0.4], [10, -0.3], [12, 0.3]],
+  "descartados": [
+    {
+      "texto": "O cliente pediu cancelamento imediato do contrato.",
+      "motivo": "evidencia_nao_localizada",
+      "origem": "tema",
+      "padrao": "cancelamento_citado"
+    }
+  ],
+  "eventosConduta": [
+    {
+      "tipo": "desconto_fora_da_politica",
+      "turno": 6,
+      "texto": "dar quinze por cento de desconto agora",
+      "confianca": 0.64
+    }
+  ],
+  "versaoContrato": "v3",
+  "avisos": []
+}

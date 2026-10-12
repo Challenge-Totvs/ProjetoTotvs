@@ -1,0 +1,40 @@
+{
+  "motor": "local",
+  "tentativas": [
+    {"motor": "llm1", "ok": false, "erro": "timeout", "duracaoMs": 55000},
+    {"motor": "llm2", "ok": false, "erro": "limite_requisicoes", "duracaoMs": 1300},
+    {"motor": "local", "ok": true, "duracaoMs": 240}
+  ],
+  "score": 67,
+  "sentimento": "neutro",
+  "interesse": [
+    {
+      "texto": "Sinal de interesse identificado pelo classificador",
+      "turno": 7,
+      "citacao": "Isso ajuda bastante."
+    }
+  ],
+  "temas": [
+    {
+      "padrao": "suporte_insatisfacao",
+      "titulo": "Insatisfação com o suporte",
+      "tipos": ["risco"],
+      "turno": 3,
+      "turnoFim": 3,
+      "tratado": null,
+      "texto": "Abrimos um chamado sobre o fechamento do faturamento há três semanas e até hoje ninguém retornou."
+    },
+    {
+      "padrao": "orcamento_restrito",
+      "titulo": "Orçamento restrito",
+      "tipos": ["risco"],
+      "turno": 10,
+      "turnoFim": 10,
+      "tratado": null,
+      "texto": "Só que o orçamento deste ano está bem apertado."
+    }
+  ],
+  "descartados": [],
+  "versaoContrato": "v3",
+  "avisos": ["contingencia_modelo_local"]
+}

@@ -1,0 +1,109 @@
+{
+  "_nota": "Transcrições SINTÉTICAS curtas, uma por padrão. 'turno' é onde o padrão deve ser encontrado.",
+  "suporte_insatisfacao": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, vamos começar a reunião de acompanhamento.",
+      "Abrimos um chamado no suporte há duas semanas e ninguém retornou até agora."
+    ]
+  },
+  "preco_objecao": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, posso apresentar a proposta comercial.",
+      "Olha, o preço está alto para o nosso porte, ficou salgado."
+    ]
+  },
+  "prazo_implantacao": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, vamos falar do projeto novo.",
+      "Estamos preocupados com o prazo da implantação, o cronograma já atrasou duas vezes."
+    ]
+  },
+  "concorrente_citado": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, tudo bem com a equipe de vocês?",
+      "Estamos comparando com um concorrente que ofereceu outro sistema mais enxuto."
+    ]
+  },
+  "cancelamento_citado": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, obrigado por atender a ligação.",
+      "Sinceramente, estamos avaliando cancelar o contrato no fim do ano."
+    ]
+  },
+  "adocao_resistencia": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, como anda o uso da ferramenta?",
+      "A equipe tem muita resistência e não se adaptou ao novo fluxo de trabalho."
+    ]
+  },
+  "fiscal_problema": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, vamos revisar os pontos abertos.",
+      "O fechamento fiscal continua com erro e a apuração dos impostos não bate."
+    ]
+  },
+  "orcamento_restrito": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, podemos falar de investimento hoje?",
+      "O orçamento deste ano está bem apertado e a diretoria congelou novas compras."
+    ]
+  },
+  "expansao_unidade": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, quais são os planos para o próximo ano?",
+      "Vamos abrir uma nova filial em Campinas e queremos levar o sistema para lá."
+    ]
+  },
+  "modulo_adicional": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, tudo certo com a operação?",
+      "Queremos conhecer um módulo de business intelligence para a diretoria."
+    ]
+  },
+  "integracao": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, como está o dia a dia com o sistema?",
+      "Precisamos integrar o sistema com a plataforma de comércio eletrônico."
+    ]
+  },
+  "renovacao": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, o contrato vence no mês que vem.",
+      "Sim, queremos conversar sobre a renovação por mais dois anos."
+    ]
+  },
+  "upgrade_licencas": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, como está o time de vendas?",
+      "Vamos precisar de mais licenças porque contratamos dez pessoas."
+    ]
+  },
+  "treinamento": {
+    "turno": 2,
+    "turnos": [
+      "Bom dia, a equipe nova já começou?",
+      "Sim, e precisamos de um treinamento para os novos usuários."
+    ]
+  },
+  "neutra": {
+    "turno": null,
+    "turnos": [
+      "Bom dia, tudo bem com você?",
+      "Tudo bem, obrigado. Podemos começar a conversa.",
+      "Claro, fique à vontade para falar."
+    ]
+  }
+}

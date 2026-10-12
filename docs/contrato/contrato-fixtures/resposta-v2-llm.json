@@ -1,0 +1,123 @@
+{
+  "pontosInteresse": [
+    {"descricao": "Reagiu bem ao reajuste fixo com desconto", "trecho": "Isso ajuda bastante.", "turno": 7}
+  ],
+  "pontosDesinteresse": [
+    {
+      "descricao": "Chamado de faturamento sem retorno",
+      "trecho": "Abrimos um chamado sobre o fechamento do faturamento há três semanas e até hoje ninguém retornou.",
+      "turno": 3
+    },
+    {
+      "descricao": "Orçamento do ano apertado",
+      "trecho": "o orçamento deste ano está bem apertado",
+      "turno": 10
+    }
+  ],
+  "oportunidadesVenda": [
+    {
+      "descricao": "Telemedicina para a ala nova",
+      "trecho": "A diretoria quer oferecer telemedicina para os pacientes da ala nova.",
+      "turno": 8
+    }
+  ],
+  "scoreEngajamento": 68,
+  "sentimentoGeral": "NEUTRO",
+  "recomendacaoProximosPassos": "Responder o chamado de faturamento aberto há três semanas; Enviar a proposta de renovação com valores fechados para dois anos; Agendar a demonstração do módulo de telemedicina",
+  "motorUtilizado": "LLM_PRIMARIA",
+  "versaoContrato": "v2",
+  "temas": [
+    {
+      "padrao": "suporte_insatisfacao",
+      "titulo": "Chamado de faturamento sem retorno",
+      "tipos": ["risco"],
+      "turno": 3,
+      "tratado": false,
+      "texto": "Abrimos um chamado sobre o fechamento do faturamento há três semanas e até hoje ninguém retornou.",
+      "confianca": 0.9
+    },
+    {
+      "padrao": "modulo_adicional",
+      "titulo": "Telemedicina para a ala nova",
+      "tipos": ["oportunidade"],
+      "turno": 8,
+      "tratado": true,
+      "texto": "A diretoria quer oferecer telemedicina para os pacientes da ala nova.",
+      "confianca": 0.82
+    },
+    {
+      "padrao": "orcamento_restrito",
+      "titulo": "Orçamento do ano apertado",
+      "tipos": ["risco"],
+      "turno": 10,
+      "tratado": false,
+      "texto": "o orçamento deste ano está bem apertado",
+      "confianca": 0.7
+    }
+  ],
+  "papeis": {"1": "vendedor", "2": "cliente", "3": "cliente"},
+  "resumo": "Reunião de renovação. O cliente reclamou de um chamado de faturamento sem retorno, reagiu bem ao reajuste fixo, citou interesse em telemedicina e disse que o orçamento do ano está apertado. O vendedor se comprometeu a enviar a proposta até segunda.",
+  "proximosPassos": [
+    "Responder o chamado de faturamento aberto há três semanas",
+    "Enviar a proposta de renovação com valores fechados para dois anos",
+    "Agendar a demonstração do módulo de telemedicina"
+  ],
+  "compromissos": [
+    {
+      "turno": 11,
+      "texto": "Te envio a proposta de renovação até segunda, com os valores fechados para os dois anos.",
+      "regra": "segunda"
+    }
+  ],
+  "sentimentoSerie": [[2, -0.2], [3, -0.6], [7, 0.4], [10, -0.3], [12, 0.3]],
+  "eventosConduta": [
+    {
+      "tipo": "desconto_fora_da_politica",
+      "turno": 6,
+      "texto": "dar quinze por cento de desconto agora",
+      "confianca": 0.64
+    }
+  ],
+  "descartados": [
+    {
+      "origem": "tema",
+      "padrao": "cancelamento_citado",
+      "texto": "O cliente pediu cancelamento imediato do contrato.",
+      "motivo": "nao_localizado"
+    }
+  ],
+  "tentativas": [
+    {"motor": "LLM_PRIMARIA", "ok": true, "duracaoMs": 18200}
+  ],
+  "turnos": [
+    {"n": 1, "locutor": 1, "texto": "Bom dia, [PESSOA]. Obrigado pelo horário, vamos falar da renovação."},
+    {"n": 2, "locutor": 2, "texto": "Bom dia. Antes de tudo, preciso falar do suporte."},
+    {
+      "n": 3,
+      "locutor": 2,
+      "texto": "Abrimos um chamado sobre o fechamento do faturamento há três semanas e até hoje ninguém retornou."
+    },
+    {"n": 4, "locutor": 1, "texto": "Certo. Passando para a proposta de renovação então."},
+    {
+      "n": 5,
+      "locutor": 3,
+      "texto": "Na TI a migração dos cadastros terminou no mês passado, sem perda de histórico."
+    },
+    {
+      "n": 6,
+      "locutor": 1,
+      "texto": "Ótimo. Posso fechar o reajuste fixo por dois anos e dar quinze por cento de desconto agora."
+    },
+    {"n": 7, "locutor": 2, "texto": "Isso ajuda bastante."},
+    {"n": 8, "locutor": 2, "texto": "A diretoria quer oferecer telemedicina para os pacientes da ala nova."},
+    {"n": 9, "locutor": 1, "texto": "Temos um módulo para isso, posso mostrar na próxima reunião."},
+    {"n": 10, "locutor": 3, "texto": "Só que o orçamento deste ano está bem apertado."},
+    {
+      "n": 11,
+      "locutor": 1,
+      "texto": "Te envio a proposta de renovação até segunda, com os valores fechados para os dois anos."
+    },
+    {"n": 12, "locutor": 2, "texto": "Combinado. Obrigada."}
+  ],
+  "avisos": []
+}

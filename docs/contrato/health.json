@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "pipelineVersao": "real",
+  "motores": [
+    {"motor": "llm1", "ok": true},
+    {"motor": "llm2", "ok": true},
+    {"motor": "local", "ok": true},
+    {"motor": "regras", "ok": true}
+  ]
+}

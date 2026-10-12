@@ -1,0 +1,7 @@
+{
+  "codigo": "pedido_invalido",
+  "mensagem": "O pedido não tem turnos.",
+  "detalhes": [
+    {"campo": "turnos", "problema": "vazio"}
+  ]
+}
