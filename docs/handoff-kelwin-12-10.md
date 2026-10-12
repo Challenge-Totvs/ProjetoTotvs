@@ -13,7 +13,7 @@ O que mudou no Python e o que o Java precisa saber/fazer. O formato do `POST /an
 
 ## 2. `POST /similares` — contrato PROPOSTO (validar comigo antes de codar)
 Detalhes em `docs/contrato/similares.md`; fixtures `docs/contrato/pedido-similares.json` e `resposta-similares.json`.
-- Pedido: `{"texto": "...", "referencias": [{"id": "...", "texto": "..."}], "topK": 3, "limiar": 0.2}`
+- Pedido: `{"texto": "...", "referencias": [{"id": "...", "texto": "..."}], "topK": 3, "limiar": 0.25}`
   (`referencias` 0..200, `topK` 1..50, `limiar` opcional 0..1).
 - Resposta 200: `{"similares": [{"id": "np-101", "score": 0.259}], "versaoContrato": "v3"}`, por score decrescente;
   lista vazia é válida. 422 no formato do §8.1 para pedido inválido.
@@ -24,7 +24,8 @@ Detalhes em `docs/contrato/similares.md`; fixtures `docs/contrato/pedido-similar
   3. campo `semelhanteNaoProcede` no tema devolvido ao frontend (id da referência mais parecida ou booleano: você
      escolhe, me avise);
   4. **ignorar falha em silêncio** (timeout, 4xx, 5xx => o tema segue sem `semelhanteNaoProcede`; só log no Java).
-- O limiar (0,2) ainda não foi calibrado com dados reais; pode mudar sem mudar o formato.
+- O limiar padrão passou de 0,2 para 0,25 em 12/10 (a `np-104` saiu da fixture de resposta); ainda não foi calibrado
+  com dados reais e pode mudar sem mudar o formato.
 
 ## 3. `descartados[].motivo`
 O Java lê o motivo como texto livre (`String`), mas o frontend sempre prefixa "Evidência não localizada." antes dele.

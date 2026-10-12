@@ -54,3 +54,16 @@ no pedido). pytest: `452 passed`.
   (risco e interesse): o veredito da professora (`usar`, `nao_usar` ou `sem_veredito`) e quantos rótulos daquele grupo
   vieram da LLM e quantos da regra. Leitura escolhida para o "se" cortado: "se o rótulo da LLM usado no grupo foi
   aprovado pela professora". Grupo com rótulo da LLM e sem `usar` ganha um aviso no `metadata.json` (só contagem).
+
+**Status 1a:** concluído. Limiar mantido em 0,25, como pedido. Paráfrases sintéticas que deixam de casar com o padrão
+(frases já versionadas em `docs/contrato/` e `tests/`, nenhuma do corpus):
+
+| Frase (sintética) | Referência | Score |
+|---|---|---|
+| "Os chamados do faturamento estão sem resposta do suporte há duas semanas." (`np-104`) | texto de `pedido-similares.json` | 0,2301 |
+| "Ninguém do suporte retornou." | `SUPORTE` de `test_p7_similares.py` | 0,2055 |
+
+A primeira mudou a fixture `resposta-similares.json` (só `np-101`, 0,259); a segunda não quebra teste (o teste dela manda
+`limiar` explícito). Teste novo: padrão = 0,25 e a `np-104` só volta com `limiar: 0.2`. Também atualizados
+`docs/contrato/similares.md` (§2 e §5) e `docs/handoff-kelwin-12-10.md` (exemplo e nota do limiar). **Avisar o Kelwin:** a
+fixture de resposta do `/similares` perdeu um item (o formato não mudou). pytest: `453 passed`.

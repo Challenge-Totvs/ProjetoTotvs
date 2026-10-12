@@ -9,9 +9,9 @@ from typing import Sequence
 
 logger = logging.getLogger(__name__)
 
-# [proposta] escolhido com frases sintéticas: paráfrases do mesmo assunto ~0,2-0,35, assuntos diferentes <= ~0,14.
-# Calibrar com o conjunto ouro (P8).
-LIMIAR_SIMILARIDADE = 0.2
+# Decisão do João Paulo (12/10): 0,2 -> 0,25. Frases sintéticas: paráfrases do mesmo assunto ~0,2-0,35, assuntos
+# diferentes <= ~0,14; com 0,25 as paráfrases mais distantes deixam de casar. Calibrar com o conjunto ouro (P8).
+LIMIAR_SIMILARIDADE = 0.25
 CASAS_DECIMAIS = 4
 
 

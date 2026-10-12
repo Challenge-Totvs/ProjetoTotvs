@@ -28,7 +28,7 @@ tema que você já descartou"). O Python não guarda nada: as referências vêm 
 | `texto` | string | sim | Texto do tema novo (o `texto` do tema). Vazio ou só espaços => 422 |
 | `referencias` | lista | não (padrão `[]`) | 0 a 200 itens. `id` é do Java (opaco para o Python); `texto` é o trecho "não procede" |
 | `topK` | inteiro | não (padrão 3) | 1 a 50. Máximo de itens devolvidos |
-| `limiar` | número | não (padrão `LIMIAR_SIMILARIDADE` = 0,2) | 0 a 1. Só volta referência com `score >= limiar` |
+| `limiar` | número | não (padrão `LIMIAR_SIMILARIDADE` = 0,25) | 0 a 1. Só volta referência com `score >= limiar` |
 
 Campos desconhecidos são ignorados (como no `/analisar`). `id` repetido não é erro: cada referência é avaliada.
 
@@ -68,8 +68,11 @@ TF-IDF ajustado a cada pedido sobre `referencias + texto` (sem estado entre pedi
 acento, `ngram_range=(1, 2)`, `sublinear_tf=True`, uma lista curta de stop words do português (constante no código);
 cosseno entre `texto` e cada referência. Sem API, sem LLM, sem dependência nova (`scikit-learn` já pinado).
 
-`LIMIAR_SIMILARIDADE = 0.2` foi escolhido com frases SINTÉTICAS (paráfrases do mesmo assunto ficaram entre ~0,2 e ~0,35;
-assuntos diferentes, até ~0,14). **Calibração real pendente** com o conjunto ouro (P8).
+`LIMIAR_SIMILARIDADE = 0.25` (decisão do João Paulo em 12/10; era 0,2). Com frases SINTÉTICAS, paráfrases do mesmo
+assunto ficaram entre ~0,2 e ~0,35 e assuntos diferentes até ~0,14. Com 0,25 as paráfrases mais distantes deixam de
+casar: a `np-104` da fixture ("Os chamados do faturamento estão sem resposta do suporte há duas semanas.", score
+0,2301) saiu de `resposta-similares.json`. Quem quiser o corte antigo manda `limiar: 0.2` no pedido.
+**Calibração real pendente** com o conjunto ouro (P8).
 
 ## 6. O que o Java precisa implementar (Kelwin)
 
