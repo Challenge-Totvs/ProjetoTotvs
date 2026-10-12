@@ -66,6 +66,8 @@ Decisão de leitura do §7.2(c): todas as janelas (1, 2 e 3 turnos) ficam dentro
 | D13 | Conjunto ouro com rotulador único (João Paulo): sem kappa entre pessoas; substituto = teste-reteste de 40 trechos sorteados, pelo menos 24 h depois, sem consultar as respostas anteriores. Limitação declarada nos relatórios (rotulador único, sem validação cruzada, e ele também escreveu as regexes). Se surgirem mais rotuladores, volta o protocolo de pares | João Paulo, 12/10 |
 | D14 | Orçamento de LLM: US$ 5 ou R$ 20 por provedor, duas chaves (desenvolvimento e demonstração). Destilação só no modelo barato, com teto de US$ 2 (`--teto-usd`) | João Paulo, 12/10 |
 | D15 | O filtro de compromissos por `papeis` (só do vendedor) fica só no prompt até a banca. O Java lê `descartados[].motivo` como texto livre (`String`, sem enum), mas o frontend sempre prefixa "Evidência não localizada." antes do motivo; motivo novo de descarte depende de ajuste do Kelwin | João Paulo, 12/10 |
+| D16 | `openpyxl` autorizado como dependência de TREINO (P8): `analise-service/requirements-treino.txt` fixa `openpyxl==3.1.5` (versão instalada no `.venv`); o `requirements.txt` do serviço não muda | João Paulo, 12/10 |
+| D17 | O treino do candidato de risco parte dos hiperparâmetros do `classificador_risco.joblib` atual (abaixo), e eles são o baseline do portão | João Paulo, 12/10 |
 
 Nota de numeração: a mensagem de 12/10 pedia "D10 a D13"; como D10 e D11 já existiam (acima, e citados no prompt e no contrato), os quatro itens novos entraram como D12 a D15, na mesma ordem (RAG e retreino, rotulador único, orçamento de LLM, filtro de compromissos).
 
@@ -162,3 +164,10 @@ Nenhum bug de produção encontrado pelos testes novos. O prompt e o AC10 (smoke
 ### §8.3 — semântica do /health (decisão)
 - `ok` do motor = configurado E última tentativa real não falhou nos últimos 5 min (memória, por processo). A frase "`ok` de `regras` = sempre `true`" saiu do contrato. O `/health` nunca chama a API da LLM.
 - `health.json` não muda (é o estado saudável). Testes que citam `regras: True` (`test_p5_estado.py`, `test_p5_health.py`) tratam estado saudável e continuam válidos; nenhum teste ou fixture afirma "regras sempre true" como regra.
+
+### Baseline: estrutura do classificador de risco atual (D17)
+Obtido com `python scripts/inspecionar_modelo.py` (scikit-learn 1.9.1). Só estrutura e hiperparâmetros; sem vocabulário nem texto.
+- `Pipeline`: `tfidf=TfidfVectorizer` -> `clf=LogisticRegression`; `classes_ = [0, 1]` (1 = risco); `coef_.shape = (1, 20000)`.
+- `TfidfVectorizer`: `analyzer='word'`, `lowercase=True`, `strip_accents=None`, `ngram_range=(1, 2)`, `min_df=5`, `max_df=0.6`, `max_features=20000` (vocabulário aprendido: 20000), `sublinear_tf=True`, `use_idf=True`, `smooth_idf=True`, `norm='l2'`, `binary=False`, `token_pattern='(?u)\b\w\w+\b'`, `stop_words` = lista de 315 itens (não impressa), `preprocessor=None`, `tokenizer=None`.
+- `LogisticRegression`: `C=1.0`, `class_weight='balanced'`, `solver='lbfgs'`, `max_iter=1000`, `tol=0.0001`, `fit_intercept=True`, `random_state=42`, `l1_ratio=0.0` (`penalty='deprecated'`, comportamento da 1.9 equivalente a L2).
+- Atenção ao reproduzir: `strip_accents=None` (o texto entra com acento) e a lista de stop words vem do artefato (`clone` dos steps), não de uma lista nova.

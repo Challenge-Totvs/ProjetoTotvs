@@ -27,7 +27,8 @@ PIPELINE (um script por etapa em `analise-service/treino/`, todos com `--help` e
    interesse = palavra-chave v2 sem veto); (b) `--destilar`: envia uma amostra de trechos candidatos (~3.000) a UMA LLM
    barata e grava rótulos de risco/oportunidade/interesse; exige `--teto-usd` e interrompe ao atingi-lo, mantém cache
    em disco e retoma de onde parou. Não use reuniões inteiras (custo). Teto de gasto da destilação: US$ 2.
-3. `conciliar_ouro.py`, com DOIS modos:
+3. `conciliar_ouro.py`, com DOIS modos (lê `.xlsx` com `openpyxl`, dependência só de TREINO em `requirements-treino.txt`;
+   NÃO a coloque no `requirements.txt` do serviço):
    - `--modo unico` (padrão por ora, João é o único rotulador): lê `ouro_rotulador_1_PRONTO.xlsx` (metade A) e
      `ouro_rotulador_3_PRONTO.xlsx` (metade B; aceita só a A e marca "parcial"), sem divergências nem kappa entre pessoas.
      Se existir `ouro_reteste_PRONTO.xlsx` + `reteste_mapa.csv` (ids R01.. -> G..), calcula o kappa de Cohen
@@ -35,7 +36,11 @@ PIPELINE (um script por etapa em `analise-service/treino/`, todos com `--help` e
    - `--modo pares`: lê os 4 arquivos, kappa por par e campo, `divergencias.xlsx` para arbitragem, depois `ouro_final.csv`.
    Kappa < 0,6 em algum campo => aviso explícito: revisar definições antes de usar aquele campo. Todo relatório declara o
    modo (rotulador único, sem validação cruzada) e se o ouro está completo ou parcial.
-4. `treinar.py`: treina DOIS modelos: risco (mesmo desenho do atual: TF-IDF + regressão logística) e interesse (novo).
+4. `treinar.py`: treina DOIS modelos: risco e interesse (novo). O risco parte dos hiperparâmetros do classificador ATUAL,
+   que o João Paulo inspecionou com `scripts/inspecionar_modelo.py` e estão registrados em `docs/decisoes.md` (D17): em
+   código, `sklearn.base.clone` dos steps do `app/modelos/classificador_risco.joblib` (artefato do próprio repo), o que herda
+   inclusive a lista de stop words (315, não impressa). Esses hiperparâmetros são o BASELINE do portão: mudar qualquer um
+   exige registrar no `metadata.json` e justificar. O interesse começa da mesma família (TF-IDF + regressão logística).
    Treina SÓ com rótulos fracos e SÓ com reuniões fora do holdout. O conjunto ouro nunca entra no treino (só mede).
    Salva em `dados_locais/candidatos/<data>/` com `metadata.json` (data, hash dos dados, versão do scikit-learn, tamanhos).
 5. `portao.py`: avalia candidato × modelo/filtro atual no `ouro_final.csv`, por GRUPO (risco, oportunidade, interesse),
