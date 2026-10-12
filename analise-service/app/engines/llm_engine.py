@@ -178,6 +178,27 @@ def traduzir_erro(e: Exception) -> str:
     return "erro_interno"
 
 
+_RE_TIPO_DO_PROVEDOR = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
+
+
+def diagnostico_do_provedor(e: Exception) -> dict:
+    """Código HTTP e tipo do erro do provedor (ex.: `authentication_error`), se houver. Nunca a mensagem nem o corpo.
+
+    Anthropic: `body = {"error": {"type": ...}}`; OpenAI: `body = {"type": ...}`. Os dois SDKs também expõem `.type`.
+    O tipo só passa se tiver cara de identificador, para que nenhum texto livre vaze por esse campo.
+    """
+    status = getattr(e, "status_code", None)
+    tipo = getattr(e, "type", None)
+    corpo = getattr(e, "body", None)
+    if not isinstance(tipo, str) and isinstance(corpo, dict):
+        interno = corpo.get("error")
+        tipo = interno.get("type") if isinstance(interno, dict) else corpo.get("type")
+    return {
+        "status_http": status if isinstance(status, int) and not isinstance(status, bool) else None,
+        "tipo_provedor": tipo if isinstance(tipo, str) and _RE_TIPO_DO_PROVEDOR.match(tipo) else None,
+    }
+
+
 def _chamar_anthropic(cliente: Any, modelo: str, prompt: str, timeout: float) -> SaidaLLM:
     resposta = cliente.messages.create(
         model=modelo,
@@ -339,7 +360,7 @@ def criar_motor(motor: str, prazo: Prazo) -> Motor:
         except (ErroMotor, ValidationError):
             raise
         except Exception as e:
-            raise ErroMotor(traduzir_erro(e)) from None
+            raise ErroMotor(traduzir_erro(e), **diagnostico_do_provedor(e)) from None
         resultado = processar_saida(pedido, saida)
         logger.info("%s: temas=%d interesse=%d compromissos=%d descartados=%d", motor, len(resultado["temas"]),
                     len(resultado["interesse"]), len(resultado["compromissos"]), len(resultado["descartados"]))

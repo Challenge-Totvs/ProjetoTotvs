@@ -15,13 +15,20 @@ logger = logging.getLogger(__name__)
 class ErroMotor(Exception):
     """Falha de um motor, identificada só por um código do contrato (§6.5), nunca por mensagem livre."""
 
-    def __init__(self, codigo: str, real: bool = True):
-        """`real=False`: nenhuma chamada ao motor aconteceu (sem chave, sem prazo); não conta para o /health."""
+    def __init__(self, codigo: str, real: bool = True, status_http: int | None = None,
+                 tipo_provedor: str | None = None):
+        """`real=False`: nenhuma chamada ao motor aconteceu (sem chave, sem prazo); não conta para o /health.
+
+        `status_http` e `tipo_provedor` (ex.: `authentication_error`) são diagnóstico para o smoke: nunca vão à
+        resposta da API. Nunca guardam a mensagem do provedor.
+        """
         if codigo not in get_args(ErroTentativa):
             raise ValueError(f"código de erro fora do contrato: {codigo!r}")
         super().__init__(codigo)
         self.codigo = codigo
         self.real = real
+        self.status_http = status_http
+        self.tipo_provedor = tipo_provedor
 
 
 class AnaliseIndisponivel(Exception):

@@ -6,8 +6,10 @@
 
 Envia docs/contrato/pedido-v3.json (sintético) a cada LLM, lendo as chaves do ambiente (e de
 analise-service/.env, se existir), valida a resposta contra AnaliseResponse e imprime SÓ motor,
-tempo, contagens e o resultado da conferência de citações. Nunca imprime texto da transcrição,
-texto devolvido pela LLM, mensagens de erro do provedor nem chaves.
+tempo, contagens e o resultado da conferência de citações. Em falha, imprime o código do contrato, o código
+HTTP e o tipo do erro do provedor (`authentication_error`, `not_found_error`, `permission_error`,
+`rate_limit_error`, `invalid_request_error`...). Nunca imprime texto da transcrição, texto devolvido pela
+LLM, mensagens de erro do provedor, corpo da requisição nem chaves.
 
 ATENÇÃO: o prompt NÃO foi validado com LLM real até este script rodar e o resultado ser registrado
 em docs/evidencias/smoke-12-10.md.
@@ -57,8 +59,13 @@ def rodar(motor: str, pedido: PedidoAnalise) -> dict:
     inicio = time.perf_counter()
     try:
         resposta = llm_engine.criar_motor(motor, Prazo())(pedido)
-    except ErroMotor as e:
-        return {"motor": motor, "ok": False, "erro": e.codigo, "tempo_s": round(time.perf_counter() - inicio, 1)}
+    except ErroMotor as e:  # código do contrato + código HTTP e tipo do erro do provedor, se houver
+        resultado = {"motor": motor, "ok": False, "erro": e.codigo, "tempo_s": round(time.perf_counter() - inicio, 1)}
+        if e.status_http is not None:
+            resultado["http"] = e.status_http
+        if e.tipo_provedor is not None:
+            resultado["tipo_erro_provedor"] = e.tipo_provedor
+        return resultado
     except Exception as e:  # ValidationError e afins: só o tipo, nunca a mensagem
         return {"motor": motor, "ok": False, "erro": type(e).__name__, "tempo_s": round(time.perf_counter() - inicio, 1)}
     finally:
