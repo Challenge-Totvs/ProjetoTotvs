@@ -7,7 +7,7 @@ Tarefa P7. Ciclo do `CLAUDE.md`. Modelo sugerido: sonnet (esforço médio).
 Autorizada pelo João Paulo: `/similares` sai do "Fora do escopo" do `CLAUDE.md` (RAG-lite apenas).
 
 Leia: `docs/escopo-rag-retreino.md` §2.A; `docs/contrato/contrato-v3.md` §3, §8.1 (formato de erro);
-`app/router.py`, `app/schemas.py`; `analise-service/tests/conftest.py`.
+`app/router.py`, `app/schemas.py`; `analise-service/conftest.py`.
 
 Para que serve (uma frase para o resumo): quando o cliente marca um tema como "não procede", o Java guarda o trecho;
 quando surgir um tema novo, o Java pergunta ao Python se ele se parece com algum "não procede" anterior daquele cliente
