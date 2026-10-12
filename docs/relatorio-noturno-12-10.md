@@ -124,3 +124,94 @@ em silêncio (Kelwin); calibração do limiar com o ouro (P8).
   artefato ausente, falha ao carregar ou exceção na predição, com log só do tipo). Com p, interesse = turnos com
   `p >= LIMIAR_P_INTERESSE` (até 20, maiores p), citação = turno (recorte <= 600) via `conferir_citacoes`. Flag NÃO entra
   no `.env` nem no `.env.example`.
+
+**Status:** concluído (etapas 1 a 6). Suíte: 414 passed. Nenhum dado real lido; nada criado em `dados_locais/` nem em
+`docs/evidencias/` pelos testes (tudo em `tmp_path`).
+**Commits:**
+- `27d3b4c feat(P8): extrair trechos fora do holdout`
+- `8facdee feat(P8): rotulos fracos por regra e destilacao com teto`
+- `ba389e7 feat(P8): conciliar ouro nos modos unico e pares, kappa teste-reteste`
+- `3d8f89a feat(P8): treinar candidatos de risco e interesse por clone do classificador atual (D17)`
+- `234ac12 feat(P8): encaixe do classificador de interesse no motor local, desligado por padrao` (etapa 6)
+- `493b85d feat(P8): portao com metricas por grupo e IC95 por bootstrap` (etapa 5; commitada depois da 6 porque
+  importa `LIMIAR_P_INTERESSE` do motor local)
+
+**Testes (72 novos):** etapa 1 (regra do SDD §5.2, exclusão por reunião E por cliente do holdout, contexto de 2 turnos,
+`--verificar`, coluna errada); etapa 2 (regra = `regras_engine`, amostra 70/30 determinística, cache e retomada sem
+pagar de novo, teto nunca ultrapassado mesmo com estimativa otimista, teto fora de (0, 2] recusado, item sem resposta
+não é repetido, erro do provedor só com código, prompt neutralizado, rótulo da LLM prevalece, chamada real simulada nos
+dois provedores); etapa 3 (kappa, único parcial/completo, reteste, aviso de kappa < 0,6, inválidos só contados, pares
+com arbitragem em dois passos, 4 rotuladores, colunas com outros nomes); etapa 4 (clone herda todos os parâmetros e as
+stop words, base intacta, `--param` exige justificativa, holdout/ouro no treino abortam, classe única, não sobrescreve;
+clone do artefato REAL confere D17: 315 stop words, `min_df=5`, `max_df=0.6`); etapa 5 (métricas, bootstrap pareado e
+determinístico, as 5 situações da regra de aprovação, ouro parcial/sem meta nunca promove, reprovação, dúvida fora,
+pipeline 1→5 ponta a ponta); etapa 6 (abaixo). Todo script tem teste de `--help`.
+
+**Etapa 6 — o que foi testado:** com `INTERESSE_MODELO` não setado, o fallback é sempre usado, mesmo com um
+`interesse.joblib` de candidato em `dados_locais/candidatos/` (sintético, em `tmp_path`) e até com um artefato válido no
+caminho promovido — o artefato nem é carregado; valores diferentes de "1" ("0", "", "true", "sim") = desligado; com "1"
+e artefato sintético carregável o modelo é chamado e substitui o filtro; com "1" e artefato ausente, corrompido ou que
+lança exceção na predição, cai no filtro atual sem derrubar o motor (log só com o tipo). O `conftest.py` remove
+`INTERESSE_MODELO` em todo teste; nenhum teste de produção liga a flag. Teste garante que a flag não está no
+`.env.example`.
+
+### Comandos que o João roda nos dados reais (nesta ordem, a partir de `analise-service/`)
+Coloque em `dados_locais/`: o CSV do corpus, `holdout_reunioes.csv` e as planilhas `*_PRONTO.xlsx`.
+```
+# 0. dependência de treino (já instalada no .venv): pip install -r requirements-treino.txt
+# 1. trechos (confira os nomes de coluna ANTES; o --verificar só imprime cabeçalhos e contagens)
+python treino/extrair_trechos.py --corpus dados_locais/<corpus>.csv --verificar
+python treino/extrair_trechos.py --corpus dados_locais/<corpus>.csv --col-reuniao <col> --col-cliente <CODT> --col-texto <col> [--col-holdout <col>]
+# 2. rótulos fracos: primeiro só regra (sem custo)...
+python treino/rotulos_fracos.py
+#    ...e, com a chave de desenvolvimento, a destilação (confira os preços do modelo barato na página do provedor)
+python treino/rotulos_fracos.py --destilar --motor llm2 --modelo <modelo-barato> --teto-usd 2 --preco-entrada <US$/Mtok> --preco-saida <US$/Mtok>
+#    (pode rodar de novo: retoma do cache em dados_locais/destilacao/ e respeita o gasto acumulado)
+# 3. ouro (depois da metade A; de novo quando a B e o reteste estiverem prontos)
+python treino/conciliar_ouro.py --verificar
+python treino/conciliar_ouro.py [--col-texto <coluna com a fala ALVO>] [--col-id ...]
+# 4. treino dos candidatos (depois do passo 3, para conferir que o ouro não vazou para o treino)
+python treino/treinar.py
+# 5. portão
+python treino/portao.py
+# 6. só se o portão imprimir "APROVADO" (exige ouro completo): rodar o Copy-Item impresso, rodar a suíte e commitar.
+```
+**`INTERESSE_MODELO=1` no `.env` só deve ser acrescentado DEPOIS** que o pipeline rodar nos dados reais, o `portao.py`
+aprovar o candidato real de interesse com o ouro completo e o artefato for promovido para
+`app/modelos/classificador_interesse.joblib`. Até lá a variável fica AUSENTE (= desligado) e o motor `local` se
+comporta exatamente como hoje.
+
+**Contingência (P8):** sem chaves, rode só o passo 2 sem `--destilar`: o modelo de interesse tende a reproduzir a regra
+(demonstra pipeline e portão, não ganho). Só a metade A rotulada: o portão roda, marca "PARCIAL" e não recomenda
+promoção.
+
+**Decisões para validar (item 3):**
+- 3-D1: nomes de coluna do corpus e das planilhas não estão no repo; padrões `reuniao`/`CODT`/`transcricao` e
+  `id`/`texto`/`padrao_1`/`padrao_2`/`interesse`/`duvida`, todos configuráveis, com `--verificar`. O cabeçalho da planilha
+  pode estar em qualquer uma das 10 primeiras linhas. A planilha precisa ter a fala ALVO numa coluna (é o que o portão
+  avalia).
+- 3-D2: exclusão do holdout = reuniões listadas E todas as reuniões dos clientes delas (CODT do holdout ou do corpus).
+- 3-D3: destilação: amostra 70% com acerto de regra / 30% sem; lotes de 20; contexto e fala alvo cortados em 1.500
+  caracteres; `--motor llm2` por padrão; preços por CLI (nada embutido); teto máximo 2,0 recusado acima (D14);
+  estimativa por lote = pior caso (saída = `max_tokens` 4.000, entrada = caracteres/3,4, margem 1,5) e nunca abaixo do
+  lote mais caro já pago; item sem resposta fica no cache como falha e não é pago de novo. Risco residual: o 1º lote
+  custar mais que o teto inteiro (irrelevante com preços de modelo barato).
+- 3-D4: rótulo de treino = o da LLM quando houver, senão o da regra.
+- 3-D5: kappa só para `padrao` (= `padrao_1`, categórico) e `interesse`; no modo pares a divergência também olha
+  `padrao_2`; `duvida` de qualquer um dos dois marca o trecho; valores inválidos são só contados (nunca impressos).
+- 3-D6: os relatórios do ouro e do portão vão para `docs/evidencias/ouro-<data>.md` e `portao-<data>.md` (só métricas).
+- 3-D7: o candidato de interesse também é `clone` do Pipeline atual (mesma família e hiperparâmetros).
+- 3-D8: o treino aborta se uma reunião do holdout ou um id do ouro estiver nos rótulos; texto idêntico ao do ouro
+  (>= 40 caracteres) só é contado no `metadata.json`.
+- 3-D9: portão: trechos com `duvida` ficam de fora; oportunidade é só informativa (regex dos dois lados); decisão por
+  modelo (risco e interesse separados); sem `ouro_final.json` conta como parcial; candidato sem positivos no ouro não é
+  aprovado; o comando de promoção é `Copy-Item` (PowerShell); bootstrap com 2.000 reamostragens pareadas, semente 42.
+- 3-D10: `LIMIAR_P_INTERESSE = 0.5` [proposta]; com o modelo ligado o interesse NÃO tem veto de risco (o modelo
+  substitui o filtro inteiro), até 20 turnos de maior p, texto "Sinal de interesse (modelo local)", citação = o turno
+  (até 600 caracteres) conferida por `conferir_citacoes`.
+- 3-D11: a flag só liga com o valor exato "1" (espaços nas pontas ignorados).
+
+**Pendências (P8):** validar a "professora" (LLM da destilação) contra o ouro antes de confiar nos rótulos fracos
+(o escopo §3 pede; não há script para isso ainda — dá para fazer com `--amostra` restrita aos ids do ouro numa próxima
+sessão); calibrar `LIMIAR_P_INTERESSE`, o veto 0,3 e o `LIMIAR_SIMILARIDADE` com o ouro; promover candidatos só por
+decisão manual do João.
