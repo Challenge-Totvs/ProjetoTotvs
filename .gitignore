@@ -39,3 +39,6 @@ build/
 CLAUDE.local.md
 .claude/worktrees/
 .venv/
+
+# Dados reais e rotulagem (P8): nunca versionar
+analise-service/dados_locais/
