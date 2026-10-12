@@ -80,7 +80,7 @@ def main(argv: list[str]) -> int:
     config.carregar_dotenv()
     args = list(argv)
     caminho = PEDIDO
-    if "--pedido" in args:  # pedido alternativo, ex.: o sintético de tamanho P90 (scripts/gerar_pedido_sintetico.py)
+    if "--pedido" in args:  # pedido alternativo, ex.: o sintético de tamanho P90 (scripts/gerar_transcricao_sintetica.py)
         i = args.index("--pedido")
         caminho = Path(args[i + 1])
         del args[i : i + 2]

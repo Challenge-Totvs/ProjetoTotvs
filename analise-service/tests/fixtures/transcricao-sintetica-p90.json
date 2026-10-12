@@ -1,0 +1,2017 @@
+{
+ "turnos": [
+  {
+   "n": 1,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização."
+  },
+  {
+   "n": 2,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 3,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje."
+  },
+  {
+   "n": 4,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no compras cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 5,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 6,
+   "locutor": 2,
+   "texto": "a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização. o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 7,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Deixa eu compartilhar a tela para mostrar como ficou o módulo folha depois da última atualização. o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 8,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 9,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no relatórios cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 10,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual."
+  },
+  {
+   "n": 11,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer."
+  },
+  {
+   "n": 12,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 13,
+   "locutor": 1,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de agenda está rodando sem intervenção manual. A gente rodou o processo de folha ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 14,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout. Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer."
+  },
+  {
+   "n": 15,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Pelo que vi no painel, a maior parte das rotinas de faturamento está rodando sem intervenção manual."
+  },
+  {
+   "n": 16,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 17,
+   "locutor": 1,
+   "texto": "a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 18,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout. Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 19,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje."
+  },
+  {
+   "n": 20,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 21,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo agenda depois da última atualização."
+  },
+  {
+   "n": 22,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de agenda ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 23,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje. Nada de novo por aqui, o time seguiu o plano e o time comercial só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 24,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual. O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época. Deixa eu compartilhar a tela para mostrar como ficou o módulo contábil depois da última atualização."
+  },
+  {
+   "n": 25,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 26,
+   "locutor": 2,
+   "texto": "o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 27,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 28,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer."
+  },
+  {
+   "n": 29,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 30,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 31,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo agenda depois da última atualização."
+  },
+  {
+   "n": 32,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de financeiro está rodando sem intervenção manual."
+  },
+  {
+   "n": 33,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 34,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 35,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout. a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 36,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na terça, no mesmo horário de hoje. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. A gente rodou o processo de financeiro ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 37,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo estoque depois da última atualização."
+  },
+  {
+   "n": 38,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 39,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 40,
+   "locutor": 2,
+   "texto": "Precisamos de um treinamento para a equipe nova, de preferência no fim do mês."
+  },
+  {
+   "n": 41,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 42,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje."
+  },
+  {
+   "n": 43,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 44,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 45,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo estoque depois da última atualização. o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 46,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer. O volume de lançamentos no compras cresceu bastante, mas ainda está dentro do esperado para essa época. Pelo que vi no painel, a maior parte das rotinas de relatórios está rodando sem intervenção manual."
+  },
+  {
+   "n": 47,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 48,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no relatórios cresceu bastante, mas ainda está dentro do esperado para essa época. Deixa eu compartilhar a tela para mostrar como ficou o módulo estoque depois da última atualização. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 49,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 50,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Pelo que vi no painel, a maior parte das rotinas de estoque está rodando sem intervenção manual."
+  },
+  {
+   "n": 51,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. A gente rodou o processo de relatórios ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 52,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer. A gente rodou o processo de estoque ontem e os números fecharam sem diferença no fim do dia. O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 53,
+   "locutor": 1,
+   "texto": "o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual."
+  },
+  {
+   "n": 54,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo compras depois da última atualização. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 55,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 56,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 57,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje."
+  },
+  {
+   "n": 58,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual."
+  },
+  {
+   "n": 59,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo compras depois da última atualização. Pelo que vi no painel, a maior parte das rotinas de relatórios está rodando sem intervenção manual. Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 60,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 61,
+   "locutor": 1,
+   "texto": "o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 62,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual. Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 63,
+   "locutor": 1,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual. Pelo que vi no painel, a maior parte das rotinas de compras está rodando sem intervenção manual. A gente rodou o processo de financeiro ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 64,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual."
+  },
+  {
+   "n": 65,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 66,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. A gente rodou o processo de agenda ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 67,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. O volume de lançamentos no compras cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 68,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época. Deixa eu compartilhar a tela para mostrar como ficou o módulo compras depois da última atualização. Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer."
+  },
+  {
+   "n": 69,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de folha ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 70,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 71,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer. Sobre a agenda, consigo marcar a próxima conversa no fim do mês, no mesmo horário de hoje."
+  },
+  {
+   "n": 72,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer."
+  },
+  {
+   "n": 73,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 74,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de financeiro está rodando sem intervenção manual. A gente rodou o processo de agenda ontem e os números fecharam sem diferença no fim do dia. o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 75,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 76,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o time comercial só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 77,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 78,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. A gente rodou o processo de estoque ontem e os números fecharam sem diferença no fim do dia. Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização."
+  },
+  {
+   "n": 79,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Pelo que vi no painel, a maior parte das rotinas de estoque está rodando sem intervenção manual."
+  },
+  {
+   "n": 80,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na terça, no mesmo horário de hoje. Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje."
+  },
+  {
+   "n": 81,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização. Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 82,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje. O volume de lançamentos no agenda cresceu bastante, mas ainda está dentro do esperado para essa época. o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 83,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 84,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer. Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer."
+  },
+  {
+   "n": 85,
+   "locutor": 1,
+   "texto": "Estamos avaliando cancelar o contrato se o problema do folha não for resolvido na semana que vem."
+  },
+  {
+   "n": 86,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 87,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo compras depois da última atualização."
+  },
+  {
+   "n": 88,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. O volume de lançamentos no contábil cresceu bastante, mas ainda está dentro do esperado para essa época. Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer."
+  },
+  {
+   "n": 89,
+   "locutor": 1,
+   "texto": "a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 90,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 91,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 92,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 93,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 94,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer. O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 95,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 96,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje."
+  },
+  {
+   "n": 97,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 98,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual."
+  },
+  {
+   "n": 99,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 100,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 101,
+   "locutor": 1,
+   "texto": "o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 102,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Pelo que vi no painel, a maior parte das rotinas de faturamento está rodando sem intervenção manual."
+  },
+  {
+   "n": 103,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 104,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. O volume de lançamentos no compras cresceu bastante, mas ainda está dentro do esperado para essa época. Sobre a agenda, consigo marcar a próxima conversa na terça, no mesmo horário de hoje."
+  },
+  {
+   "n": 105,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Pelo que vi no painel, a maior parte das rotinas de financeiro está rodando sem intervenção manual."
+  },
+  {
+   "n": 106,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de agenda ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 107,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de relatórios ontem e os números fecharam sem diferença no fim do dia. O volume de lançamentos no contábil cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 108,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de estoque está rodando sem intervenção manual. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 109,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje."
+  },
+  {
+   "n": 110,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 111,
+   "locutor": 1,
+   "texto": "o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 112,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 113,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 114,
+   "locutor": 2,
+   "texto": "a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época. A gente rodou o processo de relatórios ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 115,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 116,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de agenda está rodando sem intervenção manual. Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje. Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje."
+  },
+  {
+   "n": 117,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 118,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 119,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer."
+  },
+  {
+   "n": 120,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no financeiro cresceu bastante, mas ainda está dentro do esperado para essa época. Pelo que vi no painel, a maior parte das rotinas de faturamento está rodando sem intervenção manual. o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 121,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo contábil depois da última atualização. Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 122,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 123,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout. Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer."
+  },
+  {
+   "n": 124,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 125,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 126,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Pelo que vi no painel, a maior parte das rotinas de compras está rodando sem intervenção manual."
+  },
+  {
+   "n": 127,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. A gente rodou o processo de estoque ontem e os números fecharam sem diferença no fim do dia. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 128,
+   "locutor": 2,
+   "texto": "a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Deixa eu compartilhar a tela para mostrar como ficou o módulo folha depois da última atualização."
+  },
+  {
+   "n": 129,
+   "locutor": 1,
+   "texto": "O contrato vence em dezembro e a gente quer conversar sobre a renovação com condições melhores."
+  },
+  {
+   "n": 130,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de financeiro está rodando sem intervenção manual. o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 131,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout. a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer."
+  },
+  {
+   "n": 132,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout. A gente rodou o processo de contábil ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 133,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia. Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 134,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de folha ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 135,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização. Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje."
+  },
+  {
+   "n": 136,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout. Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual. O volume de lançamentos no financeiro cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 137,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 138,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 139,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo folha depois da última atualização."
+  },
+  {
+   "n": 140,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no contábil cresceu bastante, mas ainda está dentro do esperado para essa época. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 141,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 142,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje."
+  },
+  {
+   "n": 143,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual."
+  },
+  {
+   "n": 144,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer."
+  },
+  {
+   "n": 145,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo folha depois da última atualização."
+  },
+  {
+   "n": 146,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer."
+  },
+  {
+   "n": 147,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de faturamento ontem e os números fecharam sem diferença no fim do dia. A gente rodou o processo de estoque ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 148,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer."
+  },
+  {
+   "n": 149,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 150,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. O volume de lançamentos no contábil cresceu bastante, mas ainda está dentro do esperado para essa época. Deixa eu compartilhar a tela para mostrar como ficou o módulo agenda depois da última atualização."
+  },
+  {
+   "n": 151,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Pelo que vi no painel, a maior parte das rotinas de estoque está rodando sem intervenção manual."
+  },
+  {
+   "n": 152,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo contábil depois da última atualização."
+  },
+  {
+   "n": 153,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 154,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 155,
+   "locutor": 1,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 156,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer. Pelo que vi no painel, a maior parte das rotinas de agenda está rodando sem intervenção manual."
+  },
+  {
+   "n": 157,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização."
+  },
+  {
+   "n": 158,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje."
+  },
+  {
+   "n": 159,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer. Pelo que vi no painel, a maior parte das rotinas de relatórios está rodando sem intervenção manual. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 160,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer."
+  },
+  {
+   "n": 161,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 162,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 163,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Pelo que vi no painel, a maior parte das rotinas de relatórios está rodando sem intervenção manual."
+  },
+  {
+   "n": 164,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de financeiro está rodando sem intervenção manual. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer."
+  },
+  {
+   "n": 165,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer. A gente rodou o processo de financeiro ontem e os números fecharam sem diferença no fim do dia. O volume de lançamentos no relatórios cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 166,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Deixa eu compartilhar a tela para mostrar como ficou o módulo contábil depois da última atualização."
+  },
+  {
+   "n": 167,
+   "locutor": 1,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de agenda está rodando sem intervenção manual. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 168,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 169,
+   "locutor": 1,
+   "texto": "o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 170,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no relatórios cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 171,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje. Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual."
+  },
+  {
+   "n": 172,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Deixa eu compartilhar a tela para mostrar como ficou o módulo contábil depois da última atualização. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 173,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 174,
+   "locutor": 2,
+   "texto": "Sinceramente, o preço ficou muito caro para o que a gente usa no dia a dia."
+  },
+  {
+   "n": 175,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer. Deixa eu compartilhar a tela para mostrar como ficou o módulo estoque depois da última atualização. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 176,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo faturamento depois da última atualização."
+  },
+  {
+   "n": 177,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 178,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no agenda cresceu bastante, mas ainda está dentro do esperado para essa época. O volume de lançamentos no contábil cresceu bastante, mas ainda está dentro do esperado para essa época. O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 179,
+   "locutor": 1,
+   "texto": "o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer. O volume de lançamentos no financeiro cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 180,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo estoque depois da última atualização. Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje."
+  },
+  {
+   "n": 181,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual. O volume de lançamentos no faturamento cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 182,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 183,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 184,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Pelo que vi no painel, a maior parte das rotinas de financeiro está rodando sem intervenção manual."
+  },
+  {
+   "n": 185,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização. Nada de novo por aqui, o time seguiu o plano e o time comercial só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 186,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de faturamento está rodando sem intervenção manual. Pelo que vi no painel, a maior parte das rotinas de relatórios está rodando sem intervenção manual. Nada de novo por aqui, o time seguiu o plano e o time comercial só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 187,
+   "locutor": 1,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual. Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização."
+  },
+  {
+   "n": 188,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 189,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época. A gente rodou o processo de estoque ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 190,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje. A gente rodou o processo de relatórios ontem e os números fecharam sem diferença no fim do dia. A gente rodou o processo de faturamento ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 191,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer. o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 192,
+   "locutor": 2,
+   "texto": "o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 193,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 194,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no contábil cresceu bastante, mas ainda está dentro do esperado para essa época. Nada de novo por aqui, o time seguiu o plano e o time comercial só pediu um ajuste pequeno de layout. A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 195,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 196,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje."
+  },
+  {
+   "n": 197,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer."
+  },
+  {
+   "n": 198,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 199,
+   "locutor": 1,
+   "texto": "o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 200,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 201,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 202,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo agenda depois da última atualização."
+  },
+  {
+   "n": 203,
+   "locutor": 1,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual."
+  },
+  {
+   "n": 204,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 205,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 206,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. A gente rodou o processo de financeiro ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 207,
+   "locutor": 1,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de faturamento está rodando sem intervenção manual. Pelo que vi no painel, a maior parte das rotinas de faturamento está rodando sem intervenção manual."
+  },
+  {
+   "n": 208,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no financeiro cresceu bastante, mas ainda está dentro do esperado para essa época. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 209,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 210,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer."
+  },
+  {
+   "n": 211,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje. Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização."
+  },
+  {
+   "n": 212,
+   "locutor": 2,
+   "texto": "a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 213,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no financeiro cresceu bastante, mas ainda está dentro do esperado para essa época. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 214,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de relatórios está rodando sem intervenção manual. Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 215,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 216,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer. A gente rodou o processo de contábil ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 217,
+   "locutor": 1,
+   "texto": "a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 218,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época. Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout. A gente rodou o processo de estoque ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 219,
+   "locutor": 1,
+   "texto": "Isso ajuda bastante, gostei muito dessa abordagem para o estoque."
+  },
+  {
+   "n": 220,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa no fim do mês, no mesmo horário de hoje. A gente rodou o processo de folha ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 221,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje. A gente rodou o processo de estoque ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 222,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 223,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo agenda depois da última atualização. Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer. A gente rodou o processo de faturamento ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 224,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo faturamento depois da última atualização."
+  },
+  {
+   "n": 225,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer."
+  },
+  {
+   "n": 226,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo compras depois da última atualização. o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 227,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo faturamento depois da última atualização. A gente rodou o processo de faturamento ontem e os números fecharam sem diferença no fim do dia. Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer."
+  },
+  {
+   "n": 228,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de compras está rodando sem intervenção manual."
+  },
+  {
+   "n": 229,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 230,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 231,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 232,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa no fim do mês, no mesmo horário de hoje. O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 233,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de estoque ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 234,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 235,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje. O volume de lançamentos no financeiro cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 236,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época. Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer. O volume de lançamentos no agenda cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 237,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização."
+  },
+  {
+   "n": 238,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 239,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 240,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de estoque está rodando sem intervenção manual. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer."
+  },
+  {
+   "n": 241,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. A gente rodou o processo de contábil ontem e os números fecharam sem diferença no fim do dia. O volume de lançamentos no faturamento cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 242,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer."
+  },
+  {
+   "n": 243,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout. Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje. O volume de lançamentos no financeiro cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 244,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização. Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout. a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 245,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de relatórios ontem e os números fecharam sem diferença no fim do dia. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 246,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer. Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 247,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no financeiro cresceu bastante, mas ainda está dentro do esperado para essa época. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 248,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer. O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época. Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje."
+  },
+  {
+   "n": 249,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. O volume de lançamentos no contábil cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 250,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização. A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 251,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo contábil depois da última atualização. Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout. Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje."
+  },
+  {
+   "n": 252,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo folha depois da última atualização."
+  },
+  {
+   "n": 253,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na terça, no mesmo horário de hoje. Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização. Deixa eu compartilhar a tela para mostrar como ficou o módulo faturamento depois da última atualização."
+  },
+  {
+   "n": 254,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 255,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer. Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual."
+  },
+  {
+   "n": 256,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 257,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia. o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 258,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de agenda está rodando sem intervenção manual. O volume de lançamentos no compras cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 259,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de agenda ontem e os números fecharam sem diferença no fim do dia. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 260,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Pelo que vi no painel, a maior parte das rotinas de estoque está rodando sem intervenção manual."
+  },
+  {
+   "n": 261,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 262,
+   "locutor": 2,
+   "texto": "o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 263,
+   "locutor": 1,
+   "texto": "a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 264,
+   "locutor": 2,
+   "texto": "Achei interessante a proposta, pode enviar os detalhes para eu levar para a diretoria."
+  },
+  {
+   "n": 265,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 266,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout. Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 267,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época. O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 268,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no financeiro cresceu bastante, mas ainda está dentro do esperado para essa época. Pelo que vi no painel, a maior parte das rotinas de compras está rodando sem intervenção manual."
+  },
+  {
+   "n": 269,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 270,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Pelo que vi no painel, a maior parte das rotinas de relatórios está rodando sem intervenção manual."
+  },
+  {
+   "n": 271,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. A gente rodou o processo de contábil ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 272,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 273,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer. Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 274,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Pelo que vi no painel, a maior parte das rotinas de financeiro está rodando sem intervenção manual."
+  },
+  {
+   "n": 275,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 276,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 277,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer. Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual. o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 278,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de relatórios ontem e os números fecharam sem diferença no fim do dia. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 279,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 280,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Sobre a agenda, consigo marcar a próxima conversa no fim do mês, no mesmo horário de hoje."
+  },
+  {
+   "n": 281,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 282,
+   "locutor": 2,
+   "texto": "o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 283,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo folha depois da última atualização."
+  },
+  {
+   "n": 284,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 285,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 286,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 287,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer. Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje. Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer."
+  },
+  {
+   "n": 288,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no contábil cresceu bastante, mas ainda está dentro do esperado para essa época. Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 289,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 290,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual. Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 291,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje. Pelo que vi no painel, a maior parte das rotinas de financeiro está rodando sem intervenção manual. Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização."
+  },
+  {
+   "n": 292,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual."
+  },
+  {
+   "n": 293,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 294,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de agenda está rodando sem intervenção manual. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje."
+  },
+  {
+   "n": 295,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na terça, no mesmo horário de hoje."
+  },
+  {
+   "n": 296,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa no fim do mês, no mesmo horário de hoje."
+  },
+  {
+   "n": 297,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 298,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 299,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Sobre a agenda, consigo marcar a próxima conversa no fim do mês, no mesmo horário de hoje."
+  },
+  {
+   "n": 300,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Deixa eu compartilhar a tela para mostrar como ficou o módulo compras depois da última atualização. Pelo que vi no painel, a maior parte das rotinas de financeiro está rodando sem intervenção manual."
+  },
+  {
+   "n": 301,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 302,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de folha ontem e os números fecharam sem diferença no fim do dia. Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual."
+  },
+  {
+   "n": 303,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Deixa eu compartilhar a tela para mostrar como ficou o módulo contábil depois da última atualização."
+  },
+  {
+   "n": 304,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. O volume de lançamentos no agenda cresceu bastante, mas ainda está dentro do esperado para essa época. Sobre a agenda, consigo marcar a próxima conversa no fim do mês, no mesmo horário de hoje."
+  },
+  {
+   "n": 305,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 306,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 307,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de relatórios ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 308,
+   "locutor": 2,
+   "texto": "O suporte demora demais para responder, já abrimos três chamados no estoque e ninguém retornou até agora."
+  },
+  {
+   "n": 309,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 310,
+   "locutor": 2,
+   "texto": "o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 311,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo faturamento depois da última atualização."
+  },
+  {
+   "n": 312,
+   "locutor": 2,
+   "texto": "a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 313,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 314,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 315,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 316,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 317,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época. Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 318,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de relatórios ontem e os números fecharam sem diferença no fim do dia. O volume de lançamentos no agenda cresceu bastante, mas ainda está dentro do esperado para essa época. Sobre a agenda, consigo marcar a próxima conversa na terça, no mesmo horário de hoje."
+  },
+  {
+   "n": 319,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout. Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual."
+  },
+  {
+   "n": 320,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 321,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 322,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. A gente rodou o processo de contábil ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 323,
+   "locutor": 1,
+   "texto": "a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 324,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de contábil ontem e os números fecharam sem diferença no fim do dia. O volume de lançamentos no folha cresceu bastante, mas ainda está dentro do esperado para essa época. Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer."
+  },
+  {
+   "n": 325,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o time comercial só pediu um ajuste pequeno de layout. a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 326,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de faturamento ontem e os números fecharam sem diferença no fim do dia. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Pelo que vi no painel, a maior parte das rotinas de faturamento está rodando sem intervenção manual."
+  },
+  {
+   "n": 327,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 328,
+   "locutor": 2,
+   "texto": "o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 329,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de contábil ontem e os números fecharam sem diferença no fim do dia. O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época. Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje."
+  },
+  {
+   "n": 330,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. O volume de lançamentos no faturamento cresceu bastante, mas ainda está dentro do esperado para essa época. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 331,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 332,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 333,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de agenda ontem e os números fecharam sem diferença no fim do dia. Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje."
+  },
+  {
+   "n": 334,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de contábil ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 335,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 336,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 337,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização."
+  },
+  {
+   "n": 338,
+   "locutor": 2,
+   "texto": "o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 339,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no agenda cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 340,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 341,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 342,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Deixa eu compartilhar a tela para mostrar como ficou o módulo agenda depois da última atualização."
+  },
+  {
+   "n": 343,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o atendimento só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 344,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 345,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 346,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na semana que vem, no mesmo horário de hoje. o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. A gente rodou o processo de relatórios ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 347,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de faturamento ontem e os números fecharam sem diferença no fim do dia. Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout. O volume de lançamentos no faturamento cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 348,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Pelo que vi no painel, a maior parte das rotinas de estoque está rodando sem intervenção manual. Nada de novo por aqui, o time seguiu o plano e o time comercial só pediu um ajuste pequeno de layout."
+  },
+  {
+   "n": 349,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer. Pelo que vi no painel, a maior parte das rotinas de contábil está rodando sem intervenção manual."
+  },
+  {
+   "n": 350,
+   "locutor": 2,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 351,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer. Pelo que vi no painel, a maior parte das rotinas de agenda está rodando sem intervenção manual."
+  },
+  {
+   "n": 352,
+   "locutor": 2,
+   "texto": "O volume de lançamentos no agenda cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 353,
+   "locutor": 1,
+   "texto": "Precisamos integrar o sistema com a plataforma de comércio eletrônico, tem como fazer isso antes da virada do trimestre?"
+  },
+  {
+   "n": 354,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo contábil depois da última atualização. Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer."
+  },
+  {
+   "n": 355,
+   "locutor": 1,
+   "texto": "a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout. O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 356,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na terça, no mesmo horário de hoje."
+  },
+  {
+   "n": 357,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer. O volume de lançamentos no estoque cresceu bastante, mas ainda está dentro do esperado para essa época. Deixa eu compartilhar a tela para mostrar como ficou o módulo estoque depois da última atualização."
+  },
+  {
+   "n": 358,
+   "locutor": 2,
+   "texto": "a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Pelo que vi no painel, a maior parte das rotinas de faturamento está rodando sem intervenção manual."
+  },
+  {
+   "n": 359,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar. Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 360,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de estoque ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 361,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 362,
+   "locutor": 2,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um. Pelo que vi no painel, a maior parte das rotinas de financeiro está rodando sem intervenção manual."
+  },
+  {
+   "n": 363,
+   "locutor": 1,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo folha depois da última atualização. Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização."
+  },
+  {
+   "n": 364,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 365,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de agenda ontem e os números fecharam sem diferença no fim do dia. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 366,
+   "locutor": 2,
+   "texto": "a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Deixa eu compartilhar a tela para mostrar como ficou o módulo faturamento depois da última atualização. o atendimento usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 367,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa antes da virada do trimestre, no mesmo horário de hoje."
+  },
+  {
+   "n": 368,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de estoque está rodando sem intervenção manual. Nada de novo por aqui, o time seguiu o plano e a diretoria só pediu um ajuste pequeno de layout. Deixa eu compartilhar a tela para mostrar como ficou o módulo relatórios depois da última atualização."
+  },
+  {
+   "n": 369,
+   "locutor": 1,
+   "texto": "Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Deixa eu compartilhar a tela para mostrar como ficou o módulo financeiro depois da última atualização. A gente rodou o processo de agenda ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 370,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o financeiro só pediu um ajuste pequeno de layout. A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia. Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer."
+  },
+  {
+   "n": 371,
+   "locutor": 1,
+   "texto": "a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 372,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno antes da virada do trimestre. Me lembra se eu esquecer. A gente rodou o processo de contábil ontem e os números fecharam sem diferença no fim do dia. Deixa eu compartilhar a tela para mostrar como ficou o módulo estoque depois da última atualização."
+  },
+  {
+   "n": 373,
+   "locutor": 1,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 374,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 375,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 376,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno na terça. Me lembra se eu esquecer. A gente rodou o processo de folha ontem e os números fecharam sem diferença no fim do dia. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 377,
+   "locutor": 1,
+   "texto": "Pode ser, eu vejo isso com o time e retorno depois do fechamento. Me lembra se eu esquecer. Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 378,
+   "locutor": 2,
+   "texto": "a operação usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado. Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 379,
+   "locutor": 1,
+   "texto": "Anotei aqui os pontos que combinamos na reunião passada e vou repassar um por um."
+  },
+  {
+   "n": 380,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de relatórios está rodando sem intervenção manual."
+  },
+  {
+   "n": 381,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje."
+  },
+  {
+   "n": 382,
+   "locutor": 2,
+   "texto": "A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 383,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje."
+  },
+  {
+   "n": 384,
+   "locutor": 2,
+   "texto": "Deixa eu compartilhar a tela para mostrar como ficou o módulo estoque depois da última atualização. Pelo que vi no painel, a maior parte das rotinas de relatórios está rodando sem intervenção manual. Vou mandar um resumo por e-mail com o que conversamos e os próximos passos de cada lado."
+  },
+  {
+   "n": 385,
+   "locutor": 1,
+   "texto": "o time comercial usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 386,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e o time comercial só pediu um ajuste pequeno de layout. a diretoria usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado. A gente rodou o processo de estoque ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 387,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no agenda cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 388,
+   "locutor": 2,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa depois do fechamento, no mesmo horário de hoje."
+  },
+  {
+   "n": 389,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no compras cresceu bastante, mas ainda está dentro do esperado para essa época. A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 390,
+   "locutor": 2,
+   "texto": "Pode ser, eu vejo isso com o time e retorno no fim do mês. Me lembra se eu esquecer."
+  },
+  {
+   "n": 391,
+   "locutor": 1,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. A gente rodou o processo de financeiro ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 392,
+   "locutor": 2,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar."
+  },
+  {
+   "n": 393,
+   "locutor": 1,
+   "texto": "A gente rodou o processo de compras ontem e os números fecharam sem diferença no fim do dia."
+  },
+  {
+   "n": 394,
+   "locutor": 2,
+   "texto": "Bom dia, tudo bem? Obrigado por reservar esse horário para a gente conversar."
+  },
+  {
+   "n": 395,
+   "locutor": 1,
+   "texto": "Sobre a agenda, consigo marcar a próxima conversa na terça, no mesmo horário de hoje. o financeiro usa o sistema todos os dias e, no geral, o uso está estável desde o mês passado."
+  },
+  {
+   "n": 396,
+   "locutor": 2,
+   "texto": "Pelo que vi no painel, a maior parte das rotinas de folha está rodando sem intervenção manual."
+  },
+  {
+   "n": 397,
+   "locutor": 1,
+   "texto": "Nada de novo por aqui, o time seguiu o plano e a operação só pediu um ajuste pequeno de layout. O volume de lançamentos no contábil cresceu bastante, mas ainda está dentro do esperado para essa época."
+  },
+  {
+   "n": 398,
+   "locutor": 2,
+   "texto": "Entendi o ponto. Vou registrar e já deixo o responsável avisado para acompanhar. Pode ser, eu vejo isso com o time e retorno na semana que vem. Me lembra se eu esquecer."
+  },
+  {
+   "n": 399,
+   "locutor": 1,
+   "texto": "O volume de lançamentos no contábil cresceu bastante, mas ainda está dentro do esperado para essa época."
+  }
+ ],
+ "dataReuniao": "2026-10-07",
+ "padroes": [
+  "suporte_insatisfacao",
+  "preco_objecao",
+  "prazo_implantacao",
+  "concorrente_citado",
+  "cancelamento_citado",
+  "adocao_resistencia",
+  "fiscal_problema",
+  "orcamento_restrito",
+  "expansao_unidade",
+  "modulo_adicional",
+  "integracao",
+  "renovacao",
+  "upgrade_licencas",
+  "treinamento"
+ ],
+ "contraexemplos": []
+}
