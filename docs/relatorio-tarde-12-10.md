@@ -55,3 +55,9 @@ quantos valores a aba `Listas` tem (`valores_na_aba_listas`).
   continua com o seu limite de US$ 2), preços por milhão obrigatórios; escreve `docs/evidencias/professora-<data>.md`
   só com métricas. Testes sintéticos com cliente simulado.
 - Não vou rodar o script sobre o `ouro_final.csv` real (regra do lote: não abrir) nem com API.
+**Status:** concluído em duas etapas. Suíte: 439 passed (13 testes em `tests/test_p9_professora.py`, todos sintéticos e
+com cliente simulado; nenhum acessa rede ou chave).
+**Commits:** `846221b feat(P9): metricas e veredito da professora contra o ouro` · `feat(P9): validar_professora CLI`.
+**Como rodar (João, nos dados reais):**
+`python treino/validar_professora.py --teto-usd 0.5 --preco-entrada <US$/Mtok> --preco-saida <US$/Mtok>`
+(retoma sozinho se parar no teto; relatório em `docs/evidencias/professora-<data>.md`).

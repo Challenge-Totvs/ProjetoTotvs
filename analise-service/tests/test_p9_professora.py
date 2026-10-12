@@ -86,3 +86,111 @@ def test_grupo_so_com_um_valor_nao_quebra():
     ouro = [linha_ouro(i) for i in range(6)]  # nenhum positivo
     r = vp.comparar(ouro, cache_de(ouro))
     assert r["risco"]["positivos"] == 0 and vp.veredito(r["risco"]) == vp.NAO_USAR
+
+
+# ------------------------------------------------------------------ etapa 2: CLI, cache, teto, relatório
+
+class LLMFalsa:
+    """Cliente simulado: lê as marcas sintéticas do prompt e devolve os rótulos 'certos' (nenhuma rede)."""
+
+    def __init__(self, erro_risco_em=(), tokens=(1000, 200)):
+        self.chamadas, self.erro_risco_em, self.tokens = 0, set(erro_risco_em), tokens
+
+    def __call__(self, prompt):
+        self.chamadas += 1
+        itens = []
+        for m in re.finditer(r"\[item (\d+)\] contexto:.*?\|\| FALA ALVO: (.*)", prompt):
+            texto = m.group(2)
+            risco = (MARCA["risco"] in texto) != (int(texto.split()[2]) in self.erro_risco_em)
+            itens.append({"item": int(m.group(1)), "risco": risco, "oportunidade": MARCA["oportunidade"] in texto,
+                          "interesse": MARCA["interesse"] in texto})
+        return itens, *self.tokens
+
+
+def montar_pasta(tmp_path: Path, completo=False, modo="unico", ouro=None) -> Path:
+    comum.gravar_csv(tmp_path / "ouro_final.csv", ouro or ouro_base(), conciliar_ouro.COLUNAS_OURO)
+    (tmp_path / "ouro_final.json").write_text(json.dumps({"modo": modo, "completo": completo}), encoding="utf-8")
+    return tmp_path
+
+
+def rodar(tmp_path: Path, llm, *extra, teto="0.5"):
+    return vp.main(["--ouro", str(tmp_path / "ouro_final.csv"), "--pasta", str(tmp_path / "professora"),
+                    "--relatorio", str(tmp_path / "professora.md"), "--teto-usd", teto, "--preco-entrada", "0.15",
+                    "--preco-saida", "0.60", *extra], chamar=llm)
+
+
+def test_main_gera_relatorio_so_com_metricas(tmp_path, capsys):
+    montar_pasta(tmp_path)
+    llm = LLMFalsa()
+    assert rodar(tmp_path, llm) == 0 and llm.chamadas == 2  # 30 trechos em lotes de 20
+    relatorio = (tmp_path / "professora.md").read_text(encoding="utf-8")
+    saida = capsys.readouterr().out
+    for texto in (relatorio, saida):
+        assert "Frase sintética" not in texto and "alfaRISCO" not in texto
+    assert "rotulador único" in relatorio and "PARCIAL" in relatorio and "indicativ" in relatorio
+    assert relatorio.count(f"**{vp.USAR}**") == 3 and "kappa" in relatorio and "alarme falso" in relatorio.lower()
+    assert json.loads(saida)["veredito"] == {"risco": "usar", "oportunidade": "usar", "interesse": "usar"}
+
+
+def test_main_ouro_completo_e_veredito_nao_usar(tmp_path):
+    montar_pasta(tmp_path, completo=True)
+    assert rodar(tmp_path, LLMFalsa(erro_risco_em=range(0, 6))) == 0  # erra 6 dos 10 positivos de risco
+    relatorio = (tmp_path / "professora.md").read_text(encoding="utf-8")
+    assert "COMPLETO" in relatorio and "PARCIAL" not in relatorio
+    assert f"risco: **{vp.NAO_USAR}**" in relatorio and f"oportunidade: **{vp.USAR}**" in relatorio
+
+
+def test_main_retoma_do_cache_sem_chamar_de_novo(tmp_path):
+    montar_pasta(tmp_path)
+    rodar(tmp_path, LLMFalsa())
+    segunda = LLMFalsa()
+    assert rodar(tmp_path, segunda) == 0 and segunda.chamadas == 0
+
+
+def test_main_para_no_teto_e_marca_preliminar(tmp_path):
+    montar_pasta(tmp_path)
+    llm = LLMFalsa()
+    # preço absurdo: a estimativa do 1º lote já passa do teto => nenhuma chamada
+    codigo = vp.main(["--ouro", str(tmp_path / "ouro_final.csv"), "--pasta", str(tmp_path / "professora"),
+                      "--relatorio", str(tmp_path / "professora.md"), "--teto-usd", "0.01",
+                      "--preco-entrada", "1000", "--preco-saida", "1000"], chamar=llm)
+    assert codigo == 0 and llm.chamadas == 0
+    relatorio = (tmp_path / "professora.md").read_text(encoding="utf-8")
+    assert "PRELIMINAR" in relatorio and f"**{vp.NAO_USAR}**" in relatorio
+
+
+def test_teto_obrigatorio_e_no_maximo_meio_dolar(tmp_path):
+    montar_pasta(tmp_path)
+    base = ["--ouro", str(tmp_path / "ouro_final.csv"), "--pasta", str(tmp_path / "professora"),
+            "--relatorio", str(tmp_path / "professora.md"), "--preco-entrada", "0.15", "--preco-saida", "0.6"]
+    llm = LLMFalsa()
+    with pytest.raises(SystemExit):
+        vp.main(base, chamar=llm)  # sem --teto-usd
+    with pytest.raises(SystemExit):
+        vp.main([*base, "--teto-usd", "0.51"], chamar=llm)
+    with pytest.raises(SystemExit):
+        vp.main([*base, "--teto-usd", "0"], chamar=llm)
+    assert llm.chamadas == 0
+    assert vp.main([*base, "--teto-usd", "0.5"], chamar=llm) == 0
+
+
+def test_erro_do_provedor_mostra_so_codigo(tmp_path, capsys):
+    montar_pasta(tmp_path)
+
+    def quebrada(prompt):
+        raise RuntimeError("mensagem secreta Frase sintética 3")
+
+    assert rodar(tmp_path, quebrada) == 2
+    texto = capsys.readouterr().out + (tmp_path / "professora.md").read_text(encoding="utf-8")
+    assert "mensagem secreta" not in texto and "Frase sintética" not in texto and "PRELIMINAR" in texto
+
+
+def test_sem_ouro_final_para_com_mensagem(tmp_path, capsys):
+    assert vp.main(["--ouro", str(tmp_path / "nao_existe.csv"), "--teto-usd", "0.5", "--preco-entrada", "1",
+                    "--preco-saida", "1"], chamar=LLMFalsa()) == 1
+    assert "não encontrado" in capsys.readouterr().out
+
+
+def test_help_roda():
+    r = subprocess.run([sys.executable, "treino/validar_professora.py", "--help"], cwd=RAIZ, capture_output=True)
+    assert r.returncode == 0 and b"--teto-usd" in r.stdout
