@@ -92,7 +92,10 @@ def main(argv: list[str]) -> int:
     falhou = False
     for motor in motores:
         credenciais = config.credenciais_llm(motor)  # só o NOME do modelo é impresso, nunca a chave
-        print(f"{motor}: modelo={credenciais[1] if credenciais else 'nao_configurado'}")
+        linha = f"{motor}: modelo={credenciais[1] if credenciais else 'nao_configurado'}"
+        if motor == "llm1":  # só se o workspace está definido, nunca o valor
+            linha += f" workspace={'definido' if config.workspace_llm1() else 'ausente'}"
+        print(linha)
         resultado = rodar(motor, pedido)
         falhou |= not resultado["ok"]
         print(json.dumps(resultado, ensure_ascii=False, indent=2))

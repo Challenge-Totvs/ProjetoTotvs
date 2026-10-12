@@ -135,7 +135,7 @@ def montar_prompt(pedido: PedidoAnalise) -> str:
 
 # ---------------------------------------------------------------- clients
 
-_CLIENTES: dict[tuple[str, str], Any] = {}
+_CLIENTES: dict[tuple[str, str, str], Any] = {}
 
 
 def _criar_cliente(motor: str) -> Any:
@@ -147,14 +147,19 @@ def _criar_cliente(motor: str) -> Any:
     if motor == "llm1":
         import anthropic
 
-        return anthropic.Anthropic(api_key=chave, timeout=timeout, max_retries=0)
+        extras = {}
+        workspace = config.workspace_llm1()
+        if workspace:  # chave de organização precisa dizer o workspace; sem a variável, nada muda
+            extras["default_headers"] = {"anthropic-workspace-id": workspace}
+        return anthropic.Anthropic(api_key=chave, timeout=timeout, max_retries=0, **extras)
     import openai
 
     return openai.OpenAI(api_key=chave, timeout=timeout, max_retries=0)
 
 
 def obter_cliente(motor: str) -> Any:
-    chave = (motor, config.chave_llm(motor) or "")
+    workspace = config.workspace_llm1() if motor == "llm1" else None
+    chave = (motor, config.chave_llm(motor) or "", workspace or "")
     if chave not in _CLIENTES:
         _CLIENTES[chave] = _criar_cliente(motor)
     return _CLIENTES[chave]

@@ -14,6 +14,8 @@ _VARIAVEIS_LLM = {
     "llm2": ("LLM_SECUNDARIA_API_KEY", "LLM_SECUNDARIA_MODEL"),
 }
 
+VARIAVEL_WORKSPACE_LLM1 = "LLM_PRINCIPAL_WORKSPACE_ID"  # opcional: cabeçalho anthropic-workspace-id
+
 
 CAMINHO_ENV = Path(__file__).resolve().parent.parent / ".env"
 VARIAVEL_IGNORAR_DOTENV = "INSIGHTCALL_IGNORAR_DOTENV"  # os testes a ligam: nenhum teste lê o .env real
@@ -57,6 +59,11 @@ def obter_config() -> Config:
 
 def chave_llm(motor: str) -> str | None:
     return os.environ.get(_VARIAVEIS_LLM[motor][0], "").strip() or None
+
+
+def workspace_llm1() -> str | None:
+    """ID do workspace da Anthropic (opcional). Ausente ou vazio => nenhum cabeçalho extra."""
+    return os.environ.get(VARIAVEL_WORKSPACE_LLM1, "").strip() or None
 
 
 def credenciais_llm(motor: str) -> tuple[str, str] | None:
