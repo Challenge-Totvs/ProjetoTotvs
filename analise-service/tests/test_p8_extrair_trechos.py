@@ -76,3 +76,19 @@ def test_arquivo_ausente_devolve_1(tmp_path, capsys):
 def test_help_roda():
     r = subprocess.run([sys.executable, "treino/extrair_trechos.py", "--help"], cwd=RAIZ, capture_output=True)
     assert r.returncode == 0 and b"holdout" in r.stdout
+
+
+def test_reuniao_repetida_identica_e_ignorada_e_contada():
+    linha = {"reuniao": "R1", "CODT": "C1", "transcricao": "[LOCUTOR 1]: um\n[LOCUTOR 2]: dois"}
+    trechos, contagem = extrair_trechos.extrair([linha, dict(linha), dict(linha)], [], "reuniao", "CODT", "transcricao")
+    assert [t["id"] for t in trechos] == ["R1:1", "R1:2"]
+    assert contagem["reunioes_usadas"] == 1 and contagem["reunioes_duplicadas_ignoradas"] == 2
+
+
+def test_reuniao_repetida_com_conteudo_diferente_ainda_para():
+    import pytest
+
+    a = {"reuniao": "R1", "CODT": "C1", "transcricao": "[LOCUTOR 1]: um"}
+    b = {"reuniao": "R1", "CODT": "C1", "transcricao": "[LOCUTOR 1]: outro"}
+    with pytest.raises(SystemExit, match="repetida"):
+        extrair_trechos.extrair([a, b], [], "reuniao", "CODT", "transcricao")

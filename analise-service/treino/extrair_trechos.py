@@ -45,8 +45,8 @@ def extrair(corpus: list[dict], holdout: list[dict], col_reuniao: str, col_clien
 
     trechos: list[dict] = []
     contagem = {"reunioes_no_corpus": len(corpus), "reunioes_excluidas_holdout": 0, "reunioes_usadas": 0,
-                "reunioes_sem_turnos": 0, "clientes_no_holdout": len(clientes_holdout), "trechos": 0}
-    vistos: set[str] = set()
+                "reunioes_sem_turnos": 0, "reunioes_duplicadas_ignoradas": 0, "clientes_no_holdout": len(clientes_holdout), "trechos": 0}
+    vistos: dict[str, dict] = {}
     for linha in corpus:
         reuniao = (linha.get(col_reuniao) or "").strip()
         cliente = (linha.get(col_cliente) or "").strip()
@@ -54,8 +54,11 @@ def extrair(corpus: list[dict], holdout: list[dict], col_reuniao: str, col_clien
             contagem["reunioes_excluidas_holdout"] += 1
             continue
         if reuniao in vistos:
-            raise SystemExit(f"erro: reunião repetida no corpus (linha de dados {len(vistos) + 1})")
-        vistos.add(reuniao)
+            if linha != vistos[reuniao]:  # repetição idêntica é só ignorada; conteúdo diferente não dá para escolher
+                raise SystemExit(f"erro: reunião repetida no corpus com conteúdo diferente (linha de dados {len(vistos) + 1})")
+            contagem["reunioes_duplicadas_ignoradas"] += 1
+            continue
+        vistos[reuniao] = linha
         turnos = dividir_turnos(linha.get(col_texto) or "")
         if not turnos:
             contagem["reunioes_sem_turnos"] += 1
