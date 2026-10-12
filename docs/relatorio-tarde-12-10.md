@@ -88,3 +88,43 @@ com cliente simulado; nenhum acessa rede ou chave).
 - Pendência para o João: 28 reuniões sem turnos `[LOCUTOR n]` (formato diferente ou transcrição vazia?).
 **Status:** concluído. Commits: `892e395 fix(P8): leitor do corpus tolera bytes invalidos e o formato quebrado de aspas`
 · `c6c5d66 fix(P8): reuniao repetida identica no corpus e ignorada e contada`. Suíte: 441 passed.
+
+## Item 6 — Ensaio de falha da cadeia (demo da banca)
+**Leitura do comportamento atual (sem mudar nada):**
+- `FORCAR_FALHA` (lista separada por vírgula, valores fora dos 4 motores ignorados) é lida por `config.motores_forcados()`
+  a CADA chamada de `os.environ`. Em `cadeia.executar_cadeia`, motor forçado levanta `ErroMotor("erro_provedor")` sem
+  chamar o motor; isso entra em `tentativas` e é registrado em `saude` como falha REAL (`real=True`).
+- A cadeia é llm1 -> llm2 -> local -> regras; o primeiro que responde escreve `motor`, `tentativas` e `versaoContrato`;
+  `local` e `regras` acrescentam o aviso `contingencia_modelo_local` / `contingencia_regras`; sem nenhum, `AnaliseIndisponivel`
+  vira 503 `analise_indisponivel` com `tentativas`.
+- `/health`: `ok` = configurado E fora de `FORCAR_FALHA` E última tentativa real sem falha nos últimos 300 s;
+  `status` = ok (alguma LLM ok) · degradado (só local/regras) · indisponivel.
+**Plano:** (a) `scripts/ensaio_falha.py`: ambiente simulado (chaves e modelos FICTÍCIOS, `.env` ignorado, clients de LLM
+substituídos por fakes em `llm_engine.obter_cliente`, restaurados no fim), `TestClient` do app real com
+`PIPELINE_VERSAO=real`, a fixture `tests/fixtures/transcricao-sintetica-p90.json`, 5 cenários via `FORCAR_FALHA` (a mesma
+alavanca da demo), estado do `/health` zerado entre cenários (equivale a reiniciar o serviço) e lido depois de cada um;
+tabela só com nomes e contagens. (b) `docs/roteiro-ensaio-falha.md`. (c) `tests/test_ensaio_falha.py`: roda o script e
+confere a tabela contra o esperado do contrato/SDD; divergência vira anotação aqui, sem mexer em `cadeia`/`saude`.
+**Resultado do ensaio (script real, tabela completa em `python scripts/ensaio_falha.py`):**
+
+| # | FORCAR_FALHA | motor | tentativas | HTTP | /health depois |
+|---|---|---|---|---|---|
+| 1 | (vazio) | llm1 | llm1:ok | 200 | ok (4 motores ok) |
+| 2 | llm1 | llm2 | llm1:erro_provedor > llm2:ok | 200 | ok (llm1 X) |
+| 3 | llm1,llm2 | local | 2 × erro_provedor > local:ok · aviso contingencia_modelo_local | 200 | degradado (llm1, llm2 X) |
+| 4 | llm1,llm2,local | regras | 3 × erro_provedor > regras:ok · aviso contingencia_regras | 200 | degradado (só regras ok) |
+| 5 | os 4 | nenhum | 4 × erro_provedor | 503 `analise_indisponivel` | indisponivel (4 X) |
+
+Os tempos ficam em 0,01 a 0,3 s (P90 sintético; local é o mais lento). O comportamento real BATE com o contrato v3
+(§6, §8.1, §8.3) em todos os 5 cenários. Os comandos PowerShell do roteiro foram validados contra um uvicorn real de teste
+(porta 8765, sem chaves, `.env` ignorado, depois encerrado) nos cenários "só regras" e "503".
+**Observações (nada foi corrigido, conforme pedido):**
+- 6-O1: o SDD §6.2 diz "500 se todos os motores falharem"; o código e o contrato v3 §8.1 dizem 503
+  `analise_indisponivel`. É a divergência já conhecida do contrato ("proposta: atualizar o SDD"); falta só atualizar o SDD.
+- 6-O2: `docs/decisoes.md` (Item 4 do P5) diz que `FORCAR_FALHA` "é lida a cada chamada, então pode ir no `.env`". É
+  verdade só para o `os.environ`: o `.env` é lido uma vez na subida (`main.py`). Mudar o `.env` com o serviço no ar não
+  tem efeito; para trocar de cenário é preciso reiniciar. O roteiro já diz isso.
+- 6-O3: falha forçada entra no `/health` como falha REAL (a cadeia a registra em `saude`). Tirar `FORCAR_FALHA` sem reiniciar
+  deixa o motor com `ok: false` por até 5 min (ou até a próxima tentativa bem-sucedida). Reiniciar zera.
+**Status:** concluído. Arquivos: `scripts/ensaio_falha.py`, `docs/roteiro-ensaio-falha.md`, `tests/test_ensaio_falha.py`
+(9 testes, sem rede e sem chave).
