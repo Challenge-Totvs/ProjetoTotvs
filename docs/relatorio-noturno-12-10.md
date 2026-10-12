@@ -52,3 +52,32 @@ Compare com `padroes_confirmados` do resumo do smoke.
 - 1-D3: seis padrões plantados por padrão (3 risco, 3 oportunidade), de 10% a 90% da reunião; `--padroes` muda.
 - 1-D4: o resumo do smoke ganhou `padroes_confirmados` (só nomes de padrão) para conferir os plantados.
 - 1-D5: a regra 9 do CLAUDE.md proíbe mexer em `.env*`; editei `.env.example` só porque o lote pediu explicitamente.
+
+## Item 2 — P7: `POST /similares`
+**Plano:** (1) contrato `docs/contrato/similares.md`, marcado PROPOSTA no topo, e fixtures sintéticas
+`pedido-similares.json`/`resposta-similares.json`; (2) `app/similares.py` com `TfidfVectorizer` ajustado por pedido
+(minúsculas, sem acento, `ngram_range=(1, 2)`, `sublinear_tf=True`), cosseno, `LIMIAR_SIMILARIDADE` nomeado, sklearn
+importado só no uso; (3) schemas `PedidoSimilares`/`RespostaSimilares` em `schemas.py` e rota no `router.py`, 422 pelo
+handler existente; (4) testes sintéticos.
+**Status:** concluído. Suíte: 334 passed.
+**Commits:** `3541e1e docs(P7): contrato PROPOSTO do /similares e fixtures` · `46b2ba0 feat(P7): POST /similares (TF-IDF, sem API)`.
+**Testes (27):** quase igual casa (>0,8); acento/maiúsculas; assuntos diferentes não casam; ordem decrescente; `topK`
+(e padrão 3); limiar do pedido; sem referências; sem vocabulário útil; score 0 nunca volta; texto vazio/só espaços/ausente
+=> 422; 200 vs 201 referências; `topK`/`limiar` fora dos limites; referência sem id/texto; 422 sem texto do pedido;
+resposta == fixture; campos extras ignorados; sem estado entre pedidos; log só com tamanhos; responde também em `mock`;
+sem rede; importar o app não carrega sklearn.
+
+**Decisões para validar (item 2):**
+- 2-D1: `LIMIAR_SIMILARIDADE = 0.2`. Com frases sintéticas, paráfrases do mesmo assunto ficaram entre ~0,2 e ~0,35 e
+  assuntos diferentes até ~0,14 (TF-IDF de palavras pega pouca paráfrase; char n-grams pegariam mais, mas a skill pede
+  palavras 1-2). Calibrar com o ouro.
+- 2-D2: lista curta de stop words do português (~90 palavras) como constante em `app/similares.py`; sem ela, "que",
+  "para", "com" inflavam o score.
+- 2-D3: limites que a skill não fixava: `topK` 1..50, `id` 1..100 caracteres, `texto` de referência 1..2000, texto com
+  espaços nas pontas é aparado (só espaços => 422 `vazio`). Score com 4 casas; score 0 nunca volta (mesmo com
+  `limiar: 0`); empate mantém a ordem de chegada; `id` repetido não é erro.
+- 2-D4: `/similares` responde igual em `PIPELINE_VERSAO=mock` (não usa LLM) e não leva o cabeçalho `X-Insightcall-Pipeline`.
+- 2-D5: o 422 reaproveita o handler global, então a `mensagem` é "O pedido não segue o contrato v3." também aqui.
+
+**Pendências (P7):** validação do contrato (João + Kelwin); cliente Java, campo `semelhanteNaoProcede` e ignorar falha
+em silêncio (Kelwin); calibração do limiar com o ouro (P8).
