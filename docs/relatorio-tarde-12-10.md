@@ -22,3 +22,8 @@ acrescentar. (d) `.claude/skills/p8-retreino/SKILL.md`: só a linha da seção R
 - `CLAUDE.local.md` (novo, ignorado pelo git): preferências de commit e de comunicação.
 - `p8-retreino/SKILL.md`: só a primeira linha da seção REGRAS DE DADOS sobre ler texto real.
 **Status:** concluído.
+
+## Item 2 — `docs/evidencias/smoke-12-10.md`
+**Plano:** criar o arquivo (a pasta `docs/evidencias/` ainda não existe) só com os fatos informados pelo João; não tocar
+em `PROMPT_VALIDADO_COM_LLM_REAL`.
+**Status:** concluído (`PROMPT_VALIDADO_COM_LLM_REAL` intocado). Sem mudança de código; suíte inalterada (414).
