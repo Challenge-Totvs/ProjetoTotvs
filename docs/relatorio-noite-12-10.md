@@ -75,3 +75,28 @@ mostrar o conteúdo) e grava em `metadata.json` a chave `professora`: `arquivo`,
 `veredito`, `rotulos_llm` e `rotulos_regra`, mais `avisos` quando um grupo tem rótulo da LLM sem `usar`. Oportunidade
 não entra porque o `treinar.py` não treina modelo de oportunidade. Testes novos: 2 no P9 e 5 no treino. Os testes
 antigos passaram a usar caminhos temporários para o veredito; nada foi gravado em `dados_locais/`. pytest: `460 passed`.
+
+---
+
+## Fechamento
+
+- pytest final: `460 passed` (baseline 450: +2 no item 0, +1 no 1a, +7 no 1b).
+- Commits do lote (todos em nome de Joao, sem coautoria, sem push): `8b83c77` plano · `84a7473` item 0 · `ec26fd5` 1a ·
+  `082376e` 1b · e o deste fechamento.
+- `git ls-files`: nenhum `.xlsx` nem `.csv`; só os dois `.env.example` e o `classificador_risco.joblib` que já existiam.
+  `backend/`, `frontend/` e `*.joblib` sem mudança. Nenhum teste gravou em `dados_locais/`.
+- **Não chegou:** o resto da alínea 1b e o que vinha depois. Nada disso foi adivinhado.
+
+### Decisões para o João validar
+1. **Mensagem cortada:** só o item 0, a 1a e a 1b foram feitos; o resto do pedido não chegou.
+2. **Smoke (item 0):** na P90 da llm1, "eventos de conduta" ficou "não registrado" e não "0", porque o dado não veio.
+   Também não escrevi "validou" para a P90, pelo mesmo motivo.
+3. **Item 0:** AC10 saiu de `PENDENTE` no teste de rastreabilidade; `decisoes.md` ganhou uma nota datada (o histórico de
+   11/10 não foi reescrito); o roteiro da demo perdeu a pendência da llm1.
+4. **1a:** a fixture `resposta-similares.json` perdeu a `np-104` (0,2301) e o `handoff-kelwin-12-10.md` foi atualizado.
+   Falta avisar o Kelwin.
+5. **1b, o "se" cortado:** registra por modelo o veredito da professora e quantos rótulos vieram da LLM e da regra, com
+   aviso quando há rótulo da LLM sem `usar`. O rótulo de treino não mudou (3-D4).
+6. **1b:** rodada PRELIMINAR não grava nem sobrescreve o `professora_veredito.json`.
+7. **1b:** o `metadata.json` registra só risco e interesse (os modelos treinados). Oportunidade fica só no veredito.
+8. **1b:** um `professora_veredito.json` inválido para o treino com erro claro, em vez de seguir como `sem_veredito`.
