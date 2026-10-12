@@ -79,16 +79,104 @@ def sha256_arquivo(caminho: Path) -> str:
 
 
 def ler_csv(caminho: Path) -> list[dict[str, str]]:
-    with open(caminho, encoding="utf-8-sig", newline="") as f:
+    with open(caminho, encoding="utf-8-sig", errors="replace", newline="") as f:
         return list(csv.DictReader(f))
 
 
 def cabecalho_csv(caminho: Path) -> tuple[list[str], int]:
     """Nomes das colunas e número de linhas de dados, sem devolver conteúdo."""
-    with open(caminho, encoding="utf-8-sig", newline="") as f:
+    with open(caminho, encoding="utf-8-sig", errors="replace", newline="") as f:
         leitor = csv.reader(f)
         cabecalho = next(leitor, [])
         return cabecalho, sum(1 for _ in leitor)
+
+
+# --- corpus no formato quebrado ------------------------------------------------------------------------------------
+# O CSV exportado do corpus da TOTVS não segue o padrão: só a PRIMEIRA e a ÚLTIMA linha física de cada reunião vêm
+# entre aspas (com `"` dobradas) e as linhas do meio vêm soltas. O `csv` padrão lê isso como centenas de milhares de
+# "linhas" de um campo só. `ler_corpus` reconstrói uma linha por reunião; um CSV normal continua passando pelo `csv`.
+_RE_INICIO_REUNIAO = re.compile(r'^"\d+,\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},')
+_RE_FIM_REUNIAO = re.compile(r'^(.*)",([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),([^,]*)$', re.DOTALL)
+_CAMPOS_ANTES_DO_TEXTO = 10  # ID_MEETING..DT_CRIACAO (sem vírgula nem aspas); o texto é o 11º campo
+_CAMPOS_DEPOIS_DO_TEXTO = 7  # UF..NOTA_NPS
+
+
+def _abrir_texto(caminho: Path) -> str:
+    return caminho.read_text(encoding="utf-8-sig", errors="replace")
+
+
+def _linhas_do_arquivo(caminho: Path) -> list[str]:
+    linhas = _abrir_texto(caminho).replace("\r\n", "\n").split("\n")
+    while linhas and linhas[-1] == "":  # o arquivo termina com quebra de linha
+        linhas.pop()
+    return linhas
+
+
+def _desembrulhar(linha: str) -> str:
+    """Tira as aspas que embrulham a linha e desdobra as `""` internas."""
+    if len(linha) >= 2 and linha.startswith('"') and linha.endswith('"'):
+        linha = linha[1:-1]
+    return linha.replace('""', '"')
+
+
+def _corpus_quebrado(linhas: list[str]) -> bool:
+    return len(linhas) > 1 and bool(_RE_INICIO_REUNIAO.match(linhas[1]))
+
+
+def _registros_quebrados(linhas: list[str]) -> tuple[list[list[str]], int]:
+    """Agrupa as linhas físicas por reunião (a partir de cada linha de início). Devolve (registros, linhas_orfas)."""
+    grupos: list[list[str]] = []
+    orfas = 0
+    for linha in linhas[1:]:
+        if _RE_INICIO_REUNIAO.match(linha):
+            grupos.append([linha])
+        elif grupos:
+            grupos[-1].append(linha)
+        elif linha.strip():
+            orfas += 1
+    return grupos, orfas
+
+
+def _montar_reuniao(grupo: list[str], colunas: list[str]) -> dict[str, str] | None:
+    primeira = _desembrulhar(grupo[0])
+    partes = primeira.split(",", _CAMPOS_ANTES_DO_TEXTO)
+    if len(partes) != _CAMPOS_ANTES_DO_TEXTO + 1 or not partes[-1].startswith('"'):
+        return None
+    texto = [partes[-1][1:]]
+    if len(grupo) > 1:
+        texto += grupo[1:-1]
+        texto.append(_desembrulhar(grupo[-1]))
+    achado = _RE_FIM_REUNIAO.match(texto[-1])
+    if not achado:
+        return None
+    texto[-1] = achado.group(1)
+    campos = partes[:-1] + ["\n".join(texto)] + list(achado.groups()[1:])
+    return dict(zip(colunas, campos)) if len(campos) == len(colunas) else None
+
+
+def ler_corpus(caminho: Path, contagem: dict | None = None) -> list[dict[str, str]]:
+    """Uma linha por reunião, no formato normal do CSV ou no formato quebrado do corpus (ver acima).
+    Registro que não fecha direito é descartado e só contado em `contagem["registros_invalidos"]`."""
+    linhas = _linhas_do_arquivo(caminho)
+    if not _corpus_quebrado(linhas):
+        return ler_csv(caminho)
+    colunas = next(csv.reader([linhas[0]]))
+    if len(colunas) != _CAMPOS_ANTES_DO_TEXTO + 1 + _CAMPOS_DEPOIS_DO_TEXTO:
+        raise SystemExit(f"erro: o corpus tem {len(colunas)} colunas; o leitor do formato quebrado espera 18")
+    grupos, orfas = _registros_quebrados(linhas)
+    reunioes = [m for m in (_montar_reuniao(g, colunas) for g in grupos) if m is not None]
+    if contagem is not None:
+        contagem["registros_invalidos"] = len(grupos) - len(reunioes)
+        contagem["linhas_orfas"] = orfas
+    return reunioes
+
+
+def cabecalho_corpus(caminho: Path) -> tuple[list[str], int]:
+    """Nomes das colunas e número de REUNIÕES (não de linhas físicas), sem devolver conteúdo."""
+    linhas = _linhas_do_arquivo(caminho)
+    if not _corpus_quebrado(linhas):
+        return cabecalho_csv(caminho)
+    return next(csv.reader([linhas[0]])), len(_registros_quebrados(linhas)[0])
 
 
 def gravar_csv(caminho: Path, linhas: list[dict], colunas: list[str]) -> None:

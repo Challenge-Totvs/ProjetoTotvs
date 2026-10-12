@@ -15,7 +15,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from treino.comum import DADOS, cabecalho_csv, dividir_turnos, gravar_csv, imprimir, ler_csv  # noqa: E402
+from treino.comum import (  # noqa: E402
+    DADOS, cabecalho_corpus, cabecalho_csv, dividir_turnos, gravar_csv, imprimir, ler_corpus, ler_csv,
+)
 
 CONTEXTO = 2  # turnos anteriores ao alvo
 COLUNAS_SAIDA = ["id", "reuniao", "cliente", "turno", "locutor", "texto", "contexto"]
@@ -85,16 +87,17 @@ def main(argv: list[str]) -> int:
             return 1
     if args.verificar:
         resumo = {}
-        for rotulo, caminho in (("corpus", args.corpus), ("holdout", args.holdout)):
-            colunas, linhas = cabecalho_csv(caminho)
+        for rotulo, caminho, ler in (("corpus", args.corpus, cabecalho_corpus), ("holdout", args.holdout, cabecalho_csv)):
+            colunas, linhas = ler(caminho)
             resumo[rotulo] = {"colunas": colunas, "linhas": linhas}
         imprimir(resumo)
         return 0
 
-    trechos, contagem = extrair(ler_csv(args.corpus), ler_csv(args.holdout), args.col_reuniao, args.col_cliente,
+    descarte: dict = {}
+    trechos, contagem = extrair(ler_corpus(args.corpus, descarte), ler_csv(args.holdout), args.col_reuniao, args.col_cliente,
                                 args.col_texto, args.col_holdout)
     gravar_csv(args.saida, trechos, COLUNAS_SAIDA)
-    imprimir({"saida": args.saida.name, **contagem})
+    imprimir({"saida": args.saida.name, **contagem, **descarte})
     return 0
 
 
