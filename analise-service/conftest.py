@@ -78,6 +78,7 @@ def sem_chaves_no_ambiente(monkeypatch):
                      "LLM_PRINCIPAL_WORKSPACE_ID"):
         monkeypatch.delenv(variavel, raising=False)
     monkeypatch.delenv("FORCAR_FALHA", raising=False)
+    monkeypatch.delenv("INTERESSE_MODELO", raising=False)  # nenhum teste de produção liga o modelo de interesse
 
 
 @pytest.fixture(autouse=True)

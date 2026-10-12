@@ -78,3 +78,24 @@ def rotulos_sinteticos(pasta: Path, reunioes: int = 60) -> Path:
     caminho = pasta / "rotulos_fracos.csv"
     comum.gravar_csv(caminho, linhas, rotulos_fracos.COLUNAS_SAIDA)
     return caminho
+
+
+class ModeloInteresseFixo:
+    """Classificador de interesse SINTÉTICO e determinístico: p = 0,9 se o texto tem 'aprovado', senão 0,1.
+
+    Fica no módulo (não no teste) para o joblib conseguir carregar o objeto pelo nome.
+    """
+
+    def __init__(self):
+        self.chamadas = 0
+
+    def predict_proba(self, textos):
+        import numpy as np
+
+        p = np.array([0.9 if "aprovado" in t.lower() else 0.1 for t in textos])
+        return np.column_stack([1 - p, p])
+
+
+class ModeloQueFalha:
+    def predict_proba(self, textos):
+        raise RuntimeError("falha sintética")
