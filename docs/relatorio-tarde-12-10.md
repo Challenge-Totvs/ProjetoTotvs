@@ -55,9 +55,36 @@ quantos valores a aba `Listas` tem (`valores_na_aba_listas`).
   continua com o seu limite de US$ 2), preços por milhão obrigatórios; escreve `docs/evidencias/professora-<data>.md`
   só com métricas. Testes sintéticos com cliente simulado.
 - Não vou rodar o script sobre o `ouro_final.csv` real (regra do lote: não abrir) nem com API.
-**Status:** concluído em duas etapas. Suíte: 439 passed (13 testes em `tests/test_p9_professora.py`, todos sintéticos e
+**Status:** concluído em duas etapas. Suíte: 434 passed (13 testes em `tests/test_p9_professora.py`, todos sintéticos e
 com cliente simulado; nenhum acessa rede ou chave).
 **Commits:** `846221b feat(P9): metricas e veredito da professora contra o ouro` · `feat(P9): validar_professora CLI`.
 **Como rodar (João, nos dados reais):**
 `python treino/validar_professora.py --teto-usd 0.5 --preco-entrada <US$/Mtok> --preco-saida <US$/Mtok>`
 (retoma sozinho se parar no teto; relatório em `docs/evidencias/professora-<data>.md`).
+
+## Item 5 — Dados reais (extração e rótulos por regra)
+**Plano:** os dois arquivos existem em `dados_locais/`. (a) `--verificar` e extração com `--col-reuniao ID_MEETING
+--col-cliente CODT --col-texto ANON_TRANSCRICAO`; (b) `rotulos_fracos.py` sem `--destilar`. Só contagens.
+**Achados no `--verificar` (sem texto):**
+1. O arquivo NÃO é UTF-8 puro: 88 bytes inválidos em ~46 MB (o resto é UTF-8). O leitor passou a usar
+   `errors="replace"` (fix com teste; efeito: um caractere `�` no lugar do byte solto).
+2. O CSV está num formato quebrado: lido de forma padrão, dá 334.501 "linhas" em vez de reuniões, porque só a primeira e a
+   última linha física de cada registro vêm entre aspas (com `"` dobradas) e as linhas do meio vêm soltas. Um contador
+   de início de registro (`"<id>,<data hora>,`) acha 1.147 reuniões (~291 linhas físicas cada). Não é erro de coluna nem
+   de holdout, então não parei o item: escrevi um leitor de reparo para esse formato (decisão 5-D1), com teste sintético
+   e validação rígida (registro que não fecha é só contado). No corpus real: 1.147 registros, 0 inválidos, 0 linhas
+   órfãs, 18 campos em todos.
+3. 7 `ID_MEETING` aparecem repetidos (21 linhas extras), todos 100% idênticos entre si. `extrair` parava com "reunião
+   repetida"; agora ignora e conta a repetição idêntica (conteúdo diferente continua parando; decisão 5-D2).
+
+**Resultados (só contagens):**
+- `extrair_trechos.py --verificar`: corpus 18 colunas (ID_MEETING, CODT e ANON_TRANSCRICAO presentes), 1.147 reuniões;
+  holdout 3 colunas (ID_MEETING, CODT, no_ouro), 345 linhas.
+- Extração: reuniões lidas 1.147 · excluídas pelo holdout 345 (199 clientes no holdout) · repetições idênticas ignoradas
+  17 · sem turnos `[LOCUTOR n]` 28 · reuniões usadas 757 · **trechos gerados 233.267**.
+- `rotulos_fracos.py` (só regra, sem `--destilar`): positivos de risco 958, oportunidade 1.241, interesse 1.500
+  (de 233.267 trechos; nenhum rótulo da LLM).
+- Nada de `dados_locais/` entrou no git (`git status` limpo para essa pasta; está no `.gitignore`).
+- Pendência para o João: 28 reuniões sem turnos `[LOCUTOR n]` (formato diferente ou transcrição vazia?).
+**Status:** concluído. Commits: `892e395 fix(P8): leitor do corpus tolera bytes invalidos e o formato quebrado de aspas`
+· `c6c5d66 fix(P8): reuniao repetida identica no corpus e ignorada e contada`. Suíte: 441 passed.
