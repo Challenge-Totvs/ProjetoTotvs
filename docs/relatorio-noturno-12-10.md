@@ -215,3 +215,95 @@ promoção.
 (o escopo §3 pede; ainda não há script nem opção para isso: fica para uma próxima sessão, reaproveitando
 `rotulos_fracos.destilar` sobre os trechos do ouro); calibrar `LIMIAR_P_INTERESSE`, o veto 0,3 e o `LIMIAR_SIMILARIDADE` com o ouro; promover candidatos só por
 decisão manual do João.
+
+## Item 4 — `analise-service/README.md`
+**Plano:** README operacional curto (91 linhas): subir, variáveis (só nomes e significado; `INTERESSE_MODELO` "fica
+ausente até o candidato real ser aprovado"), cadeia, `PIPELINE_VERSAO`, `FORCAR_FALHA`, `/health`, `/similares`,
+testes e smoke, pipeline de retreino, regras de dados.
+**Status:** concluído. Commit: `23b5eb0 docs: README operacional do analise-service`.
+**Decisão para validar:** 4-D1: o README diz que `LLM_*_PROVIDER` são só informativas (o código não as lê).
+
+## Item 5 — `docs/handoff-kelwin-12-10.md`
+**Plano:** curto, por tópico: `/health`; `/similares` proposto e o que o Java implementa (cliente,
+`semelhanteNaoProcede`, ignorar falha em silêncio); motivo de descarte com o prefixo do frontend; AC9 e A10; timeout
+pendente do smoke; chave da Anthropic de workspace ou com o ID.
+**Status:** concluído. Commit: `2699fd6 docs: handoff para o Kelwin (health, /similares, motivo de descarte, pendencias)`.
+**Decisão para validar:** 5-D1: sugeri ao Kelwin timeout de 3 s no cliente do `/similares` e que o frontend mapeie
+motivo -> rótulo (hoje só `evidencia_nao_localizada` combina com o prefixo fixo).
+
+## Item 6 — Fechamento
+`python -m pytest -q` (em `analise-service/`, `.venv`):
+```
+........................................................................ [ 69%]
+........................................................................ [ 86%]
+......................................................                   [100%]
+414 passed in 12.66s
+```
+(baseline do início: 282 passed; +132 testes no lote.)
+
+`git log --oneline` do lote (20 commits, todos `Joao <bpjoao00@gmail.com>`, nenhum com linha de coautoria ou
+atribuição; mais o commit deste fechamento):
+```
+2699fd6 docs: handoff para o Kelwin (health, /similares, motivo de descarte, pendencias)
+23b5eb0 docs: README operacional do analise-service
+85292c2 docs(relatorio): corrige pendencia da professora
+6735a6d docs(relatorio): item 3 (P8)
+493b85d feat(P8): portao com metricas por grupo e IC95 por bootstrap
+234ac12 feat(P8): encaixe do classificador de interesse no motor local, desligado por padrao
+3d8f89a feat(P8): treinar candidatos de risco e interesse por clone do classificador atual (D17)
+ba389e7 feat(P8): conciliar ouro nos modos unico e pares, kappa teste-reteste
+8facdee feat(P8): rotulos fracos por regra e destilacao com teto
+27d3b4c feat(P8): extrair trechos fora do holdout
+06938ad docs(relatorio): plano do P8
+5b59eba docs(relatorio): item 2 (P7)
+46b2ba0 feat(P7): POST /similares (TF-IDF, sem API)
+3541e1e docs(P7): contrato PROPOSTO do /similares e fixtures
+7cb0a21 docs(relatorio): item 1 do lote noturno
+f187b45 feat(smoke): --entrada para a transcricao sintetica e padroes confirmados no resumo
+d4c6192 feat(smoke): gerar_transcricao_sintetica com temas plantados (P90 padrao)
+6f6aedd feat(llm1): LLM_PRINCIPAL_WORKSPACE_ID opcional envia anthropic-workspace-id
+d178946 feat(smoke): codigo HTTP e tipo do erro do provedor na falha
+d157256 docs: regra de commits
+```
+
+**Arquivos rastreados (`git ls-files`):** nenhum `.xlsx`, nenhum `.csv`, nenhum `.env` real e nada de `dados_locais/`.
+Os únicos que casam com o filtro `\.xlsx$|\.csv$|\.env|dados_locais` são `analise-service/.env.example` e
+`backend/.env.example` (modelos sem valores). `dados_locais/` continua só com o `pedido-p90.json` de antes do lote
+(não foi tocado).
+
+**`INTERESSE_MODELO` nos arquivos `.env` do disco** (contagem com `grep -c`, sem ler nem imprimir conteúdo):
+`analise-service/.env`: 0 · `analise-service/.env.example`: 0 · `backend/.env.example`: 0. A variável não aparece em
+nenhum `.env` (nem no `.env.example`, por decisão do lote). Nenhum push foi feito.
+
+---
+
+## Resumo final
+
+### Itens concluídos
+0 (regra de commits) · 1a-1d (smoke e cliente LLM) · 2 (P7 `/similares`) · 3 (P8 etapas 1 a 6) · 4 (README) ·
+5 (handoff Kelwin) · 6 (fechamento).
+
+### Itens travados
+Nenhum. Um teste do P8 (teto da destilação) falhou na primeira tentativa e revelou um defeito real (a estimativa
+otimista deixava o gasto passar do teto); corrigido antes do commit (3-D3).
+
+### Decisões para validar (todas listadas nos itens acima)
+- Item 1: 1-D1 renomear o gerador; 1-D2 fixture P90 versionada; 1-D3 seis padrões plantados; 1-D4
+  `padroes_confirmados` no smoke; 1-D5 edição do `.env.example` apesar da regra 9.
+- Item 2: 2-D1 `LIMIAR_SIMILARIDADE = 0.2`; 2-D2 stop words do português; 2-D3 limites (`topK` 1..50, `id` <= 100,
+  referência <= 2000, score 0 nunca volta); 2-D4 `/similares` também em `mock`; 2-D5 mensagem do 422.
+- Item 3: 3-D1 a 3-D11 (colunas configuráveis, regra do holdout, destilação e teto, rótulo de treino, kappa, local dos
+  relatórios, clone para o interesse, separação treino × ouro, regras do portão, `LIMIAR_P_INTERESSE = 0.5` sem veto de
+  risco, flag só com "1").
+- Item 4: 4-D1 `LLM_*_PROVIDER` informativas. Item 5: 5-D1 sugestões ao Kelwin.
+
+### Próximos passos
+1. Smoke real (amanhã): `python scripts/smoke_llm.py llm1` e `--entrada tests/fixtures/transcricao-sintetica-p90.json`;
+   se a Anthropic responder 401/403/404, conferir o `tipo_erro_provedor` e, se for chave de organização, definir
+   `LLM_PRINCIPAL_WORKSPACE_ID`. Registrar em `docs/evidencias/smoke-12-10.md` e só então trocar
+   `PROMPT_VALIDADO_COM_LLM_REAL`. Confirmar o timeout de 120 s do Java com o tempo do P90.
+2. Validar com o Kelwin o contrato do `/similares` (e tirar o "PROPOSTA" do topo).
+3. P8 nos dados reais, na ordem do item 3 (começando pelos `--verificar` para acertar os nomes de coluna).
+4. `INTERESSE_MODELO=1` só depois do portão aprovar o candidato real com o ouro completo e da promoção manual.
+5. Pendências: validar a professora contra o ouro; calibrar `LIMIAR_SIMILARIDADE`, `LIMIAR_P_INTERESSE` e o veto 0,3;
+   AC9 e A10 (Kelwin).
