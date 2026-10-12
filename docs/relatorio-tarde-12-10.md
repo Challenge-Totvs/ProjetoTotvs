@@ -128,3 +128,40 @@ Os tempos ficam em 0,01 a 0,3 s (P90 sintético; local é o mais lento). O compo
   deixa o motor com `ok: false` por até 5 min (ou até a próxima tentativa bem-sucedida). Reiniciar zera.
 **Status:** concluído. Arquivos: `scripts/ensaio_falha.py`, `docs/roteiro-ensaio-falha.md`, `tests/test_ensaio_falha.py`
 (9 testes, sem rede e sem chave).
+
+## Fechamento
+**pytest final:** `450 passed in 16.33s` (baseline do lote: 414).
+**git log do lote** (`git log e9caed0..HEAD`, todos `Joao`, nenhuma linha de coautoria ou de atribuição):
+`1166520` CLAUDE.md · `c53d2e8` smoke · `6ca410d` conciliar_ouro · `846221b` P9 métricas · `2234d98` P9 CLI ·
+`892e395` leitor do corpus · `c6c5d66` reunião repetida · `f783832` relatório item 5 · `f212cf6` ensaio de falha · este
+fechamento. Nenhum push.
+**`git ls-files`:** nenhum `.xlsx` nem `.csv`; só `.env.example` (analise-service e backend, já versionados) e o
+`classificador_risco.joblib` que já existia (não tocado). `backend/`, `frontend/` e `*.joblib` sem alteração no lote.
+**Dados:** `ouro_final.csv` e `*_PRONTO.xlsx` não foram abertos. Tentei ler a estrutura (abas e aba Listas) de
+`ouro_rotulador_1.xlsx` e o classificador de segurança negou; não contornei. Do corpus anonimizado vi, só no console da
+sessão, o cabeçalho, estatísticas de tamanho e trechos de até 60 caracteres de 3 falas e as 14 primeiras linhas de uma
+reunião, para depurar o formato; nada disso foi copiado para arquivo, teste, log ou relatório (os testes usam texto inventado).
+
+### Decisões para o João validar
+1. **CLAUDE.md:** as regras 11 e 12 ficaram na raiz com o número original; 1-10 foram para `analise-service/CLAUDE.md`. A
+   regra 1 (contrato) também ganhou um resumo na seção "Contrato" da raiz, porque vale para o grupo.
+2. **CLAUDE.md:** "Comandos" e "Variáveis" foram para o `analise-service/CLAUDE.md`; a raiz só aponta para ele.
+3. **Skill p8-retreino:** ao trocar a linha "NUNCA lê...", saiu junto a frase "Quem roda os scripts nos dados reais é o
+   João Paulo" (ela contradiz a decisão nova). O resto da skill não mudou.
+4. **CLAUDE.local.md:** o `.gitignore` já tinha a linha `CLAUDE.local.md`; nada a acrescentar.
+5. **conciliar_ouro:** o vocabulário da aba `Listas` é "todas as células de texto da aba" (não vi o layout real). Valor
+   fora dele só entra em `invalidos["fora_da_lista"]` e o campo vira "sem padrão". Sem aba `Listas` não valida.
+6. **conciliar_ouro:** a aba `Rotular` é obrigatória (planilha de aba única antiga agora dá erro claro);
+   `--col-texto` aceita alternativas com `|` (padrão `TRECHO ALVO|texto`); `--col-id` padrão `ID`.
+7. **P9:** o `ouro_final.csv` não guarda o contexto, então a professora vê só o trecho alvo (menos que na destilação);
+   trechos com `duvida` não são enviados; cache próprio em `dados_locais/professora/`; veredito `usar` exige positivos > 0;
+   relatório marca PRELIMINAR se algum trecho ficou sem resposta (teto, erro ou item perdido). Não rodei o P9 no ouro real.
+8. **Corpus real:** o CSV está num formato quebrado (só a 1ª e a última linha de cada reunião vêm entre aspas) e tem 88 bytes
+   inválidos em UTF-8. Criei `ler_corpus` (reparo, com validação) e `errors="replace"`. Resultado: 1.147 reuniões, 0 inválidas.
+   Vale perguntar à TOTVS/a quem exportou se o arquivo original já vinha assim.
+9. **Duplicatas:** 7 `ID_MEETING` repetidos, todos idênticos; passam a ser ignorados e contados (conteúdo diferente continua parando).
+10. **28 reuniões sem turnos `[LOCUTOR n]`** foram puladas pela extração; vale olhar o formato delas.
+11. **Ensaio:** o script usa `FORCAR_FALHA` (a mesma alavanca da demo) em vez de falhas de provedor simuladas; as LLMs
+    simuladas devolvem análise vazia (o ensaio é sobre motor e tentativas); o roteiro ao vivo usa o pedido curto do contrato.
+12. **Divergências registradas, sem corrigir:** 6-O1 (SDD diz 500, o código e o contrato dizem 503), 6-O2 (`FORCAR_FALHA` não
+    pode ir no `.env` com o serviço no ar: precisa reiniciar), 6-O3 (falha forçada conta como real no `/health` por 5 min).
