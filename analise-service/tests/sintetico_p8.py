@@ -46,3 +46,35 @@ def gravar(caminho: Path, linhas: list[dict]) -> Path:
         escritor.writeheader()
         escritor.writerows(linhas)
     return caminho
+
+
+STOP_WORDS_SINTETICAS = ["de", "da", "do", "o", "a", "e", "que", "para"]
+
+
+def base_sintetica(caminho: Path) -> Path:
+    """Pipeline na mesma família do atual (TF-IDF + regressão logística), mas com min_df=1 para caber em dados pequenos."""
+    import joblib
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import Pipeline
+
+    pipeline = Pipeline([
+        ("tfidf", TfidfVectorizer(ngram_range=(1, 2), min_df=1, max_df=0.9, sublinear_tf=True,
+                                  stop_words=STOP_WORDS_SINTETICAS)),
+        ("clf", LogisticRegression(C=1.0, class_weight="balanced", max_iter=1000, random_state=42)),
+    ])
+    textos = FRASES_RISCO + FRASES_NEUTRAS
+    pipeline.fit(textos, [1] * len(FRASES_RISCO) + [0] * len(FRASES_NEUTRAS))
+    joblib.dump(pipeline, caminho)
+    return caminho
+
+
+def rotulos_sinteticos(pasta: Path, reunioes: int = 60) -> Path:
+    """Etapas 1 e 2 (só regra) sobre o corpus sintético: dados_locais em miniatura."""
+    from treino import comum, extrair_trechos, rotulos_fracos
+
+    trechos, _ = extrair_trechos.extrair(corpus(reunioes), [], "reuniao", "CODT", "transcricao")
+    linhas = rotulos_fracos.combinar(trechos, {})
+    caminho = pasta / "rotulos_fracos.csv"
+    comum.gravar_csv(caminho, linhas, rotulos_fracos.COLUNAS_SAIDA)
+    return caminho
