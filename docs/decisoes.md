@@ -62,6 +62,12 @@ Decisão de leitura do §7.2(c): todas as janelas (1, 2 e 3 turnos) ficam dentro
 |---|---|---|
 | D10 | Um tema por padrão por reunião; se o padrão aparecer duas vezes, escolher a primeira ocorrência sem resposta. Instrução ao motor (prompt e regras), sem deduplicação posterior | `contrato-v3.md` §7.6.1 |
 | D11 | A9 fechada: falha total responde 503; o Java trata qualquer erro HTTP como "análise indisponível" | `contrato-v3.md` §12 |
+| D12 | RAG-lite (`POST /similares`, P7) e retreino do modelo local (P8) autorizados; saem do "Fora do escopo". Escopo, entregas, critérios e cronograma em `docs/escopo-rag-retreino.md` | João Paulo, 12/10 |
+| D13 | Conjunto ouro com rotulador único (João Paulo): sem kappa entre pessoas; substituto = teste-reteste de 40 trechos sorteados, pelo menos 24 h depois, sem consultar as respostas anteriores. Limitação declarada nos relatórios (rotulador único, sem validação cruzada, e ele também escreveu as regexes). Se surgirem mais rotuladores, volta o protocolo de pares | João Paulo, 12/10 |
+| D14 | Orçamento de LLM: US$ 5 ou R$ 20 por provedor, duas chaves (desenvolvimento e demonstração). Destilação só no modelo barato, com teto de US$ 2 (`--teto-usd`) | João Paulo, 12/10 |
+| D15 | O filtro de compromissos por `papeis` (só do vendedor) fica só no prompt até a banca. O Java lê `descartados[].motivo` como texto livre (`String`, sem enum), mas o frontend sempre prefixa "Evidência não localizada." antes do motivo; motivo novo de descarte depende de ajuste do Kelwin | João Paulo, 12/10 |
+
+Nota de numeração: a mensagem de 12/10 pedia "D10 a D13"; como D10 e D11 já existiam (acima, e citados no prompt e no contrato), os quatro itens novos entraram como D12 a D15, na mesma ordem (RAG e retreino, rotulador único, orçamento de LLM, filtro de compromissos).
 
 ## Bloqueios
 (nenhum até agora)
