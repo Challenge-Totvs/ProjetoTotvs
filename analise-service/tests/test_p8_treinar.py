@@ -21,7 +21,8 @@ def cenario(tmp_path):
 
 def _args(c, *extra):
     return ["--rotulos", str(c["rotulos"]), "--base", str(c["base"]), "--candidatos", str(c["candidatos"]),
-            "--holdout", str(c["pasta"] / "nao-existe.csv"), "--ouro", str(c["pasta"] / "nao-existe-ouro.csv"), *extra]
+            "--holdout", str(c["pasta"] / "nao-existe.csv"), "--ouro", str(c["pasta"] / "nao-existe-ouro.csv"),
+            "--veredito", str(c["pasta"] / "nao-existe-veredito.json"), *extra]
 
 
 def test_treina_os_dois_candidatos_com_os_hiperparametros_da_base(cenario, capsys):
@@ -114,3 +115,53 @@ def test_clone_do_artefato_real_herda_os_hiperparametros_d17():
 def test_help_roda():
     r = subprocess.run([sys.executable, "treino/treinar.py", "--help"], cwd=RAIZ, capture_output=True)
     assert r.returncode == 0 and b"--justificativa" in r.stdout
+
+
+def _metadatas(cenario) -> list[dict]:
+    return [json.loads((p / "metadata.json").read_text(encoding="utf-8")) for p in sorted(cenario["candidatos"].iterdir())]
+
+
+def _com_veredito(cenario, conteudo: str) -> list[str]:
+    caminho = cenario["pasta"] / "professora_veredito.json"
+    caminho.write_text(conteudo, encoding="utf-8")
+    args = _args(cenario)
+    args[args.index("--veredito") + 1] = str(caminho)
+    return args
+
+
+def test_sem_veredito_da_professora_registra_sem_veredito(cenario):
+    assert treinar.main(_args(cenario)) == 0
+    n = len(comum.ler_csv(cenario["rotulos"]))
+    assert _metadatas(cenario)[0]["professora"] == {
+        "arquivo": None, "data": None, "avisos": [],
+        "grupos": {g: {"veredito": "sem_veredito", "rotulos_llm": 0, "rotulos_regra": n} for g in ("risco", "interesse")}}
+
+
+def test_veredito_da_professora_e_registrado_por_grupo_sem_mudar_o_rotulo(cenario, capsys):
+    linhas = comum.ler_csv(cenario["rotulos"])
+    for x in linhas[:5]:  # 5 trechos com rótulo da LLM (o mesmo valor da regra, para comparar os tamanhos)
+        for g in ("risco", "oportunidade", "interesse"):
+            x[f"{g}_llm"] = x[g]
+        x["fonte"] = "llm"
+    comum.gravar_csv(cenario["rotulos"], linhas, list(linhas[0]))
+    assert treinar.main(_args(cenario)) == 0
+    veredito = '{"risco": "usar", "oportunidade": "nao_usar", "interesse": "nao_usar", "data": "2026-10-12"}'
+    assert treinar.main(_com_veredito(cenario, veredito)) == 0
+    sem, com = _metadatas(cenario)
+    assert com["tamanhos"] == sem["tamanhos"]  # 3-D4: o veredito só é registrado, o rótulo de treino não muda
+    n = len(linhas)
+    assert com["professora"] == {
+        "arquivo": "professora_veredito.json", "data": "2026-10-12",
+        "grupos": {"risco": {"veredito": "usar", "rotulos_llm": 5, "rotulos_regra": n - 5},
+                   "interesse": {"veredito": "nao_usar", "rotulos_llm": 5, "rotulos_regra": n - 5}},
+        "avisos": ["interesse: 5 rótulo(s) da LLM sem veredito 'usar' da professora"]}
+    impresso = capsys.readouterr().out
+    assert '"interesse": "nao_usar"' in impresso and all(x["texto"] not in impresso for x in linhas)
+
+
+@pytest.mark.parametrize("conteudo", ["{nao e json segredo", '{"risco": "talvez segredo"}', '["usar"]'])
+def test_veredito_invalido_para_sem_mostrar_o_conteudo(cenario, conteudo):
+    with pytest.raises(SystemExit) as erro:
+        treinar.main(_com_veredito(cenario, conteudo))
+    assert "professora_veredito.json" in str(erro.value) and "segredo" not in str(erro.value)
+    assert not cenario["candidatos"].exists()

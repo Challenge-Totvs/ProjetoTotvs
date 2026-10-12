@@ -7,8 +7,10 @@
 Os dois partem de `sklearn.base.clone` do Pipeline de `app/modelos/classificador_risco.joblib` (D17): herdam TODOS os
 hiperparâmetros, inclusive a lista de 315 stop words, que são o baseline do portão. Treina só com rótulos fracos e só
 com reuniões fora do holdout; o conjunto ouro nunca entra (só mede). Grava `risco.joblib`, `interesse.joblib` e
-`metadata.json` (data, sha256 dos dados, versão do scikit-learn, tamanhos, hiperparâmetros, mudanças). `joblib` é
-pickle: só artefatos do próprio repo. A promoção para `app/` é MANUAL (o `portao.py` imprime o comando).
+`metadata.json` (data, sha256 dos dados, versão do scikit-learn, tamanhos, hiperparâmetros, mudanças e, por modelo, o
+veredito da professora em `dados_locais/professora_veredito.json` e quantos rótulos vieram da LLM e da regra). O rótulo
+de treino continua o da LLM quando houver, senão o da regra (3-D4): o veredito só é registrado. `joblib` é pickle: só
+artefatos do próprio repo. A promoção para `app/` é MANUAL (o `portao.py` imprime o comando).
 """
 import argparse
 import ast
@@ -25,6 +27,8 @@ from treino.comum import CAMINHO_MODELO_ATUAL, DADOS, imprimir, ler_csv, sha256_
 MODELOS = ("risco", "interesse")
 TAMANHO_MINIMO_TEXTO_IGUAL = 40  # texto idêntico ao do ouro a partir deste tamanho conta como possível vazamento
 _ESCALARES = (str, int, float, bool, type(None))
+VEREDITOS = ("usar", "nao_usar")  # valores do professora_veredito.json (P9)
+SEM_VEREDITO = "sem_veredito"
 
 
 def descrever(valor: Any) -> Any:
@@ -87,6 +91,37 @@ def conferir_separacao(linhas: list[dict], holdout: set[str], ouro: list[dict]) 
     return {"reunioes_do_holdout_no_treino": 0, "ids_do_ouro_no_treino": 0, "textos_iguais_ao_ouro": iguais}
 
 
+def ler_veredito(caminho: Path) -> dict:
+    """Veredito da professora (P9). Sem arquivo => {}. Arquivo inválido para (sem imprimir o conteúdo)."""
+    if not caminho.is_file():
+        return {}
+    try:
+        veredito = json.loads(caminho.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        raise SystemExit(f"erro: {caminho.name} não é um JSON válido") from None
+    if not isinstance(veredito, dict) or any(veredito.get(g, "usar") not in VEREDITOS for g in MODELOS):
+        raise SystemExit(f"erro: {caminho.name} fora do formato {{grupo: 'usar'|'nao_usar', 'data': ...}}")
+    return veredito
+
+
+def _rotulo_da_llm(linha: dict, grupo: str) -> bool:
+    if f"{grupo}_llm" in linha:
+        return (linha[f"{grupo}_llm"] or "") != ""
+    return linha.get("fonte") == "llm"
+
+
+def registro_professora(linhas: list[dict], veredito: dict, arquivo: str | None) -> dict:
+    """Por modelo treinado: veredito da professora e quantos rótulos vieram da LLM e da regra (só contagens)."""
+    grupos, avisos = {}, []
+    for nome in MODELOS:
+        da_llm = sum(1 for x in linhas if _rotulo_da_llm(x, nome))
+        estado = veredito.get(nome, SEM_VEREDITO)
+        grupos[nome] = {"veredito": estado, "rotulos_llm": da_llm, "rotulos_regra": len(linhas) - da_llm}
+        if da_llm and estado != "usar":
+            avisos.append(f"{nome}: {da_llm} rótulo(s) da LLM sem veredito 'usar' da professora")
+    return {"arquivo": arquivo, "data": veredito.get("data"), "grupos": grupos, "avisos": avisos}
+
+
 def treinar(linhas: list[dict], base: Any, params: dict[str, Any]) -> tuple[dict[str, Any], dict]:
     textos = [x["texto"] for x in linhas]
     modelos, tamanhos = {}, {}
@@ -116,6 +151,8 @@ def main(argv: list[str]) -> int:
     p.add_argument("--col-holdout", default="reuniao", help="coluna da reunião no holdout")
     p.add_argument("--ouro", type=Path, default=DADOS / "ouro_final.csv")
     p.add_argument("--candidatos", type=Path, default=DADOS / "candidatos")
+    p.add_argument("--veredito", type=Path, default=DADOS / "professora_veredito.json",
+                   help="veredito da professora (P9), só registrado no metadata.json")
     p.add_argument("--param", action="append", default=[], help="hiperparâmetro alterado (chave=valor); exige justificativa")
     p.add_argument("--justificativa", default="")
     args = p.parse_args(argv)
@@ -133,6 +170,8 @@ def main(argv: list[str]) -> int:
     ouro = ler_csv(args.ouro) if args.ouro.is_file() else []
     separacao = conferir_separacao(linhas, holdout, ouro)
     separacao["holdout_conferido"] = bool(holdout)
+    veredito = ler_veredito(args.veredito)
+    professora = registro_professora(linhas, veredito, args.veredito.name if args.veredito.is_file() else None)
 
     import sklearn
 
@@ -156,9 +195,12 @@ def main(argv: list[str]) -> int:
         "mudancas": [{"parametro": k, "valor": descrever(v), "valor_base": descrever(base.get_params(deep=True).get(k)),
                       "justificativa": args.justificativa} for k, v in params.items()],
         "separacao": separacao,
+        "professora": professora,
     }
     (pasta / "metadata.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
-    imprimir({"candidato": pasta.name, "tamanhos": tamanhos, "mudancas": len(params), "separacao": separacao})
+    imprimir({"candidato": pasta.name, "tamanhos": tamanhos, "mudancas": len(params), "separacao": separacao,
+              "professora": {g: v["veredito"] for g, v in professora["grupos"].items()},
+              "avisos_professora": professora["avisos"]})
     return 0
 
 

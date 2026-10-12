@@ -11,8 +11,9 @@ ou sem resposta da LLM ficam de fora (só contados).
 Veredito por grupo: "usar" se kappa >= 0,6 e revocação >= 0,7; senão "NÃO usar para rótulos fracos nesse grupo".
 O ouro_final.csv só tem o trecho alvo (o contexto não é guardado), então a LLM vê menos do que na destilação.
 
-Escreve `docs/evidencias/professora-<data>.md` (só métricas). Nunca imprime texto de trecho, resposta da LLM,
-mensagem de erro do provedor ou chave.
+Escreve `docs/evidencias/professora-<data>.md` (só métricas) e `dados_locais/professora_veredito.json`
+(`{grupo: "usar"|"nao_usar", "data": ...}`, lido pelo `treinar.py`). Rodada PRELIMINAR não grava o veredito (nem
+sobrescreve o anterior). Nunca imprime texto de trecho, resposta da LLM, mensagem de erro do provedor ou chave.
 """
 import argparse
 import datetime as dt
@@ -31,6 +32,7 @@ GRUPOS = ("risco", "oportunidade", "interesse")
 LIMIAR_REVOCACAO = 0.7
 USAR = "usar"
 NAO_USAR = "NÃO usar para rótulos fracos nesse grupo"
+VEREDITO_JSON = {USAR: "usar", NAO_USAR: "nao_usar"}  # valores do professora_veredito.json
 TETO_MAXIMO_USD = 0.5  # validar a professora é barato: o ouro tem poucas centenas de trechos
 POSITIVOS_MINIMOS = 30  # abaixo disso o grupo é só indicativo
 MODOS = {"unico": "rotulador único (João Paulo), sem validação cruzada entre pessoas",
@@ -66,6 +68,13 @@ def veredito(m: dict) -> str:
     if m["positivos"] == 0 or m["kappa"] is None:
         return NAO_USAR
     return USAR if m["kappa"] >= LIMIAR_KAPPA and m["revocacao"] >= LIMIAR_REVOCACAO else NAO_USAR
+
+
+def gravar_veredito(caminho: Path, r: dict, data: str) -> None:
+    """`{grupo: "usar"|"nao_usar", "data": data}`: só rótulos e a data, nada de trecho."""
+    conteudo = {g: VEREDITO_JSON[veredito(r[g])] for g in GRUPOS} | {"data": data}
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    caminho.write_text(json.dumps(conteudo, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def escrever_relatorio(caminho: Path, meta: dict, r: dict, destilacao: dict) -> None:
@@ -110,6 +119,8 @@ def main(argv: list[str], chamar: Chamar | None = None) -> int:
     p.add_argument("--ouro", type=Path, default=DADOS / "ouro_final.csv")
     p.add_argument("--pasta", type=Path, default=DADOS / "professora", help="cache e estado (retomada)")
     p.add_argument("--relatorio", type=Path, default=None, help="padrão: docs/evidencias/professora-<data>.md")
+    p.add_argument("--veredito", type=Path, default=DADOS / "professora_veredito.json",
+                   help="veredito por grupo, lido pelo treinar.py")
     p.add_argument("--motor", choices=["llm1", "llm2"], default="llm2")
     p.add_argument("--modelo", default=None, help="modelo barato (padrão: o do .env para o motor)")
     p.add_argument("--teto-usd", type=float, required=True, help=f"obrigatório; máximo {TETO_MAXIMO_USD}")
@@ -140,7 +151,10 @@ def main(argv: list[str], chamar: Chamar | None = None) -> int:
             "preliminar": r["_fora"]["sem_resposta_da_llm"] > 0}
     relatorio = args.relatorio or EVIDENCIAS / f"professora-{data}.md"
     escrever_relatorio(relatorio, meta, r, destilacao)
-    imprimir({"relatorio": relatorio.name, "preliminar": meta["preliminar"], "destilacao": destilacao,
+    if not meta["preliminar"]:  # veredito só de comparação completa; o arquivo anterior fica como estava
+        gravar_veredito(args.veredito, r, data)
+    imprimir({"relatorio": relatorio.name, "preliminar": meta["preliminar"],
+              "veredito_gravado": args.veredito.name if not meta["preliminar"] else None, "destilacao": destilacao,
               "fora": r["_fora"], "metricas": {g: r[g] for g in GRUPOS},
               "veredito": {g: veredito(r[g]) for g in GRUPOS}})
     return 2 if destilacao.get("erro") else 0

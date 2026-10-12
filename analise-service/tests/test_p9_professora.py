@@ -1,4 +1,5 @@
 """P9 — validar_professora.py: LLM da destilação × rótulos do João no ouro. Tudo SINTÉTICO, cliente simulado."""
+import datetime as dt
 import json
 import re
 import subprocess
@@ -115,6 +116,7 @@ def montar_pasta(tmp_path: Path, completo=False, modo="unico", ouro=None) -> Pat
 
 def rodar(tmp_path: Path, llm, *extra, teto="0.5"):
     return vp.main(["--ouro", str(tmp_path / "ouro_final.csv"), "--pasta", str(tmp_path / "professora"),
+                    "--veredito", str(tmp_path / "professora_veredito.json"),
                     "--relatorio", str(tmp_path / "professora.md"), "--teto-usd", teto, "--preco-entrada", "0.15",
                     "--preco-saida", "0.60", *extra], chamar=llm)
 
@@ -152,6 +154,7 @@ def test_main_para_no_teto_e_marca_preliminar(tmp_path):
     llm = LLMFalsa()
     # preço absurdo: a estimativa do 1º lote já passa do teto => nenhuma chamada
     codigo = vp.main(["--ouro", str(tmp_path / "ouro_final.csv"), "--pasta", str(tmp_path / "professora"),
+                      "--veredito", str(tmp_path / "professora_veredito.json"),
                       "--relatorio", str(tmp_path / "professora.md"), "--teto-usd", "0.01",
                       "--preco-entrada", "1000", "--preco-saida", "1000"], chamar=llm)
     assert codigo == 0 and llm.chamadas == 0
@@ -162,6 +165,7 @@ def test_main_para_no_teto_e_marca_preliminar(tmp_path):
 def test_teto_obrigatorio_e_no_maximo_meio_dolar(tmp_path):
     montar_pasta(tmp_path)
     base = ["--ouro", str(tmp_path / "ouro_final.csv"), "--pasta", str(tmp_path / "professora"),
+            "--veredito", str(tmp_path / "professora_veredito.json"),
             "--relatorio", str(tmp_path / "professora.md"), "--preco-entrada", "0.15", "--preco-saida", "0.6"]
     llm = LLMFalsa()
     with pytest.raises(SystemExit):
@@ -194,3 +198,28 @@ def test_sem_ouro_final_para_com_mensagem(tmp_path, capsys):
 def test_help_roda():
     r = subprocess.run([sys.executable, "treino/validar_professora.py", "--help"], cwd=RAIZ, capture_output=True)
     assert r.returncode == 0 and b"--teto-usd" in r.stdout
+
+
+def test_main_grava_o_veredito_por_grupo_para_o_treino(tmp_path, capsys):
+    montar_pasta(tmp_path, completo=True)
+    assert rodar(tmp_path, LLMFalsa(erro_risco_em=range(0, 6))) == 0
+    caminho = tmp_path / "professora_veredito.json"
+    veredito = json.loads(caminho.read_text(encoding="utf-8"))
+    assert veredito == {"risco": "nao_usar", "oportunidade": "usar", "interesse": "usar",
+                        "data": dt.date.today().isoformat()}
+    assert json.loads(capsys.readouterr().out)["veredito_gravado"] == "professora_veredito.json"
+    assert "Frase sintética" not in caminho.read_text(encoding="utf-8")
+    from treino import treinar
+
+    assert treinar.ler_veredito(caminho) == veredito  # o treino lê o mesmo formato
+
+
+def test_rodada_preliminar_nao_grava_nem_sobrescreve_o_veredito(tmp_path):
+    montar_pasta(tmp_path)
+    caro = ("--preco-entrada", "1000", "--preco-saida", "1000")  # o 1º lote já passa do teto: nada é chamado
+    assert rodar(tmp_path, LLMFalsa(), *caro, teto="0.01") == 0
+    assert not (tmp_path / "professora_veredito.json").exists()
+    anterior = '{"risco": "usar", "oportunidade": "usar", "interesse": "usar", "data": "2026-10-01"}\n'
+    (tmp_path / "professora_veredito.json").write_text(anterior, encoding="utf-8")
+    assert rodar(tmp_path, LLMFalsa(), *caro, teto="0.01") == 0
+    assert (tmp_path / "professora_veredito.json").read_text(encoding="utf-8") == anterior

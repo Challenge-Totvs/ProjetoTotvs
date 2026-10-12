@@ -67,3 +67,11 @@ A primeira mudou a fixture `resposta-similares.json` (só `np-101`, 0,259); a se
 `limiar` explícito). Teste novo: padrão = 0,25 e a `np-104` só volta com `limiar: 0.2`. Também atualizados
 `docs/contrato/similares.md` (§2 e §5) e `docs/handoff-kelwin-12-10.md` (exemplo e nota do limiar). **Avisar o Kelwin:** a
 fixture de resposta do `/similares` perdeu um item (o formato não mudou). pytest: `453 passed`.
+
+**Status 1b:** concluído na leitura conservadora (o fim da frase não chegou). `validar_professora.py` grava
+`professora_veredito.json` só em rodada completa (`veredito_gravado` na saída diz o nome ou `null`). `treinar.py` lê o
+arquivo (`ler_veredito`: sem arquivo => `sem_veredito`; JSON inválido ou valor fora de `usar`/`nao_usar` => para, sem
+mostrar o conteúdo) e grava em `metadata.json` a chave `professora`: `arquivo`, `data` e, para risco e interesse,
+`veredito`, `rotulos_llm` e `rotulos_regra`, mais `avisos` quando um grupo tem rótulo da LLM sem `usar`. Oportunidade
+não entra porque o `treinar.py` não treina modelo de oportunidade. Testes novos: 2 no P9 e 5 no treino. Os testes
+antigos passaram a usar caminhos temporários para o veredito; nada foi gravado em `dados_locais/`. pytest: `460 passed`.
