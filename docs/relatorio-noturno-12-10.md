@@ -212,6 +212,6 @@ promoção.
 - 3-D11: a flag só liga com o valor exato "1" (espaços nas pontas ignorados).
 
 **Pendências (P8):** validar a "professora" (LLM da destilação) contra o ouro antes de confiar nos rótulos fracos
-(o escopo §3 pede; não há script para isso ainda — dá para fazer com `--amostra` restrita aos ids do ouro numa próxima
-sessão); calibrar `LIMIAR_P_INTERESSE`, o veto 0,3 e o `LIMIAR_SIMILARIDADE` com o ouro; promover candidatos só por
+(o escopo §3 pede; ainda não há script nem opção para isso: fica para uma próxima sessão, reaproveitando
+`rotulos_fracos.destilar` sobre os trechos do ouro); calibrar `LIMIAR_P_INTERESSE`, o veto 0,3 e o `LIMIAR_SIMILARIDADE` com o ouro; promover candidatos só por
 decisão manual do João.
