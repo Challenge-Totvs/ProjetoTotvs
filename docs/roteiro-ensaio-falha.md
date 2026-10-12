@@ -11,8 +11,8 @@ A alavanca da demo é a variável `FORCAR_FALHA`: lista de motores que falham de
 1. Rode o ensaio offline uma vez: `python scripts/ensaio_falha.py` (sem rede, sem chave; mostra a tabela dos 5 cenários).
    Se a internet cair na banca, **essa tabela é o plano B**: a mesma sequência, em 5 s.
 2. Confira que `analise-service/.env` tem as chaves das duas LLMs (não mostre o arquivo na tela).
-   **Pendência:** o smoke da `llm1` ainda não foi feito. Se a `llm1` não responder, o cenário 1 mostra
-   `llm1:autenticacao > llm2:ok`: não é defeito da demo, é a cadeia funcionando; avise e siga para o cenário 2.
+   O smoke das duas LLMs passou em 12/10 (`docs/evidencias/smoke-12-10.md`). Se mesmo assim a `llm1` não responder na
+   hora, o cenário 1 mostra `llm1:<erro> > llm2:ok`: não é defeito da demo, é a cadeia funcionando; avise e siga para o 2.
 3. Terminal A (servidor) e terminal B (comandos), os dois em `analise-service/`. No terminal B, cole **uma vez**:
 
 ```powershell
@@ -26,7 +26,7 @@ function Saude { $h = Invoke-RestMethod http://localhost:8000/health; "status=$(
 ```
 
 O pedido é o curto do contrato (`docs/contrato/pedido-v3.json`): a LLM responde em poucos segundos. Para mostrar o pior
-caso, troque por `tests/fixtures/transcricao-sintetica-p90.json` (399 turnos; a llm2 leva ~17 s).
+caso, troque por `tests/fixtures/transcricao-sintetica-p90.json` (399 turnos; a llm1 leva ~9 s e a llm2 ~17 s).
 
 ## Como trocar de cenário (leva ~3 s)
 

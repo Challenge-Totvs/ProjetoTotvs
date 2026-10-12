@@ -29,13 +29,12 @@ ACEITE = {
     "AC8": ["test_p0_mock::test_ac8_mock_devolve_fixture_e_header"],
     # Lado Python do AC9; o teste Java que lê as mesmas fixtures é do Kelwin (PENDENTE).
     "AC9": ["test_p1_schemas::test_ac2_fixtures_validam", "test_p6_contrato::test_fixtures_usam_so_valores_que_o_java_aceita"],
-    # pytest verde sem rede e sem chaves; o smoke real (docs/evidencias/smoke-12-10.md) é manual e está PENDENTE.
+    # pytest verde sem rede e sem chaves; o smoke real é manual e foi feito em 12/10 (docs/evidencias/smoke-12-10.md).
     "AC10": ["test_rede_bloqueada::test_conexao_externa_e_bloqueada", "test_p6_rastreabilidade::test_ac10_sem_rede_e_sem_chaves"],
 }
 
 PENDENTE = {
     "AC9": "teste Java lendo docs/contrato/resposta-v3-*.json em ContratoV3.Resposta (Kelwin)",
-    "AC10": "smoke real com as duas chaves em scripts/smoke_llm.py, registrado em docs/evidencias/smoke-12-10.md (João Paulo)",
 }
 
 

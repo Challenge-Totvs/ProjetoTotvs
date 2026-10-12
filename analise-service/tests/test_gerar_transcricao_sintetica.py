@@ -124,7 +124,7 @@ def test_smoke_entrada_usa_a_transcricao_gerada(smoke, gerador, tmp_path, monkey
     assert [m for m, _ in vistos] == ["llm1", "llm2"]
     total = sum(len(t.texto) for t in vistos[0][1].turnos)
     assert total >= 8000
-    cabecalho = json.loads(capsys.readouterr().out.splitlines()[1])
+    cabecalho = json.loads(next(x for x in capsys.readouterr().out.splitlines() if x.startswith("{")))
     assert cabecalho == {"entrada": "t.json", "turnos": len(vistos[0][1].turnos), "caracteres": total}
 
 

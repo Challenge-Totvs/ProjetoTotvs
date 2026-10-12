@@ -43,3 +43,18 @@ def test_smoke_erro_mostra_so_o_codigo(smoke, pedido, monkeypatch):
     instalar(monkeypatch, llm1=ClienteAnthropicFalso(erro=RateLimitError("Abrimos um chamado secreto")))
     resultado = smoke.rodar("llm1", pedido)
     assert resultado == {"motor": "llm1", "ok": False, "erro": "limite_requisicoes", "tempo_s": resultado["tempo_s"]}
+
+
+def test_prompt_validado_com_llm_real():
+    # Smoke das duas LLMs registrado em docs/evidencias/smoke-12-10.md.
+    assert llm_engine.PROMPT_VALIDADO_COM_LLM_REAL is True
+
+
+def test_aviso_de_prompt_nao_validado_so_aparece_com_a_constante_falsa(smoke, monkeypatch, capsys):
+    monkeypatch.setattr(smoke, "rodar", lambda motor, pedido: {"motor": motor, "ok": True})
+    monkeypatch.setattr(llm_engine, "PROMPT_VALIDADO_COM_LLM_REAL", True)
+    assert smoke.main(["llm2"]) == 0
+    assert "NÃO validado" not in capsys.readouterr().out
+    monkeypatch.setattr(llm_engine, "PROMPT_VALIDADO_COM_LLM_REAL", False)
+    assert smoke.main(["llm2"]) == 0
+    assert smoke.AVISO_PROMPT_NAO_VALIDADO in capsys.readouterr().out

@@ -18,9 +18,9 @@ Mudou campo? Atualize doc e fixture ANTES do código e avise João Paulo, que av
 
 ## Estado atual (12/10)
 P0 a P6, P7 e P8 (etapas 1 a 6) estão commitadas na branch `analise-service(joao)`: o Python fala o contrato v3, a
-cadeia real roda e o `/health` usa a última tentativa real (`FORCAR_FALHA` para a demo). Smoke da llm2 ok (17,4 s no
-pior caso, orçamento de 35 s). Falta o smoke da llm1 (o prompt ainda não foi validado com a llm1 real) e rodar o P8
-nos dados reais.
+cadeia real roda e o `/health` usa a última tentativa real (`FORCAR_FALHA` para a demo). Smokes das duas LLMs ok e
+prompt validado com LLM real (P90: llm1 8,7 s, llm2 17,4 s; timeout do Java fica em 120 s). Falta rodar o P8 nos
+dados reais.
 
 ## Arquitetura
 router -> orchestrator -> cadeia: llm1 (Anthropic) -> llm2 (OpenAI) -> local

@@ -13,8 +13,8 @@ HTTP e o tipo do erro do provedor (`authentication_error`, `not_found_error`, `p
 `rate_limit_error`, `invalid_request_error`...). Nunca imprime texto da transcrição, texto devolvido pela
 LLM, mensagens de erro do provedor, corpo da requisição nem chaves.
 
-ATENÇÃO: o prompt NÃO foi validado com LLM real até este script rodar e o resultado ser registrado
-em docs/evidencias/smoke-12-10.md.
+Prompt validado com as duas LLMs em 12/10 (docs/evidencias/smoke-12-10.md). O aviso "prompt NÃO validado" só
+aparece se `llm_engine.PROMPT_VALIDADO_COM_LLM_REAL` voltar a ser falso (ex.: depois de mudar o prompt).
 """
 import argparse
 import json
@@ -34,6 +34,7 @@ from app.schemas import AnaliseResponse, PedidoAnalise  # noqa: E402
 
 PEDIDO = RAIZ.parent / "docs" / "contrato" / "pedido-v3.json"
 GRUPOS = ("temas", "interesse", "compromissos", "eventosConduta")
+AVISO_PROMPT_NAO_VALIDADO = "SMOKE MANUAL — prompt NÃO validado com LLM real até este resultado ser registrado."
 
 
 def resumir(devolvido_pela_llm, resposta: dict) -> dict:
@@ -90,7 +91,8 @@ def main(argv: list[str]) -> int:
     caminho = args.entrada
     motores = list(dict.fromkeys(args.motores)) or ["llm1", "llm2"]
     pedido = PedidoAnalise.model_validate(json.loads(caminho.read_text(encoding="utf-8")))
-    print("SMOKE MANUAL — prompt NÃO validado com LLM real até este resultado ser registrado.")
+    if not llm_engine.PROMPT_VALIDADO_COM_LLM_REAL:
+        print(AVISO_PROMPT_NAO_VALIDADO)
     print(json.dumps({"entrada": caminho.name, "turnos": len(pedido.turnos),
                       "caracteres": sum(len(t.texto) for t in pedido.turnos)}, ensure_ascii=False))
     falhou = False

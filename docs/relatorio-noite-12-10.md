@@ -28,6 +28,11 @@ As anotações do João em `docs/relatorio-tarde-12-10.md` (alteração local, n
 - Coerência (mesmo commit, só texto): `docs/roteiro-ensaio-falha.md` (tira a pendência da llm1) e uma nota datada em
   `docs/decisoes.md` (o histórico antigo não é reescrito).
 
+**Status:** concluído. Constante em `True`; aviso do smoke condicionado (`AVISO_PROMPT_NAO_VALIDADO`); 2 testes novos em
+`test_smoke_script.py`; `test_gerar_transcricao_sintetica` deixou de supor que o aviso é a 1ª linha da saída; AC10 saiu
+de `PENDENTE` (fica só o AC9, do Kelwin). Na evidência, "eventos de conduta" da P90 ficou "não registrado" (o dado não veio
+no pedido). pytest: `452 passed`.
+
 ## Item 1a — LIMIAR_SIMILARIDADE 0.20 -> 0.25 (um commit, com teste)
 
 **Plano**
