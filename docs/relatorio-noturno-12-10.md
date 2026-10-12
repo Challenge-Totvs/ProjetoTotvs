@@ -81,3 +81,46 @@ sem rede; importar o app não carrega sklearn.
 
 **Pendências (P7):** validação do contrato (João + Kelwin); cliente Java, campo `semelhanteNaoProcede` e ignorar falha
 em silêncio (Kelwin); calibração do limiar com o ouro (P8).
+
+## Item 3 — P8: pipeline de retreino (etapas 1 a 6)
+**Plano (escrito antes de implementar):**
+- Pasta `analise-service/treino/` (pacote, para os testes importarem), um script por etapa, todos com `--help`,
+  imprimindo só contagens/métricas. `treino/comum.py`: caminhos (`dados_locais/`), leitura de turnos pela regra do SDD
+  §5.2 (`[LOCUTOR n]`), grupos (risco/oportunidade a partir de `regras_engine.TIPO_DO_PADRAO`), normalização de rótulos,
+  hash de arquivo, escrita de CSV. Nenhum dado real é lido por mim; testes só com dados sintéticos em `tmp_path`.
+- **1. `extrair_trechos.py`**: lê o CSV do corpus (nomes de coluna configuráveis: `--col-reuniao`, `--col-cliente`,
+  `--col-texto`, porque o formato real não está documentado no repo) e o `holdout_reunioes.csv`; exclui as reuniões do
+  holdout E todas as reuniões dos clientes (CODT) que aparecem no holdout; divide por turno; grava `trechos.csv`
+  (id `reuniao:turno`, reunião, cliente, turno, locutor, texto do turno alvo, contexto = 2 turnos anteriores).
+  `--verificar` imprime só os NOMES das colunas e a contagem de linhas, para o João conferir os nomes antes.
+- **2. `rotulos_fracos.py`**: (a) regra: `regras_engine` como fonte única (risco/oportunidade = alguma expressão do
+  tipo casa no turno alvo; interesse = `EXPRESSAO_INTERESSE`, sem veto). (b) `--destilar`: amostra de ~3.000 candidatos
+  (70% com algum acerto de regra, 30% sem, semente fixa), lotes de 20 trechos por chamada a UMA LLM (`--motor llm1|llm2`,
+  credenciais do `.env` via `app.config`), saída estruturada `{id, risco, oportunidade, interesse}`, texto neutralizado
+  (`llm_engine.neutralizar`). Exige `--teto-usd` (máx. 2) e os preços por milhão de tokens (`--preco-entrada`,
+  `--preco-saida`, sem preço embutido no código); para ANTES de um lote que possa estourar o teto; cache JSONL e gasto
+  acumulado em disco, retoma de onde parou. A chamada é injetável: os testes usam cliente simulado. Saída
+  `rotulos_fracos.csv` (regra + destilação; rótulo de treino = LLM quando houver, senão regra).
+- **3. `conciliar_ouro.py`**: `--modo unico` (padrão): metade A obrigatória, B opcional ("parcial" sem ela); reteste
+  (`ouro_reteste_PRONTO.xlsx` + `reteste_mapa.csv`) => kappa de Cohen teste-reteste para `padrao` e `interesse`.
+  `--modo pares`: 4 planilhas (1-2 = metade A, 3-4 = metade B), kappa por par e campo, `divergencias.xlsx` para
+  arbitragem; com `divergencias_PRONTO.xlsx` aplica a arbitragem e grava o ouro. Kappa < 0,6 => aviso explícito. Grava
+  `ouro_final.csv` + `ouro_final.json` (modo, completo/parcial, kappas) e um relatório só com métricas. Colunas das
+  planilhas por nome de cabeçalho (configuráveis); `--verificar` imprime só cabeçalhos e contagens.
+- **4. `treinar.py`**: `sklearn.base.clone` do Pipeline de `app/modelos/classificador_risco.joblib` (D17: herda os
+  hiperparâmetros e as 315 stop words) para o risco E para o interesse (mesma família). Só rótulos fracos, só reuniões
+  fora do holdout; aborta se algum id/reunião do ouro aparecer no treino. `--param chave=valor` exige `--justificativa`
+  e fica registrado. Salva `dados_locais/candidatos/<data>/{risco,interesse}.joblib` + `metadata.json` (data, sha256
+  dos dados, versão do sklearn, tamanhos, positivos, hiperparâmetros escalares, mudanças).
+- **5. `portao.py`**: no `ouro_final.csv` (sem as linhas com `duvida`), por grupo: risco (classificador atual × candidato,
+  limiar `LIMIAR_RISCO`), interesse (filtro atual = regex v2 + risco < 0,3 × candidato com `LIMIAR_P_INTERESSE`),
+  oportunidade (regex nos dois: informativo). Precisão, revocação, F1, IC95% por bootstrap da diferença de F1. Aprova
+  por modelo: F1 cand >= F1 atual E precisão não cai > 0,02 E IC95% não inteiramente < 0. Ouro parcial => nunca
+  recomenda promoção. Escreve `docs/evidencias/portao-<data>.md` (só métricas, declara modo e parcial/completo, avisa que
+  por padrão é indicativo) e imprime o comando de promoção manual ou "REPROVADO: mantém o atual".
+- **6. Encaixe em `modelo_local_engine`**: `config.interesse_modelo_ligado()` (ausente = "0" = desligado) e
+  `config.CAMINHO_MODELO_INTERESSE = app/modelos/classificador_interesse.joblib` (nunca `dados_locais/`).
+  `prever_interesse(trechos: list[(n, texto NFC)]) -> dict[n, p] | None`; `None` = usar o filtro atual (flag desligada,
+  artefato ausente, falha ao carregar ou exceção na predição, com log só do tipo). Com p, interesse = turnos com
+  `p >= LIMIAR_P_INTERESSE` (até 20, maiores p), citação = turno (recorte <= 600) via `conferir_citacoes`. Flag NÃO entra
+  no `.env` nem no `.env.example`.
