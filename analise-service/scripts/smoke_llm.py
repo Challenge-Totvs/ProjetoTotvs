@@ -3,8 +3,10 @@
     cd analise-service
     python scripts/smoke_llm.py            # llm1 e llm2
     python scripts/smoke_llm.py llm1       # só uma
+    python scripts/smoke_llm.py --entrada tests/fixtures/transcricao-sintetica-p90.json   # pior caso (P90)
 
-Envia docs/contrato/pedido-v3.json (sintético) a cada LLM, lendo as chaves do ambiente (e de
+Envia docs/contrato/pedido-v3.json (sintético), ou o pedido de `--entrada` (gerado por
+scripts/gerar_transcricao_sintetica.py; `--pedido` é sinônimo antigo), a cada LLM, lendo as chaves do ambiente (e de
 analise-service/.env, se existir), valida a resposta contra AnaliseResponse e imprime SÓ motor,
 tempo, contagens e o resultado da conferência de citações. Em falha, imprime o código do contrato, o código
 HTTP e o tipo do erro do provedor (`authentication_error`, `not_found_error`, `permission_error`,
@@ -14,6 +16,7 @@ LLM, mensagens de erro do provedor, corpo da requisição nem chaves.
 ATENÇÃO: o prompt NÃO foi validado com LLM real até este script rodar e o resultado ser registrado
 em docs/evidencias/smoke-12-10.md.
 """
+import argparse
 import json
 import sys
 import time
@@ -41,6 +44,7 @@ def resumir(devolvido_pela_llm, resposta: dict) -> dict:
         "confirmado_pela_conferencia": {g: len(resposta[g]) for g in GRUPOS},
         "descartados_por_motivo": dict(Counter(d["motivo"] for d in descartados)),
         "descartados_por_origem": dict(Counter(d.get("origem", "?") for d in descartados)),
+        "padroes_confirmados": sorted({t["padrao"] for t in resposta["temas"]}),
         "avisos": resposta["avisos"],
         "score": resposta["score"],
         "sentimento": resposta["sentimento"],
@@ -77,14 +81,14 @@ def rodar(motor: str, pedido: PedidoAnalise) -> dict:
 
 
 def main(argv: list[str]) -> int:
+    analisador = argparse.ArgumentParser(description="Smoke manual das LLMs reais (imprime só contagens).")
+    analisador.add_argument("motores", nargs="*", choices=["llm1", "llm2"], help="padrão: llm1 e llm2")
+    analisador.add_argument("--entrada", "--pedido", dest="entrada", type=Path, default=PEDIDO,
+                            help="pedido v3 em JSON (padrão: docs/contrato/pedido-v3.json)")
+    args = analisador.parse_args(argv)
     config.carregar_dotenv()
-    args = list(argv)
-    caminho = PEDIDO
-    if "--pedido" in args:  # pedido alternativo, ex.: o sintético de tamanho P90 (scripts/gerar_transcricao_sintetica.py)
-        i = args.index("--pedido")
-        caminho = Path(args[i + 1])
-        del args[i : i + 2]
-    motores = [m for m in args if m in ("llm1", "llm2")] or ["llm1", "llm2"]
+    caminho = args.entrada
+    motores = list(dict.fromkeys(args.motores)) or ["llm1", "llm2"]
     pedido = PedidoAnalise.model_validate(json.loads(caminho.read_text(encoding="utf-8")))
     print("SMOKE MANUAL — prompt NÃO validado com LLM real até este resultado ser registrado.")
     print(json.dumps({"entrada": caminho.name, "turnos": len(pedido.turnos),

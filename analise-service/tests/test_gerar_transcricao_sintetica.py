@@ -112,3 +112,38 @@ def test_smoke_aceita_pedido_alternativo(smoke, gerador, tmp_path, monkeypatch, 
     assert vistos and vistos[0][0] == "llm1" and vistos[0][1] > 12
     saida = capsys.readouterr().out
     assert "entrada" in saida and "caracteres" in saida
+
+
+def test_smoke_entrada_usa_a_transcricao_gerada(smoke, gerador, tmp_path, monkeypatch, capsys):
+    destino = tmp_path / "t.json"
+    gerador.main(["--caracteres", "8000", "--saida", str(destino)])
+    capsys.readouterr()
+    vistos = []
+    monkeypatch.setattr(smoke, "rodar", lambda motor, pedido: vistos.append((motor, pedido)) or {"motor": motor, "ok": True})
+    assert smoke.main(["--entrada", str(destino)]) == 0
+    assert [m for m, _ in vistos] == ["llm1", "llm2"]
+    total = sum(len(t.texto) for t in vistos[0][1].turnos)
+    assert total >= 8000
+    cabecalho = json.loads(capsys.readouterr().out.splitlines()[1])
+    assert cabecalho == {"entrada": "t.json", "turnos": len(vistos[0][1].turnos), "caracteres": total}
+
+
+def test_smoke_sem_entrada_usa_o_pedido_do_contrato(smoke, monkeypatch, capsys):
+    vistos = []
+    monkeypatch.setattr(smoke, "rodar", lambda motor, pedido: vistos.append(motor) or {"motor": motor, "ok": True})
+    assert smoke.main(["llm2"]) == 0
+    assert vistos == ["llm2"] and '"entrada": "pedido-v3.json"' in capsys.readouterr().out
+
+
+def test_smoke_recusa_motor_desconhecido(smoke):
+    with pytest.raises(SystemExit):
+        smoke.main(["llm3"])
+
+
+def test_smoke_resumo_lista_padroes_confirmados(smoke, monkeypatch):
+    from test_p2_llm import ClienteAnthropicFalso, instalar, resposta_anthropic, saida_valida
+
+    instalar(monkeypatch, llm1=ClienteAnthropicFalso(resposta_anthropic(saida_valida())))
+    pedido = PedidoAnalise.model_validate(json.loads(smoke.PEDIDO.read_text(encoding="utf-8")))
+    resultado = smoke.rodar("llm1", pedido)
+    assert resultado["padroes_confirmados"] == sorted({t["padrao"] for t in saida_valida()["temas"]})
