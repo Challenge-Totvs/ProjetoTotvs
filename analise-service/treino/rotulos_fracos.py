@@ -2,12 +2,13 @@
 
     cd analise-service
     python treino/rotulos_fracos.py                                   # só regra (sem API)
-    python treino/rotulos_fracos.py --destilar --motor llm2 --teto-usd 2 --preco-entrada 0.15 --preco-saida 0.60
+    python treino/rotulos_fracos.py --destilar --teto-usd 0.3 --preco-entrada 0.10 --preco-saida 0.50   # claude-haiku-5-5
 
 (a) Regra: `regras_engine` é a FONTE ÚNICA. risco/oportunidade = alguma expressão daquele tipo casa no turno alvo;
 interesse = `EXPRESSAO_INTERESSE` (palavra-chave v2, sem o veto de risco).
 (b) --destilar: amostra ~3.000 trechos candidatos (70% com algum acerto de regra, 30% sem; semente fixa) e manda em lotes
-de 20 à LLM do `--motor` (chave e modelo do `.env`; `--modelo` troca só o modelo). Exige `--teto-usd` (máximo US$ 2,
+de 20 à LLM do `--motor` (padrão `llm1` com `claude-haiku-5-5`, a mais barata; na llm2, o modelo do `.env`;
+`--modelo` troca só o modelo). Exige `--teto-usd` (máximo US$ 2,
 D14) e os preços por MILHÃO de tokens (`--preco-entrada`, `--preco-saida`), confira-os na página do provedor. Antes de
 cada lote estima o custo e PARA se ele puder passar do teto; o gasto acumulado e as respostas ficam em
 `dados_locais/destilacao/` e a próxima execução retoma de onde parou (não paga de novo o que já está no cache).
@@ -43,7 +44,14 @@ COLUNAS_SAIDA = [
     "risco_regra", "oportunidade_regra", "interesse_regra",
     "risco_llm", "oportunidade_llm", "interesse_llm",
     "risco", "oportunidade", "interesse", "fonte",
+    "duvida", "motivo_duvida",  # vêm do trecho e seguem adiante; nunca são apagados
 ]
+CAMPOS_DO_TRECHO = ("id", "reuniao", "cliente", "turno", "texto", "duvida", "motivo_duvida")
+# Professora = a opção mais barata que cumpre o objetivo. Preço oficial (13/10), por milhão de tokens:
+# claude-haiku-5-5 US$ 0,10 entrada / 0,50 saída, abaixo do gpt-4.1-mini da llm2. A mesma professora rotula
+# (destilação) e é validada (P9). Os preços continuam obrigatórios na linha de comando.
+MOTOR_PADRAO = "llm1"
+MODELO_PADRAO = {"llm1": "claude-haiku-5-5"}
 
 # Chamada da LLM: recebe o prompt do lote, devolve (itens, tokens_entrada, tokens_saida). Injetável nos testes.
 Chamar = Callable[[str], tuple[list[dict], int, int]]
@@ -198,7 +206,7 @@ def criar_chamada(motor: str, modelo: str | None) -> Chamar:
     credenciais = config.credenciais_llm(motor)
     if credenciais is None:
         raise SystemExit(f"erro: {motor} sem chave/modelo no ambiente")
-    modelo = modelo or credenciais[1]
+    modelo = modelo or MODELO_PADRAO.get(motor) or credenciais[1]
     cliente = llm_engine.obter_cliente(motor)
     timeout = config.TIMEOUT_LLM_S[motor]
 
@@ -230,7 +238,7 @@ def combinar(trechos: list[dict], cache: dict[str, dict]) -> list[dict]:
     for t in trechos:
         regra = rotular_por_regra(t["texto"])
         llm = cache.get(t["id"]) if cache.get(t["id"], {}).get("ok") else None
-        linha = {k: t.get(k, "") for k in ("id", "reuniao", "cliente", "turno", "texto")}
+        linha = {k: t.get(k, "") for k in CAMPOS_DO_TRECHO}
         for g in GRUPOS_LLM:
             linha[f"{g}_regra"] = bool_csv(regra[g])
             linha[f"{g}_llm"] = bool_csv(llm[g]) if llm else ""
@@ -258,8 +266,8 @@ def main(argv: list[str], chamar: Chamar | None = None) -> int:
     p.add_argument("--saida", type=Path, default=DADOS / "rotulos_fracos.csv")
     p.add_argument("--pasta-destilacao", type=Path, default=DADOS / "destilacao")
     p.add_argument("--destilar", action="store_true", help="manda a amostra de candidatos à LLM (custa dinheiro)")
-    p.add_argument("--motor", choices=["llm1", "llm2"], default="llm2")
-    p.add_argument("--modelo", default=None, help="modelo barato (padrão: o do .env para o motor)")
+    p.add_argument("--motor", choices=["llm1", "llm2"], default=MOTOR_PADRAO)
+    p.add_argument("--modelo", default=None, help="padrão: claude-haiku-5-5 na llm1; o do .env na llm2")
     p.add_argument("--teto-usd", type=float, default=None, help=f"obrigatório com --destilar; máximo {TETO_MAXIMO_USD}")
     p.add_argument("--preco-entrada", type=float, default=None, help="US$ por milhão de tokens de entrada")
     p.add_argument("--preco-saida", type=float, default=None, help="US$ por milhão de tokens de saída")

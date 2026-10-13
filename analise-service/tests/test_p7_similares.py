@@ -79,6 +79,15 @@ def test_limiar_e_constante_nomeada():
     assert 0 < similares.LIMIAR_SIMILARIDADE < 1
 
 
+def test_limiar_padrao_e_025_e_a_parafrase_distante_so_volta_com_limiar_explicito(cliente):
+    # Decisão de 12/10 (0,2 -> 0,25): a np-104 da fixture (score 0,2301) deixou de casar com o padrão.
+    assert similares.LIMIAR_SIMILARIDADE == 0.25
+    pedido = _json("pedido-similares.json")
+    assert [s["id"] for s in cliente.post("/similares", json=pedido).json()["similares"]] == ["np-101"]
+    com_limiar_antigo = cliente.post("/similares", json={**pedido, "limiar": 0.2}).json()["similares"]
+    assert com_limiar_antigo == [{"id": "np-101", "score": 0.259}, {"id": "np-104", "score": 0.2301}]
+
+
 def test_sem_referencias_lista_vazia(cliente):
     r = _post(cliente, texto=SUPORTE)
     assert r.status_code == 200 and r.json() == {"similares": [], "versaoContrato": "v3"}

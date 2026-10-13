@@ -1,6 +1,6 @@
 # Decisões e pendências — analise-service
 
-Última atualização: 11/10/2026. Registre aqui toda decisão tomada durante as tarefas.
+Última atualização: 12/10/2026. Registre aqui toda decisão tomada durante as tarefas.
 A numeração D1–D9 é deste arquivo; no contrato, "D2", "D3", "D4" e "D9" citam as decisões do guia anterior.
 
 ## Decididas
@@ -171,3 +171,9 @@ Obtido com `python scripts/inspecionar_modelo.py` (scikit-learn 1.9.1). Só estr
 - `TfidfVectorizer`: `analyzer='word'`, `lowercase=True`, `strip_accents=None`, `ngram_range=(1, 2)`, `min_df=5`, `max_df=0.6`, `max_features=20000` (vocabulário aprendido: 20000), `sublinear_tf=True`, `use_idf=True`, `smooth_idf=True`, `norm='l2'`, `binary=False`, `token_pattern='(?u)\b\w\w+\b'`, `stop_words` = lista de 315 itens (não impressa), `preprocessor=None`, `tokenizer=None`.
 - `LogisticRegression`: `C=1.0`, `class_weight='balanced'`, `solver='lbfgs'`, `max_iter=1000`, `tol=0.0001`, `fit_intercept=True`, `random_state=42`, `l1_ratio=0.0` (`penalty='deprecated'`, comportamento da 1.9 equivalente a L2).
 - Atenção ao reproduzir: `strip_accents=None` (o texto entra com acento) e a lista de stop words vem do artefato (`clone` dos steps), não de uma lista nova.
+
+### 12/10 — smoke real das duas LLMs (prompt validado)
+- llm1 (claude-haiku-5-5) e llm2 (gpt-4.1-mini) responderam e validaram no contrato v3, no pedido curto e na fixture P90
+  (pior caso: 17,4 s, llm2). Fatos em `docs/evidencias/smoke-12-10.md`. O timeout do Java fica em 120 s.
+- `PROMPT_VALIDADO_COM_LLM_REAL = True`; o aviso do `smoke_llm.py` só aparece se a constante voltar a falso (ex.: depois de
+  mudar o prompt). Fecha a ressalva "prompt NÃO validado com LLM real" do AC3 e o smoke real pendente do AC10.

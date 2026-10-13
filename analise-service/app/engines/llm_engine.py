@@ -1,8 +1,7 @@
 """Motores `llm1` (Anthropic) e `llm2` (OpenAI): prompt, chamada e processamento da saída (contrato v3).
 
-!!! O PROMPT NÃO FOI VALIDADO COM LLM REAL !!!
-Todos os testes usam clients simulados. Quem valida é o João Paulo, com `scripts/smoke_llm.py`
-(AC10), usando chaves de desenvolvimento. Até lá, trate o texto do prompt como rascunho.
+Prompt validado com as duas LLMs reais em 12/10 (`scripts/smoke_llm.py`, AC10; resultado em
+`docs/evidencias/smoke-12-10.md`). Os testes continuam usando só clients simulados. Mudou o prompt? Rode o smoke de novo.
 """
 import logging
 import re
@@ -19,7 +18,7 @@ from app.schemas import PedidoAnalise, SaidaLLM
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VALIDADO_COM_LLM_REAL = False  # trocar só depois do smoke real registrado em docs/evidencias/
+PROMPT_VALIDADO_COM_LLM_REAL = True  # smoke real das duas LLMs em docs/evidencias/smoke-12-10.md
 
 MAX_TOKENS = 8000  # o 4.000 da v1 era insuficiente (contrato §7.6)
 TIMEOUT_MINIMO_S = 1.0  # com menos prazo que isso nem tentamos a chamada
