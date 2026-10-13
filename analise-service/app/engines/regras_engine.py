@@ -44,7 +44,7 @@ _DEFINICOES: dict[str, tuple[str, str, str]] = {
     ),
     "concorrente_citado": (
         "Concorrente citado", "risco",
-        r"\b(concorrent\w*|outro\s+fornecedor|outra\s+solucao|omie|bling|sap|oracle)\b"
+        r"\b(concorrent\w*|outro\s+fornecedor|outra\s+solucao|omie|bling)\b"
     ),
     "cancelamento_citado": (
         "Cancelamento citado", "risco",
