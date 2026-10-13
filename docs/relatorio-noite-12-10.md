@@ -100,3 +100,59 @@ antigos passaram a usar caminhos temporários para o veredito; nada foi gravado 
 6. **1b:** rodada PRELIMINAR não grava nem sobrescreve o `professora_veredito.json`.
 7. **1b:** o `metadata.json` registra só risco e interesse (os modelos treinados). Oportunidade fica só no veredito.
 8. **1b:** um `professora_veredito.json` inválido para o treino com erro claro, em vez de seguir como `sem_veredito`.
+
+---
+
+# Bloco 2 — continuação (13/10)
+
+A mensagem cortada foi reenviada. `git log` confirmou que o item 0, a 1a e a 1b já estavam commitados. A 1b, como foi
+confirmada, é exatamente o que está no código. Nada foi refeito. Baseline do pytest: `460 passed`.
+
+## 1c — Decisões das anotações do relatório da tarde (um commit, com teste)
+
+**Plano**
+- **Ponto 5 (valor bruto):** o `ouro_final.csv` ganha `padrao_1_bruto`, `padrao_2_bruto`, `interesse_bruto` e
+  `duvida_bruto` (o texto da célula, sem mexer) e também `observacao`. Os campos normalizados e validados continuam como
+  estão (fora da aba `Listas` => vazio + contagem). O original nunca é descartado.
+- **Ponto 7 (dúvida é dado):** `duvida` (0/1) e `motivo_duvida` ficam no ouro. Texto livre na célula `duvida` (não é
+  sim/não) passa a contar como dúvida, e o texto vira o motivo; com `duvida` = sim, o motivo vem da `observacao`. O
+  `extrair_trechos` e o `rotulos_fracos` passam a ter as colunas `duvida` e `motivo_duvida` (vazias nos trechos do corpus,
+  levadas adiante sem apagar). No treino, trecho com `duvida` = 1 entra com peso 0,5 (`PESO_DUVIDA`, proposta);
+  portão e P9 já deixam esses trechos fora da medição. O campo nunca é apagado.
+- Pontos 9 e 10: sem mudança (pendentes). Ponto 11: mantido. Itens 1–4, 6, 8 e 12: aprovados.
+
+## 2 — P9
+
+**Plano:** o P9 já estava completo (teto, cache, retomada, veredito, sem gravar em rodada preliminar). Falta aplicar o custo
+mínimo: preço oficial do `claude-haiku-5-5` (US$ 0,10 por milhão de tokens de entrada e US$ 0,50 de saída) é menor que o
+do `gpt-4.1-mini` da llm2. A professora padrão passa a ser `llm1` + `claude-haiku-5-5`, no P9 e na destilação (a
+professora validada tem de ser a mesma que rotula). Os preços continuam obrigatórios na linha de comando.
+
+## 3 — Extração com dados reais e amostra nova para o ouro
+
+**Plano:** (a) rodar o `extrair_trechos.py` de novo sobre `ANON_nome_transcricao.csv` (agora com `duvida`/`motivo_duvida`).
+(b) Script novo `treino/amostra_ouro.py`: sorteia trechos só das reuniões do holdout com `no_ouro` vazio/0, ou seja, de
+onde os 300 NÃO saíram. Assim as planilhas do ouro não são abertas nem tocadas. Desenho igual ao do escopo §3 (8 por
+padrão, até 1 por reunião por padrão; 80 candidatos a interesse; 110 negativos sem acerto de regra; semente 42). Grava
+`amostra_ouro_2.csv` (layout da aba Rotular, sem estrato) e `amostra_ouro_2_mapa.csv` (id -> reunião, turno, estrato,
+fora da vista do rotulador). Não sobrescreve arquivo existente. Só contagens na saída. O treino continua sem nenhuma
+reunião do holdout.
+
+## 4 — Ensaio de falha
+
+**Plano:** servidor real (uvicorn com as chaves do `.env`, sem ler o arquivo), pedido curto do contrato, `FORCAR_FALHA`
+reiniciando o serviço a cada cenário: llm1 fora; llm1+llm2 fora; tudo fora até 503 (com o passo só-regras). "Citação
+inventada" e "timeout" não saem do `FORCAR_FALHA` (ele só gera `erro_provedor`, e o timeout não é configurável por
+variável de ambiente). Esses dois rodam no ensaio offline (`scripts/ensaio_falha.py`), como cenários extras com cliente
+simulado; os 5 cenários atuais não mudam (ponto 11). Registro: motor, HTTP, tentativas, avisos, descartes e tempo.
+
+## 5 — Piloto de destilação
+
+**Plano:** `rotulos_fracos.py --destilar --motor llm1 --modelo claude-haiku-5-5 --amostra 300 --teto-usd 0.30
+--preco-entrada 0.10 --preco-saida 0.50`. O teto para antes de passar (estimativa de pior caso por lote). Registrar custo
+real (tokens × preço) e a concordância LLM × regra por grupo.
+
+## 6 — Documentação
+
+**Plano:** "Estado atual" do `CLAUDE.md`, este relatório e `docs/handoff-kelwin-12-10.md`; no fim, as decisões abertas que
+dependem do João.
