@@ -171,3 +171,14 @@ def test_colunas_com_outros_nomes(tmp_path):
 def test_help_roda():
     r = subprocess.run([sys.executable, "treino/conciliar_ouro.py", "--help"], cwd=RAIZ, capture_output=True)
     assert r.returncode == 0 and b"--modo" in r.stdout
+
+
+def test_pares_duvida_e_motivo_de_qualquer_um_dos_dois(tmp_path):
+    a, b = metade("GA", 8), metade("GA", 8)
+    b[0][6] = "não sei se é renovação"  # texto livre na célula duvida: é dúvida, e o texto é o motivo
+    planilha(tmp_path / co.ARQUIVOS[1], a)
+    planilha(tmp_path / co.ARQUIVOS[2], b)
+    codigo, meta = _rodar(tmp_path, "--modo", "pares")
+    ouro = {x["id"]: x for x in comum.ler_csv(tmp_path / "ouro_final.csv")}
+    assert codigo == 0 and ouro["GA000"]["duvida"] == "1" and ouro["GA000"]["motivo_duvida"] == "não sei se é renovação"
+    assert meta["resumo"]["duvida_com_motivo"] == 1

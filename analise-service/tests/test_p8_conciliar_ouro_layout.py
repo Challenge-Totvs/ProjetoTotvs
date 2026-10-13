@@ -111,3 +111,42 @@ def test_verificar_no_layout_real(tmp_path, capsys):
     resumo = json.loads(capsys.readouterr().out)[co.ARQUIVOS[1]]
     assert resumo["linhas"] == 5 and "trecho_alvo" in resumo["colunas"] and resumo["valores_na_aba_listas"] > 0
     assert "Frase sintética" not in json.dumps(resumo)
+
+
+def _ouro_por_id(tmp_path) -> dict[str, dict]:
+    return {x["id"]: x for x in comum.ler_csv(tmp_path / "ouro_final.csv")}
+
+
+def test_valor_bruto_fica_ao_lado_do_normalizado(tmp_path):
+    linhas = linhas_reais(3)
+    linhas[0][4] = "padrao_fora_da_lista"
+    linhas[1][4], linhas[1][6] = "Renovacao", "SIM"
+    planilha_real(tmp_path / co.ARQUIVOS[1], linhas)
+    assert co.main(["--pasta", str(tmp_path), "--relatorio", str(tmp_path / "r.md")]) == 0
+    ouro = _ouro_por_id(tmp_path)
+    assert list(ouro["G000"]) == co.COLUNAS_OURO
+    assert ouro["G000"]["padrao_1"] == "" and ouro["G000"]["padrao_1_bruto"] == "padrao_fora_da_lista"
+    assert ouro["G001"]["padrao_1"] == "renovacao" and ouro["G001"]["padrao_1_bruto"] == "Renovacao"
+    assert ouro["G001"]["interesse"] == "1" and ouro["G001"]["interesse_bruto"] == "SIM"
+    assert ouro["G002"]["padrao_1_bruto"] == "" and ouro["G002"]["observacao"] == "obs"
+    meta = json.loads((tmp_path / "ouro_final.json").read_text(encoding="utf-8"))
+    assert meta["invalidos"]["fora_da_lista"] == 1
+
+
+def test_duvida_e_dado_com_motivo(tmp_path, capsys):
+    linhas = linhas_reais(4)
+    linhas[0][7], linhas[0][8] = "sim", "talvez seja orçamento e não preço"
+    linhas[1][7], linhas[1][8] = "cliente ironiza, não sei se é risco", "outra nota"
+    linhas[2][7], linhas[2][8] = "nao", "nota sem dúvida"
+    planilha_real(tmp_path / co.ARQUIVOS[1], linhas)
+    assert co.main(["--pasta", str(tmp_path), "--relatorio", str(tmp_path / "r.md")]) == 0
+    ouro = _ouro_por_id(tmp_path)
+    assert (ouro["G000"]["duvida"], ouro["G000"]["motivo_duvida"]) == ("1", "talvez seja orçamento e não preço")
+    assert (ouro["G001"]["duvida"], ouro["G001"]["motivo_duvida"]) == ("1", "cliente ironiza, não sei se é risco")
+    assert ouro["G001"]["duvida_bruto"] == "cliente ironiza, não sei se é risco"
+    assert (ouro["G002"]["duvida"], ouro["G002"]["motivo_duvida"]) == ("0", "")
+    assert (ouro["G003"]["duvida"], ouro["G003"]["motivo_duvida"]) == ("0", "")
+    meta = json.loads((tmp_path / "ouro_final.json").read_text(encoding="utf-8"))
+    assert meta["resumo"]["duvida"] == 2 and meta["resumo"]["duvida_com_motivo"] == 2
+    saida = capsys.readouterr().out + (tmp_path / "r.md").read_text(encoding="utf-8")
+    assert "ironiza" not in saida and "orçamento" not in saida and "2 com motivo" in saida

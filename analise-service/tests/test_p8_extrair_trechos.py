@@ -92,3 +92,10 @@ def test_reuniao_repetida_com_conteudo_diferente_ainda_para():
     b = {"reuniao": "R1", "CODT": "C1", "transcricao": "[LOCUTOR 1]: outro"}
     with pytest.raises(SystemExit, match="repetida"):
         extrair_trechos.extrair([a, b], [], "reuniao", "CODT", "transcricao")
+
+
+def test_trecho_nasce_com_duvida_e_motivo_vazios():
+    linhas = [{"reuniao": "R1", "CODT": "C1", "transcricao": "[LOCUTOR 1]: um\n[LOCUTOR 2]: dois"}]
+    trechos, _ = extrair_trechos.extrair(linhas, [], "reuniao", "CODT", "transcricao")
+    assert all(t["duvida"] == "" and t["motivo_duvida"] == "" for t in trechos)
+    assert extrair_trechos.COLUNAS_SAIDA[-2:] == ["duvida", "motivo_duvida"]

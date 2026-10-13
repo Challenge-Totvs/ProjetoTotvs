@@ -165,3 +165,21 @@ def test_veredito_invalido_para_sem_mostrar_o_conteudo(cenario, conteudo):
         treinar.main(_com_veredito(cenario, conteudo))
     assert "professora_veredito.json" in str(erro.value) and "segredo" not in str(erro.value)
     assert not cenario["candidatos"].exists()
+
+
+def test_trecho_com_duvida_entra_com_peso_menor_e_o_campo_fica(cenario):
+    assert treinar.main(_args(cenario)) == 0  # sem dúvida nenhuma
+    linhas = comum.ler_csv(cenario["rotulos"])
+    for x in linhas[:7]:
+        x["duvida"], x["motivo_duvida"] = "1", "sintético"
+    comum.gravar_csv(cenario["rotulos"], linhas, list(linhas[0]))
+    assert treinar.main(_args(cenario)) == 0
+    sem, com = _metadatas(cenario)
+    assert sem["duvida"] == {"trechos_com_duvida": 0, "peso": treinar.PESO_DUVIDA}
+    assert com["duvida"] == {"trechos_com_duvida": 7, "peso": 0.5}
+    assert com["tamanhos"] == sem["tamanhos"]  # o trecho com dúvida continua no treino, só pesa menos
+    assert treinar.pesos(linhas)[:8] == [0.5] * 7 + [1.0]
+    pastas = sorted(cenario["candidatos"].iterdir())
+    coef = [joblib.load(p / "risco.joblib").named_steps["clf"].coef_ for p in pastas]
+    assert (coef[0] != coef[1]).any()  # o peso mudou o ajuste
+    assert all(x["duvida"] == "1" for x in comum.ler_csv(cenario["rotulos"])[:7])  # o campo nunca é apagado

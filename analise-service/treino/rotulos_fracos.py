@@ -43,7 +43,9 @@ COLUNAS_SAIDA = [
     "risco_regra", "oportunidade_regra", "interesse_regra",
     "risco_llm", "oportunidade_llm", "interesse_llm",
     "risco", "oportunidade", "interesse", "fonte",
+    "duvida", "motivo_duvida",  # vêm do trecho e seguem adiante; nunca são apagados
 ]
+CAMPOS_DO_TRECHO = ("id", "reuniao", "cliente", "turno", "texto", "duvida", "motivo_duvida")
 
 # Chamada da LLM: recebe o prompt do lote, devolve (itens, tokens_entrada, tokens_saida). Injetável nos testes.
 Chamar = Callable[[str], tuple[list[dict], int, int]]
@@ -230,7 +232,7 @@ def combinar(trechos: list[dict], cache: dict[str, dict]) -> list[dict]:
     for t in trechos:
         regra = rotular_por_regra(t["texto"])
         llm = cache.get(t["id"]) if cache.get(t["id"], {}).get("ok") else None
-        linha = {k: t.get(k, "") for k in ("id", "reuniao", "cliente", "turno", "texto")}
+        linha = {k: t.get(k, "") for k in CAMPOS_DO_TRECHO}
         for g in GRUPOS_LLM:
             linha[f"{g}_regra"] = bool_csv(regra[g])
             linha[f"{g}_llm"] = bool_csv(llm[g]) if llm else ""

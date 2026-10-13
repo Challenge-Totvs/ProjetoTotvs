@@ -156,3 +156,12 @@ real (tokens × preço) e a concordância LLM × regra por grupo.
 
 **Plano:** "Estado atual" do `CLAUDE.md`, este relatório e `docs/handoff-kelwin-12-10.md`; no fim, as decisões abertas que
 dependem do João.
+
+**Status 1c:** concluído. `ouro_final.csv` com `motivo_duvida`, `observacao` e os brutos `padrao_1_bruto`, `padrao_2_bruto`,
+`interesse_bruto` e `duvida_bruto`. No modo pares, a dúvida e o motivo de qualquer um dos dois contam (motivos diferentes são
+juntados). O relatório do ouro mostra só a contagem "com motivo", nunca o texto. `trechos.csv` e `rotulos_fracos.csv`
+ganharam `duvida`/`motivo_duvida`. O treino aplica `PESO_DUVIDA = 0,5` e registra `duvida.trechos_com_duvida` no
+`metadata.json`; sem dúvida, o ajuste é idêntico ao anterior. Mudança de comportamento: texto livre na célula `duvida`
+antes virava "sem dúvida" e agora é dúvida com motivo. Testes novos: 2 no layout do ouro, 1 nos pares, 1 na extração, 1 nos
+rótulos fracos e 1 no treino. pytest: `466 passed`.
+Pontos 9 e 10 não foram mexidos (estão nas pendências do fim). Ponto 11 mantido.

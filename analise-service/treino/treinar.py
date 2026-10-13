@@ -9,7 +9,8 @@ hiperparâmetros, inclusive a lista de 315 stop words, que são o baseline do po
 com reuniões fora do holdout; o conjunto ouro nunca entra (só mede). Grava `risco.joblib`, `interesse.joblib` e
 `metadata.json` (data, sha256 dos dados, versão do scikit-learn, tamanhos, hiperparâmetros, mudanças e, por modelo, o
 veredito da professora em `dados_locais/professora_veredito.json` e quantos rótulos vieram da LLM e da regra). O rótulo
-de treino continua o da LLM quando houver, senão o da regra (3-D4): o veredito só é registrado. `joblib` é pickle: só
+de treino continua o da LLM quando houver, senão o da regra (3-D4): o veredito só é registrado. Trecho com `duvida` = 1
+entra com peso `PESO_DUVIDA` (a dúvida é dado: o campo segue no CSV e a contagem vai para o metadata). `joblib` é pickle: só
 artefatos do próprio repo. A promoção para `app/` é MANUAL (o `portao.py` imprime o comando).
 """
 import argparse
@@ -27,6 +28,7 @@ from treino.comum import CAMINHO_MODELO_ATUAL, DADOS, imprimir, ler_csv, sha256_
 MODELOS = ("risco", "interesse")
 TAMANHO_MINIMO_TEXTO_IGUAL = 40  # texto idêntico ao do ouro a partir deste tamanho conta como possível vazamento
 _ESCALARES = (str, int, float, bool, type(None))
+PESO_DUVIDA = 0.5  # [proposta] trecho com duvida = 1 entra no treino com metade do peso (dúvida é dado, não lixo)
 VEREDITOS = ("usar", "nao_usar")  # valores do professora_veredito.json (P9)
 SEM_VEREDITO = "sem_veredito"
 
@@ -122,15 +124,23 @@ def registro_professora(linhas: list[dict], veredito: dict, arquivo: str | None)
     return {"arquivo": arquivo, "data": veredito.get("data"), "grupos": grupos, "avisos": avisos}
 
 
+def pesos(linhas: list[dict]) -> list[float]:
+    return [PESO_DUVIDA if (x.get("duvida") or "").strip() == "1" else 1.0 for x in linhas]
+
+
 def treinar(linhas: list[dict], base: Any, params: dict[str, Any]) -> tuple[dict[str, Any], dict]:
     textos = [x["texto"] for x in linhas]
+    peso = pesos(linhas)
     modelos, tamanhos = {}, {}
     for nome in MODELOS:
         y = [1 if x[nome] == "1" else 0 for x in linhas]
         if len(set(y)) < 2:
             raise SystemExit(f"erro: rótulo '{nome}' tem uma classe só ({sum(y)} positivos em {len(y)}); não dá para treinar")
         modelo = novo_modelo(base, params)
-        modelo.fit(textos, y)
+        if PESO_DUVIDA in peso:  # sem dúvida nenhuma, o treino fica idêntico ao de antes
+            modelo.fit(textos, y, **{f"{modelo.steps[-1][0]}__sample_weight": peso})
+        else:
+            modelo.fit(textos, y)
         modelos[nome] = modelo
         tamanhos[nome] = {"positivos": sum(y), "negativos": len(y) - sum(y)}
     return modelos, tamanhos
@@ -196,6 +206,7 @@ def main(argv: list[str]) -> int:
                       "justificativa": args.justificativa} for k, v in params.items()],
         "separacao": separacao,
         "professora": professora,
+        "duvida": {"trechos_com_duvida": pesos(linhas).count(PESO_DUVIDA), "peso": PESO_DUVIDA},
     }
     (pasta / "metadata.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     imprimir({"candidato": pasta.name, "tamanhos": tamanhos, "mudancas": len(params), "separacao": separacao,

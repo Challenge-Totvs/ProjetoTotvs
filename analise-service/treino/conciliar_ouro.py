@@ -15,7 +15,10 @@ Kappa < 0,6 em algum campo => aviso: revisar as definições antes de usar o cam
 O ouro MEDE, nunca treina. Lê `.xlsx` com `openpyxl` (só `requirements-treino.txt`). Colunas por NOME de cabeçalho
 (`--col-*`, sem distinguir maiúsculas; `--col-texto` aceita alternativas separadas por `|`). Lê SEMPRE a aba `Rotular`
 (cabeçalho na linha 1: ID | contexto | contexto | TRECHO ALVO | padrao_1 | padrao_2 | interesse | duvida |
-observacao) e valida `padrao_1`/`padrao_2` contra a aba `Listas` (fora da lista: só contagem). Saídas: `ouro_final.csv`, `ouro_final.json` (modo, completo/parcial, kappas) e um relatório só com métricas
+observacao) e valida `padrao_1`/`padrao_2` contra a aba `Listas` (fora da lista: o normalizado fica vazio e é contado).
+O valor BRUTO de cada célula rotulada fica em `<campo>_bruto` (nunca é descartado). `duvida` é dado: fica no ouro com
+`motivo_duvida` (texto livre na célula `duvida`, ou a `observacao` quando duvida = sim); portão e P9 deixam esses trechos
+fora da medição. Saídas: `ouro_final.csv`, `ouro_final.json` (modo, completo/parcial, kappas) e um relatório só com métricas
 em `docs/evidencias/ouro-<data>.md`. Nunca imprime texto de trecho.
 """
 import argparse
@@ -34,7 +37,9 @@ from treino.comum import (  # noqa: E402
 LIMIAR_KAPPA = 0.6
 CAMPOS_KAPPA = ("padrao", "interesse")
 CAMPOS_DIVERGENCIA = ("padrao_1", "padrao_2", "interesse")
-COLUNAS_OURO = ["id", "texto", "padrao_1", "padrao_2", "risco", "oportunidade", "interesse", "duvida", "metade"]
+# Normalizados (o que portão e P9 usam) + valores BRUTOS da planilha, sem mexer: o original nunca é descartado.
+COLUNAS_OURO = ["id", "texto", "padrao_1", "padrao_2", "risco", "oportunidade", "interesse", "duvida", "motivo_duvida",
+                "metade", "observacao", "padrao_1_bruto", "padrao_2_bruto", "interesse_bruto", "duvida_bruto"]
 ARQUIVOS = {
     1: "ouro_rotulador_1_PRONTO.xlsx", 2: "ouro_rotulador_2_PRONTO.xlsx",
     3: "ouro_rotulador_3_PRONTO.xlsx", 4: "ouro_rotulador_4_PRONTO.xlsx",
@@ -50,10 +55,12 @@ LIMITACAO_UNICO = ("Rotulador único (João Paulo), sem validação cruzada entr
 class Colunas:
     def __init__(self, args: argparse.Namespace | None = None):
         a = args or argparse.Namespace(col_id=COL_ID, col_texto=COL_TEXTO, col_padrao1="padrao_1",
-                                       col_padrao2="padrao_2", col_interesse="interesse", col_duvida="duvida")
+                                       col_padrao2="padrao_2", col_interesse="interesse", col_duvida="duvida",
+                                       col_observacao="observacao")
         self.id, self.padrao1 = a.col_id, a.col_padrao1
         self.texto = [_chave(n) for n in a.col_texto.split("|") if n.strip()]
         self.padrao2, self.interesse, self.duvida = a.col_padrao2, a.col_interesse, a.col_duvida
+        self.observacao = a.col_observacao
 
 
 # ------------------------------------------------------------------ leitura
@@ -132,6 +139,21 @@ def _texto(linha: dict, c: Colunas) -> str:
     return next((str(linha[n]) for n in c.texto if linha.get(n) not in (None, "")), "")
 
 
+def _bruto(valor: object) -> str:
+    """O valor da célula como veio (só vira texto): guardado ao lado do normalizado, nunca descartado."""
+    return "" if valor is None else str(valor)
+
+
+def _duvida(valor: object, observacao: object) -> tuple[bool, str]:
+    """(dúvida, motivo). Dúvida é dado: sim/não como sempre; texto livre na célula conta como dúvida e é o próprio
+    motivo; com "sim", o motivo vem da `observacao`."""
+    marcado = normalizar_sim_nao(valor)
+    if marcado is None:
+        return True, str(valor).strip()
+    motivo = str(observacao).strip() if marcado and observacao not in (None, "") else ""
+    return marcado, motivo
+
+
 def rotulos(linhas: list[dict], c: Colunas, metade: str,
             permitidos: set[str] | None = None) -> tuple[dict[str, dict], dict]:
     """id -> rótulo normalizado; e contagens de valores inválidos (sem imprimir os valores)."""
@@ -142,14 +164,19 @@ def rotulos(linhas: list[dict], c: Colunas, metade: str,
         if id_ in saida:
             invalidos["ids_repetidos"] += 1
             continue
-        p1 = _padrao(linha.get(_chave(c.padrao1)), permitidos, invalidos)
-        p2 = _padrao(linha.get(_chave(c.padrao2)), permitidos, invalidos)
-        interesse = normalizar_sim_nao(linha.get(_chave(c.interesse)))
+        brutos = {campo: linha.get(_chave(nome)) for campo, nome in (
+            ("padrao_1", c.padrao1), ("padrao_2", c.padrao2), ("interesse", c.interesse), ("duvida", c.duvida))}
+        observacao = linha.get(_chave(c.observacao))
+        p1 = _padrao(brutos["padrao_1"], permitidos, invalidos)
+        p2 = _padrao(brutos["padrao_2"], permitidos, invalidos)
+        interesse = normalizar_sim_nao(brutos["interesse"])
         invalidos["interesse"] += interesse is None
+        duvida, motivo = _duvida(brutos["duvida"], observacao)
         saida[id_] = {
             "id": id_, "texto": _texto(linha, c), "metade": metade,
             "padrao_1": p1 or "", "padrao_2": p2 or "", "interesse": interesse,
-            "duvida": bool(normalizar_sim_nao(linha.get(_chave(c.duvida)))),
+            "duvida": duvida, "motivo_duvida": motivo, "observacao": _bruto(observacao),
+            **{f"{campo}_bruto": _bruto(v) for campo, v in brutos.items()},
         }
     return saida, invalidos
 
@@ -209,6 +236,7 @@ def gravar_ouro(pasta: Path, ouro: list[dict], meta: dict) -> None:
 def resumo_do_ouro(ouro: list[dict]) -> dict:
     linhas = [linha_ouro(r) for r in ouro]
     return {"trechos": len(linhas), "duvida": sum(1 for x in linhas if x["duvida"] == "1"),
+            "duvida_com_motivo": sum(1 for x in linhas if x["duvida"] == "1" and x["motivo_duvida"]),
             "risco": sum(1 for x in linhas if x["risco"] == "1"),
             "oportunidade": sum(1 for x in linhas if x["oportunidade"] == "1"),
             "interesse": sum(1 for x in linhas if x["interesse"] == "1"),
@@ -222,7 +250,8 @@ def escrever_relatorio(caminho: Path, meta: dict) -> None:
         "Só métricas e contagens; nenhum texto de trecho. Gerado por `treino/conciliar_ouro.py`.", "",
         f"- Modo: **{meta['modo']}**" + (f" — {LIMITACAO_UNICO}" if meta["modo"] == "unico" else ""),
         f"- Ouro: **{'completo' if meta['completo'] else 'PARCIAL'}** (metades: {', '.join(meta['metades'])})",
-        f"- Trechos: {meta['resumo']['trechos']} (com dúvida: {meta['resumo']['duvida']}); positivos: risco "
+        f"- Trechos: {meta['resumo']['trechos']} (com dúvida: {meta['resumo']['duvida']}, "
+        f"{meta['resumo']['duvida_com_motivo']} com motivo; ficam no ouro, fora da medição); positivos: risco "
         f"{meta['resumo']['risco']}, oportunidade {meta['resumo']['oportunidade']}, interesse "
         f"{meta['resumo']['interesse']}",
         f"- Valores inválidos (contagem): {json.dumps(meta['invalidos'], ensure_ascii=False)}", "",
@@ -347,8 +376,10 @@ def modo_pares(pasta: Path, c: Colunas) -> tuple[list[dict] | None, dict]:
         medidos[f"rotuladores {x}x{y}"] = kappas(lidos[x], lidos[y], ids)
         n_pares[f"rotuladores {x}x{y}"] = len(ids)
         divergencias += _divergencias(lidos[x], lidos[y])
-        for id_ in ids:  # base: rotulador da esquerda; dúvida de qualquer um dos dois conta
-            ouro[id_] = {**lidos[x][id_], "duvida": lidos[x][id_]["duvida"] or lidos[y][id_]["duvida"]}
+        for id_ in ids:  # base: rotulador da esquerda; dúvida (e motivo) de qualquer um dos dois conta
+            motivos = [m for m in (lidos[x][id_]["motivo_duvida"], lidos[y][id_]["motivo_duvida"]) if m]
+            ouro[id_] = {**lidos[x][id_], "duvida": lidos[x][id_]["duvida"] or lidos[y][id_]["duvida"],
+                         "motivo_duvida": " || ".join(dict.fromkeys(motivos))}
     metades = ["A"] + (["B"] if (3, 4) in pares else [])
     meta = {"modo": "pares", "completo": metades == ["A", "B"], "metades": metades, "kappas": medidos,
             "pares_kappa": n_pares, "invalidos": invalidos, "avisos": avisos_de_kappa(medidos),
@@ -386,6 +417,7 @@ def main(argv: list[str]) -> int:
     p.add_argument("--col-padrao2", default="padrao_2")
     p.add_argument("--col-interesse", default="interesse")
     p.add_argument("--col-duvida", default="duvida")
+    p.add_argument("--col-observacao", default="observacao", help="observação livre (motivo da dúvida quando duvida=sim)")
     args = p.parse_args(argv)
     c = Colunas(args)
 

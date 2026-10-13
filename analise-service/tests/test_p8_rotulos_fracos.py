@@ -197,3 +197,13 @@ def test_chamada_real_simulada_anthropic_e_openai(monkeypatch):
 def test_chamada_real_sem_chave_para_com_mensagem():
     with pytest.raises(SystemExit, match="sem chave"):
         rf.criar_chamada("llm2", None)
+
+
+def test_duvida_e_motivo_do_trecho_seguem_para_os_rotulos():
+    trechos = [{"id": "R1:1", "reuniao": "R1", "cliente": "C1", "turno": "1", "texto": "Tudo certo por aqui.",
+                "duvida": "1", "motivo_duvida": "ambíguo"},
+               {"id": "R1:2", "reuniao": "R1", "cliente": "C1", "turno": "2", "texto": "Ok."}]
+    linhas = rf.combinar(trechos, {})
+    assert (linhas[0]["duvida"], linhas[0]["motivo_duvida"]) == ("1", "ambíguo")
+    assert (linhas[1]["duvida"], linhas[1]["motivo_duvida"]) == ("", "")
+    assert {"duvida", "motivo_duvida"} <= set(rf.COLUNAS_SAIDA)

@@ -20,7 +20,8 @@ from treino.comum import (  # noqa: E402
 )
 
 CONTEXTO = 2  # turnos anteriores ao alvo
-COLUNAS_SAIDA = ["id", "reuniao", "cliente", "turno", "locutor", "texto", "contexto"]
+# `duvida`/`motivo_duvida` nascem vazias aqui e seguem pelo pipeline (dúvida é dado: o campo nunca é apagado).
+COLUNAS_SAIDA = ["id", "reuniao", "cliente", "turno", "locutor", "texto", "contexto", "duvida", "motivo_duvida"]
 SEPARADOR_CONTEXTO = " || "
 
 
@@ -67,7 +68,7 @@ def extrair(corpus: list[dict], holdout: list[dict], col_reuniao: str, col_clien
         for i, (locutor, texto) in enumerate(turnos):
             contexto = SEPARADOR_CONTEXTO.join(t for _, t in turnos[max(0, i - CONTEXTO):i])
             trechos.append({"id": f"{reuniao}:{i + 1}", "reuniao": reuniao, "cliente": cliente, "turno": i + 1,
-                            "locutor": locutor, "texto": texto, "contexto": contexto})
+                            "locutor": locutor, "texto": texto, "contexto": contexto, "duvida": "", "motivo_duvida": ""})
     contagem["trechos"] = len(trechos)
     return trechos, contagem
 
