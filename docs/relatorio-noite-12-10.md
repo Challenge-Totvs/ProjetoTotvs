@@ -171,3 +171,17 @@ Pontos 9 e 10 não foram mexidos (estão nas pendências do fim). Ponto 11 manti
 `validar_professora.py` passam a usar por padrão `--motor llm1` com `claude-haiku-5-5` (`MOTOR_PADRAO`/`MODELO_PADRAO`),
 e na llm2 continua valendo o modelo do `.env`. O relatório do P9 diz qual professora foi usada. Os preços continuam
 obrigatórios na linha de comando. 2 testes novos. pytest: `468 passed`.
+
+**Status 3:** concluído (só contagens).
+- `extrair_trechos.py` de novo no `ANON_nome_transcricao.csv` (`--col-reuniao ID_MEETING --col-cliente CODT --col-texto
+  ANON_TRANSCRICAO`): 1.147 reuniões; 345 excluídas pelo holdout (199 clientes); 17 repetições idênticas ignoradas; 28 sem
+  turnos; 757 usadas; **233.267 trechos**, iguais ao lote anterior, agora com `duvida`/`motivo_duvida`.
+- `treino/amostra_ouro.py` (novo, 9 testes sintéticos). O holdout tem 345 linhas e **341 reuniões distintas** (há ids
+  repetidos no próprio holdout): 182 deram origem aos 300 (`no_ouro` = 1) e ficaram de fora; o pool tem **159 reuniões**
+  e 14.262 trechos com pelo menos 20 caracteres. A conferência com o `trechos.csv` deu 0 reunião do holdout no treino.
+- Amostra: **283 trechos** de 114 reuniões (meta 300): 80 de interesse, 110 negativos e 93 de padrão. Abaixo da meta de 8:
+  `orcamento_restrito` 0 (todas as reuniões com esse padrão estão entre as dos 300, como o escopo já previa),
+  `suporte_insatisfacao` 2, `fiscal_problema` 5 e `modulo_adicional` 6. Arquivos em `dados_locais/` (ignorados pelo git):
+  `amostra_ouro_2.csv` (layout da aba Rotular com `motivo_duvida`, IDs `N001`–`N283`, sem estrato) e
+  `amostra_ouro_2_mapa.csv` (ID -> trecho, reunião, cliente, turno, estrato). As planilhas dos 300 não foram abertas.
+- pytest: `477 passed`.
