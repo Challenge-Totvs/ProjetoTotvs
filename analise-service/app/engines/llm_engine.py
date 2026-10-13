@@ -64,7 +64,10 @@ Se não houver evidência literal, não inclua o item.
 Cada tema usa um padrão da lista abaixo (a chave, exatamente como escrita). Um tema por padrão por reunião: se o mesmo \
 padrão aparecer duas vezes, escolha a primeira ocorrência sem resposta.
 - `tipos`: o tipo do padrão (risco ou oportunidade); use os dois só quando o mesmo trecho merecer os dois rótulos.
-- `titulo`: título curto em português, até 120 caracteres.
+- `titulo`: título curto em português, até 120 caracteres. Ele deve descrever o que o trecho citado em `texto` diz, \
+sobre o mesmo assunto, e usar só informações que estão nesse trecho. Não acrescente números, prazos, produtos, \
+períodos nem motivos que o trecho não traga. Se o trecho for curto ou genérico, faça um título igualmente genérico \
+(exemplo: para "Basicamente o valor", prefira "Valor da proposta pesa na decisão", e não um título com detalhes de licença ou de prazo).
 - `tratado`: `true` se alguém do papel oposto ao de quem levantou o tema o respondeu na própria reunião, em turno \
 posterior; `false` se ficou sem resposta; `null` se você não consegue dizer quem falou (locutor sem papel claro). \
 Nunca use `false` por falta de informação.
@@ -76,12 +79,27 @@ claros de avanço; 51-80 perguntas específicas sobre funcionalidades, prazos ou
 (pediu proposta, próxima reunião, contrato).
 - `sentimento`: `positivo`, `neutro` ou `negativo`.
 - `papeis`: lista de `{locutor, papel}` com papel `vendedor` ou `cliente`; omita o locutor sem papel claro.
-- `resumo`: até 1.500 caracteres.
+- `resumo`: até 1.500 caracteres. Só fatos e prazos que foram ditos na reunião.
 - `interesse`: sinais de interesse do cliente, com `texto` descrevendo o sinal, `turno` e `citacao` literal.
-- `proximosPassos`: até 5 itens de até 200 caracteres, específicos para este cliente.
-- `compromissos`: SOMENTE promessas do vendedor, com `turno`, `texto` literal e `regra` de prazo: `sexta`, `segunda`, \
-`sexta_semana_que_vem`, `mesmo_dia`, `mais2` ou `null` (prazo que não cabe em nenhuma regra, como "dia 15", ou sem \
-prazo). Sem vendedor identificado, devolva lista vazia.
+- `proximosPassos`: até 5 itens de até 200 caracteres, específicos para este cliente. Não escreva dia da semana nem \
+data se isso não foi dito na reunião; se um compromisso tem prazo dito, repita exatamente esse prazo (por exemplo, se o \
+vendedor disse "amanhã", escreva "amanhã", nunca "segunda-feira").
+- `compromissos`: SOMENTE promessas do vendedor de entregar, enviar, agendar ou fazer algo, com `turno`, `texto` \
+literal e `regra` de prazo.
+    - Inclua também promessas curtas de ação NOVAS do vendedor, como levar um problema ao time técnico, verificar algo \
+ou retornar depois, mesmo quando o prazo é vago ou não existe (nesse caso a `regra` é `null`). Repetir, confirmar ou \
+aceitar uma promessa que já foi feita antes ("Mando sim", "Pode deixar", "Combinado", "Fechado") nunca é um novo \
+compromisso.
+  - Cada entrega diferente prometida é um compromisso (enviar a proposta e levar um problema ao time técnico são dois). \
+Mas se o vendedor repetir ou confirmar a MESMA promessa depois ("Mando sim", "Pode deixar", "Combinado"), não crie \
+outro: fique com o trecho que traz o objeto e o prazo.
+  - Agradecimentos, despedidas, concordâncias e falas do cliente não são compromissos. Sem vendedor identificado, \
+devolva lista vazia.
+  - `regra`: use SOMENTE quando o prazo dito bate exatamente com uma destas: `mesmo_dia` ("hoje", "ainda hoje", "até o \
+fim do dia"); `sexta` ("até sexta", "sexta-feira"); `segunda` ("até segunda", "segunda-feira"); \
+`sexta_semana_que_vem` ("sexta da semana que vem"); `mais2` ("em dois dias", "depois de amanhã").
+  - Use `null` para qualquer prazo que não bate com essas regras: "amanhã", "semana que vem", "dia 15", "fim do mês", \
+"em breve", ou quando nenhum prazo foi dito. Não escolha a regra mais próxima: se não bate exatamente, é `null`.
 - `sentimentoSerie`: pontos `{turno, valor}` com valor de -1 a 1, turnos existentes em ordem crescente, até 60 pontos.
 - `eventosConduta`: extraia, sem julgar se é violação, apenas ocorrências de: `pagamento_confirmado_antes_de_dados`, \
 `desconto_fora_da_politica`, `prazo_prometido_sem_confirmar_capacidade`; com `turno`, `texto` literal e `confianca`.
