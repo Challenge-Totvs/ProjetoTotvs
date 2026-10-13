@@ -207,3 +207,31 @@ def test_duvida_e_motivo_do_trecho_seguem_para_os_rotulos():
     assert (linhas[0]["duvida"], linhas[0]["motivo_duvida"]) == ("1", "ambíguo")
     assert (linhas[1]["duvida"], linhas[1]["motivo_duvida"]) == ("", "")
     assert {"duvida", "motivo_duvida"} <= set(rf.COLUNAS_SAIDA)
+
+
+def test_professora_padrao_e_a_mais_barata(monkeypatch):
+    from types import SimpleNamespace
+
+    from app.engines import llm_engine
+
+    itens = {"itens": []}
+    uso = SimpleNamespace(input_tokens=1, output_tokens=1)
+    modelos = []
+
+    def create(**kw):
+        modelos.append(kw["model"])
+        return SimpleNamespace(content=[SimpleNamespace(type="tool_use", input=itens)], usage=uso)
+
+    def parse(**kw):
+        modelos.append(kw["model"])
+        return SimpleNamespace(output_parsed=rf.SaidaDestilacao.model_validate(itens), usage=uso)
+
+    clientes = {"llm1": SimpleNamespace(messages=SimpleNamespace(create=create)),
+                "llm2": SimpleNamespace(responses=SimpleNamespace(parse=parse))}
+    monkeypatch.setattr(llm_engine, "obter_cliente", lambda motor: clientes[motor])
+    for prefixo in ("LLM_PRINCIPAL", "LLM_SECUNDARIA"):
+        monkeypatch.setenv(f"{prefixo}_API_KEY", "chave-ficticia")
+        monkeypatch.setenv(f"{prefixo}_MODEL", "modelo-do-env")
+    rf.criar_chamada("llm1", None)("prompt")
+    rf.criar_chamada("llm2", None)("prompt")
+    assert rf.MOTOR_PADRAO == "llm1" and modelos == ["claude-haiku-5-5", "modelo-do-env"]

@@ -1,7 +1,7 @@
 """P9: valida a "professora" (a LLM da destilação) contra os rótulos do João no conjunto ouro.
 
     cd analise-service
-    python treino/validar_professora.py --teto-usd 0.5 --preco-entrada 0.15 --preco-saida 0.60
+    python treino/validar_professora.py --teto-usd 0.5 --preco-entrada 0.10 --preco-saida 0.50   # claude-haiku-5-5
 
 Roda a LLM da destilação (`rotulos_fracos.destilar`: cache em disco, retomada e teto de gasto) sobre os trechos de
 `dados_locais/ouro_final.csv` e compara com os rótulos do João, por GRUPO (risco, oportunidade, interesse): revocação
@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from treino.comum import DADOS, EVIDENCIAS, imprimir, ler_csv  # noqa: E402
 from treino.conciliar_ouro import LIMIAR_KAPPA, kappa_cohen  # noqa: E402
 from treino.portao import metricas  # noqa: E402
-from treino.rotulos_fracos import Chamar, criar_chamada, destilar, ler_cache  # noqa: E402
+from treino.rotulos_fracos import MODELO_PADRAO, MOTOR_PADRAO, Chamar, criar_chamada, destilar, ler_cache  # noqa: E402
 
 GRUPOS = ("risco", "oportunidade", "interesse")
 LIMIAR_REVOCACAO = 0.7
@@ -90,7 +90,7 @@ def escrever_relatorio(caminho: Path, meta: dict, r: dict, destilacao: dict) -> 
         f"- Modo: **{modo}**",
         f"- Ouro: **{'COMPLETO' if completo else 'PARCIAL'}**"
         + ("" if meta.get("modo") else " (sem `ouro_final.json`; tratado como parcial)"),
-        f"- Motor da professora: {meta['motor']} (modelo do `.env`)",
+        f"- Professora: {meta['motor']}, modelo {meta.get('modelo') or 'do `.env`'}",
         f"- Trechos no ouro: {meta['trechos']}; fora da comparação: {fora['duvida']} com dúvida, "
         f"{fora['sem_resposta_da_llm']} sem resposta da LLM",
         f"- Gasto: US$ {destilacao.get('gasto_acumulado_usd', 0)} de teto US$ {destilacao.get('teto_usd')} "
@@ -121,8 +121,8 @@ def main(argv: list[str], chamar: Chamar | None = None) -> int:
     p.add_argument("--relatorio", type=Path, default=None, help="padrão: docs/evidencias/professora-<data>.md")
     p.add_argument("--veredito", type=Path, default=DADOS / "professora_veredito.json",
                    help="veredito por grupo, lido pelo treinar.py")
-    p.add_argument("--motor", choices=["llm1", "llm2"], default="llm2")
-    p.add_argument("--modelo", default=None, help="modelo barato (padrão: o do .env para o motor)")
+    p.add_argument("--motor", choices=["llm1", "llm2"], default=MOTOR_PADRAO, help="a mesma professora da destilação")
+    p.add_argument("--modelo", default=None, help="padrão: claude-haiku-5-5 na llm1; o do .env na llm2")
     p.add_argument("--teto-usd", type=float, required=True, help=f"obrigatório; máximo {TETO_MAXIMO_USD}")
     p.add_argument("--preco-entrada", type=float, required=True, help="US$ por milhão de tokens de entrada")
     p.add_argument("--preco-saida", type=float, required=True, help="US$ por milhão de tokens de saída")
@@ -147,7 +147,8 @@ def main(argv: list[str], chamar: Chamar | None = None) -> int:
 
     r = comparar(ouro, ler_cache(args.pasta / "cache.jsonl"))
     data = dt.date.today().isoformat()
-    meta = {**meta_ouro, "data": data, "motor": args.motor, "trechos": len(ouro),
+    meta = {**meta_ouro, "data": data, "motor": args.motor, "modelo": args.modelo or MODELO_PADRAO.get(args.motor),
+            "trechos": len(ouro),
             "preliminar": r["_fora"]["sem_resposta_da_llm"] > 0}
     relatorio = args.relatorio or EVIDENCIAS / f"professora-{data}.md"
     escrever_relatorio(relatorio, meta, r, destilacao)

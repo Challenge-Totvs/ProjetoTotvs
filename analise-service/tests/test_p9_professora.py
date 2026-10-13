@@ -223,3 +223,10 @@ def test_rodada_preliminar_nao_grava_nem_sobrescreve_o_veredito(tmp_path):
     (tmp_path / "professora_veredito.json").write_text(anterior, encoding="utf-8")
     assert rodar(tmp_path, LLMFalsa(), *caro, teto="0.01") == 0
     assert (tmp_path / "professora_veredito.json").read_text(encoding="utf-8") == anterior
+
+
+def test_professora_padrao_e_o_haiku_da_llm1(tmp_path):
+    montar_pasta(tmp_path)
+    assert rodar(tmp_path, LLMFalsa()) == 0
+    relatorio = (tmp_path / "professora.md").read_text(encoding="utf-8")
+    assert "Professora: llm1, modelo claude-haiku-5-5" in relatorio

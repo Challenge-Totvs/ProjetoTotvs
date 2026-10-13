@@ -165,3 +165,9 @@ ganharam `duvida`/`motivo_duvida`. O treino aplica `PESO_DUVIDA = 0,5` e registr
 antes virava "sem dúvida" e agora é dúvida com motivo. Testes novos: 2 no layout do ouro, 1 nos pares, 1 na extração, 1 nos
 rótulos fracos e 1 no treino. pytest: `466 passed`.
 Pontos 9 e 10 não foram mexidos (estão nas pendências do fim). Ponto 11 mantido.
+
+**Status 2:** concluído. O P9 já fazia tudo o que foi pedido, inclusive não gravar o veredito em rodada preliminar (teste
+`test_rodada_preliminar_nao_grava_nem_sobrescreve_o_veredito`). Faltava o custo: `rotulos_fracos.py` e
+`validar_professora.py` passam a usar por padrão `--motor llm1` com `claude-haiku-5-5` (`MOTOR_PADRAO`/`MODELO_PADRAO`),
+e na llm2 continua valendo o modelo do `.env`. O relatório do P9 diz qual professora foi usada. Os preços continuam
+obrigatórios na linha de comando. 2 testes novos. pytest: `468 passed`.
