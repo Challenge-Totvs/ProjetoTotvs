@@ -23,6 +23,16 @@ import { marcasDaReuniao } from "../../components/reuniao/marcas";
 import { SecaoEngajamento, SecaoMetricas } from "../../components/reuniao/Metricas";
 import { SecaoTranscricao, type VisaoTranscricao } from "../../components/reuniao/Transcricao";
 
+// Traduz o código de motivo que o analise-service devolve para um texto legível.
+// Os cinco códigos são os do contrato v3 (§6.7).
+const ROTULO_DESCARTE: Record<string, string> = {
+  evidencia_nao_localizada: "Evidência não localizada no texto original.",
+  padrao_fora_da_lista: "Padrão fora da lista fechada.",
+  evento_fora_da_lista: "Tipo de evento fora da lista.",
+  trecho_curto: "Trecho curto demais para conferir.",
+  trecho_longo: "Trecho longo demais.",
+};
+
 export default function ReuniaoPage() {
   const app = useApp();
   const id = Number(useParams().id);
@@ -36,10 +46,10 @@ export default function ReuniaoPage() {
   const trilha: ItemTrilha[] =
     r && r.id === id
       ? [
-          { l: "Clientes", para: rotas.clientes },
-          { l: r.cliente.nome, para: rotas.cliente(r.cliente.id) },
-          { l: `${r.titulo}, ${fmtData(paraData(r.dataHora))}` },
-        ]
+        { l: "Clientes", para: rotas.clientes },
+        { l: r.cliente.nome, para: rotas.cliente(r.cliente.id) },
+        { l: `${r.titulo}, ${fmtData(paraData(r.dataHora))}` },
+      ]
       : [{ l: "Clientes", para: rotas.clientes }, { l: "Reunião" }];
   useTrilha(trilha);
   // A página não tem atalhos próprios (mesmo que a demo).
@@ -305,11 +315,13 @@ function PaginaAnalisada({ r, turno }: { r: ReuniaoDetalhe; turno: number | null
               </Secao>
             )}
             {descartados.length > 0 && (
-              <Secao id="descartes" titulo="Sinais descartados" sub="A citação devolvida não existe no texto original, então o sinal não aparece na análise">
+              // ALTERADO: o subtítulo agora vale para qualquer motivo de descarte, não só citação inexistente.
+              <Secao id="descartes" titulo="Sinais descartados" sub="O sinal não passou na conferência com o texto original, então não aparece na análise">
                 {descartados.map((d) => (
                   <div key={d.texto} className="text-[13px] leading-[1.5]">
                     <div className="text-ink line-through decoration-critico">{d.texto}</div>
-                    <div className="mt-0.5 text-xs text-critico">Evidência não localizada. {d.motivo}</div>
+                    {/* ALTERADO: mostra o rótulo em português; motivo desconhecido cai no texto padrão. */}
+                    <div className="mt-0.5 text-xs text-critico">{ROTULO_DESCARTE[d.motivo] ?? "Evidência não localizada."}</div>
                   </div>
                 ))}
               </Secao>
