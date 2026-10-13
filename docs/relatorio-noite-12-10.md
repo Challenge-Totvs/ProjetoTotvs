@@ -185,3 +185,16 @@ obrigatórios na linha de comando. 2 testes novos. pytest: `468 passed`.
   `amostra_ouro_2.csv` (layout da aba Rotular com `motivo_duvida`, IDs `N001`–`N283`, sem estrato) e
   `amostra_ouro_2_mapa.csv` (ID -> trecho, reunião, cliente, turno, estrato). As planilhas dos 300 não foram abertas.
 - pytest: `477 passed`.
+
+**Status 4:** concluído. A tabela completa está em `docs/evidencias/ensaio-falha-13-10.md`.
+- Ao vivo (uvicorn real, chaves do `.env` lidas pelo app, `PIPELINE_VERSAO=real`, reinício a cada cenário):
+  llm1 fora => **llm2**, 6,28 s · llm1+llm2 fora => **local**, 0,12 s, `contingencia_modelo_local` · só regras =>
+  **regras**, 0,03 s, `contingencia_regras` · tudo fora => **503** `analise_indisponivel`, 0,02 s. O `/health` ficou
+  ok / degradado / degradado / indisponivel, como no contrato.
+- Simulado (cenários 6 e 7 novos em `scripts/ensaio_falha.py`, 4 testes): citação inventada => llm1 responde, o tema
+  inventado vai para `descartados` (`evidencia_nao_localizada`: 1) com aviso `saida_parcial` e o real fica; timeout da
+  llm1 => `llm1:timeout > llm2:ok`. Os 5 cenários originais não mudaram (ponto 11); a tabela ganhou a coluna "descartes".
+- Achado: no Windows, encerrar o `python.exe` do venv não encerra o servidor na hora (o lançador tem um processo filho). O
+  driver do ensaio passou a usar `taskkill /T` e esperar a porta liberar. Ao vivo, o `Ctrl+C` do roteiro não tem esse
+  problema.
+- Custo: 1 chamada à llm2, cerca de US$ 0,004 (estimativa). pytest: `481 passed`.

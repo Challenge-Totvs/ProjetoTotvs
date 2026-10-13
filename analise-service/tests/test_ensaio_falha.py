@@ -101,3 +101,33 @@ def test_script_roda_como_comando_e_nao_precisa_de_chave():
                        timeout=120)
     saida = r.stdout.decode("utf-8", "replace")
     assert r.returncode == 0 and "todos falham" in saida and "analise_indisponivel" in saida
+
+
+@pytest.fixture(scope="module")
+def extras():
+    return _carregar().executar_extras(FIXTURE)
+
+
+def test_extra_citacao_inventada_vai_para_descartados(extras):
+    r = extras[0]
+    assert (r["cenario"], r["motor"], r["http"], r["forcar_falha"]) == (6, "llm1", 200, "")
+    assert r["temas"] == 1 and r["descartados"] == {"evidencia_nao_localizada": 1} and r["avisos"] == ["saida_parcial"]
+
+
+def test_extra_timeout_da_llm1_passa_para_a_llm2(extras):
+    r = extras[1]
+    assert (r["cenario"], r["motor"], r["http"]) == (7, "llm2", 200)
+    assert r["tentativas"] == [("llm1", "timeout"), ("llm2", "ok")] and r["health_motores"]["llm1"] is False
+
+
+def test_extras_restauram_o_ambiente(extras):
+    from app.engines import llm_engine
+
+    assert llm_engine.obter_cliente.__module__ == "app.engines.llm_engine"
+    assert os.environ.get("FORCAR_FALHA") is None
+
+
+def test_tabela_mostra_os_extras(extras):
+    tabela = _carregar().formatar_tabela(extras)
+    assert "evidencia_nao_localizada:1" in tabela and "llm1:timeout > llm2:ok" in tabela
+    assert "inventada pela LLM" not in tabela  # o texto da citação nunca aparece

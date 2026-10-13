@@ -8,8 +8,9 @@ A alavanca da demo é a variável `FORCAR_FALHA`: lista de motores que falham de
 
 ## Antes de entrar (2 min, fora do tempo)
 
-1. Rode o ensaio offline uma vez: `python scripts/ensaio_falha.py` (sem rede, sem chave; mostra a tabela dos 5 cenários).
-   Se a internet cair na banca, **essa tabela é o plano B**: a mesma sequência, em 5 s.
+1. Rode o ensaio offline uma vez: `python scripts/ensaio_falha.py` (sem rede, sem chave; mostra a tabela dos 5 cenários
+   e de mais 2 simulados: 6 = citação inventada descartada, 7 = timeout da llm1). Se a internet cair na banca, **essa
+   tabela é o plano B**: a mesma sequência, em 5 s. Tempos medidos ao vivo em 13/10: `docs/evidencias/ensaio-falha-13-10.md`.
 2. Confira que `analise-service/.env` tem as chaves das duas LLMs (não mostre o arquivo na tela).
    O smoke das duas LLMs passou em 12/10 (`docs/evidencias/smoke-12-10.md`). Se mesmo assim a `llm1` não responder na
    hora, o cenário 1 mostra `llm1:<erro> > llm2:ok`: não é defeito da demo, é a cadeia funcionando; avise e siga para o 2.

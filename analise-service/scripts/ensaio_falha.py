@@ -7,6 +7,8 @@
 Roda o app REAL (router -> orquestrador -> cadeia -> /health) em memória, com a transcrição sintética de
 `tests/fixtures`, em 5 cenários feitos com a mesma alavanca da demo ao vivo, `FORCAR_FALHA`:
 (1) nada falha · (2) llm1 falha · (3) llm1+llm2 falham · (4) llm1+llm2+local falham (só regras) · (5) todos falham (503).
+Extras, que o FORCAR_FALHA não produz: (6) a llm1 devolve uma citação inventada (vai para `descartados`, aviso
+`saida_parcial`) · (7) a llm1 estoura o tempo (`timeout`; a llm2 assume). Nos extras o tempo é o do simulado, não o real.
 Entre os cenários o estado do /health é zerado (equivale a reiniciar o serviço, que é o que se faz ao vivo).
 Imprime uma tabela só com nomes e contagens: nunca texto de transcrição, resposta de LLM ou chave.
 """
@@ -31,6 +33,11 @@ CENARIOS = (
     (4, "llm1+llm2+local falham (so regras)", "llm1,llm2,local"),
     (5, "todos falham", "llm1,llm2,local,regras"),
 )
+# Extras que o FORCAR_FALHA não produz (ele só gera erro_provedor): o cliente simulado faz a falha acontecer.
+CENARIOS_EXTRAS = (
+    (6, "citacao inventada pela llm1", "citacao_inventada"),
+    (7, "timeout da llm1", "timeout"),
+)
 # Valores FICTÍCIOS: o ensaio nunca usa chave real nem lê o .env.
 AMBIENTE_SIMULADO = {
     "INSIGHTCALL_IGNORAR_DOTENV": "1",
@@ -46,12 +53,28 @@ SAIDA_SIMULADA = {
 }
 
 
-def _cliente_anthropic_simulado():
+class APITimeoutError(Exception):
+    """Mesmo NOME da exceção de timeout dos SDKs: o llm_engine traduz pelo nome da classe para o código `timeout`."""
+
+
+def _cliente_anthropic_simulado(saida: dict | None = None, erro: Exception | None = None):
     def create(**_):
-        bloco = SimpleNamespace(type="tool_use", input=dict(SAIDA_SIMULADA))
+        if erro is not None:
+            raise erro
+        bloco = SimpleNamespace(type="tool_use", input=dict(saida or SAIDA_SIMULADA))
         return SimpleNamespace(stop_reason="tool_use", content=[bloco])
 
     return SimpleNamespace(messages=SimpleNamespace(create=create))
+
+
+def _saida_com_citacao_inventada(pedido: dict) -> dict:
+    """Um tema com recorte literal de um turno do pedido (fica) e um com frase que não está na reunião (descartado)."""
+    turno = next(t for t in pedido["turnos"] if len(t["texto"]) >= 30)
+    real = {"padrao": "suporte_insatisfacao", "titulo": "Tema com citação real", "tipos": ["risco"],
+            "turno": turno["n"], "tratado": None, "texto": turno["texto"][:120], "confianca": 0.9}
+    inventada = {**real, "padrao": "preco_objecao", "titulo": "Tema com citação inventada",
+                 "texto": "Esta frase foi inventada pela LLM e não aparece na reunião."}
+    return {**SAIDA_SIMULADA, "temas": [real, inventada]}
 
 
 def _cliente_openai_simulado():
@@ -95,39 +118,67 @@ def _tentativas(corpo: dict) -> list[tuple[str, str]]:
     return [(t["motor"], "ok" if t["ok"] else t.get("erro", "falhou")) for t in corpo.get("tentativas", [])]
 
 
+def _rodar_cenario(cliente, pedido: dict, numero: int, nome: str, forcar: str) -> dict:
+    from app import saude
+
+    saude.limpar_estado()  # reiniciar o serviço zera o estado em memória do /health
+    os.environ["FORCAR_FALHA"] = forcar
+    inicio = time.perf_counter()
+    resposta = cliente.post("/analisar", json=pedido)
+    segundos = round(time.perf_counter() - inicio, 2)
+    corpo = resposta.json()
+    health = cliente.get("/health").json()
+    descartados: dict[str, int] = {}
+    for d in corpo.get("descartados") or []:
+        descartados[d["motivo"]] = descartados.get(d["motivo"], 0) + 1
+    return {
+        "cenario": numero, "nome": nome, "forcar_falha": forcar,
+        "motor": corpo.get("motor"), "tentativas": _tentativas(corpo), "http": resposta.status_code,
+        "codigo": corpo.get("codigo"), "avisos": list(corpo.get("avisos") or []), "segundos": float(segundos),
+        "temas": len(corpo.get("temas") or []), "descartados": descartados,
+        "health_status": health["status"],
+        "health_motores": {m["motor"]: m["ok"] for m in health["motores"]},
+    }
+
+
 def executar_ensaio(entrada: Path = ENTRADA_PADRAO) -> list[dict]:
     """Roda os 5 cenários. Devolve, por cenário, só nomes e contagens (nada de texto de transcrição)."""
     pedido = json.loads(Path(entrada).read_text(encoding="utf-8"))
-    resultados = []
     with ambiente_simulado():
         from fastapi.testclient import TestClient
 
-        from app import saude
         from app.main import app
 
         cliente = TestClient(app)
-        for numero, nome, forcar in CENARIOS:
-            saude.limpar_estado()  # reiniciar o serviço zera o estado em memória do /health
-            os.environ["FORCAR_FALHA"] = forcar
-            inicio = time.perf_counter()
-            resposta = cliente.post("/analisar", json=pedido)
-            segundos = round(time.perf_counter() - inicio, 2)
-            corpo = resposta.json()
-            health = cliente.get("/health").json()
-            resultados.append({
-                "cenario": numero, "nome": nome, "forcar_falha": forcar,
-                "motor": corpo.get("motor"), "tentativas": _tentativas(corpo), "http": resposta.status_code,
-                "codigo": corpo.get("codigo"), "avisos": list(corpo.get("avisos") or []), "segundos": float(segundos),
-                "health_status": health["status"],
-                "health_motores": {m["motor"]: m["ok"] for m in health["motores"]},
-            })
+        resultados = [_rodar_cenario(cliente, pedido, numero, nome, forcar) for numero, nome, forcar in CENARIOS]
+        os.environ.pop("FORCAR_FALHA", None)
+    return resultados
+
+
+def executar_extras(entrada: Path = ENTRADA_PADRAO) -> list[dict]:
+    """Cenários 6 e 7 (citação inventada, timeout): sem FORCAR_FALHA; o cliente simulado da llm1 provoca a falha."""
+    pedido = json.loads(Path(entrada).read_text(encoding="utf-8"))
+    clientes_llm1 = {"citacao_inventada": _cliente_anthropic_simulado(saida=_saida_com_citacao_inventada(pedido)),
+                     "timeout": _cliente_anthropic_simulado(erro=APITimeoutError("tempo esgotado (simulado)"))}
+    with ambiente_simulado():
+        from fastapi.testclient import TestClient
+
+        from app.engines import llm_engine
+        from app.main import app
+
+        cliente = TestClient(app)
+        resultados = []
+        for numero, nome, tipo in CENARIOS_EXTRAS:
+            simulados = {"llm1": clientes_llm1[tipo], "llm2": _cliente_openai_simulado()}
+            llm_engine.obter_cliente = lambda motor, s=simulados: s[motor]  # o ambiente_simulado restaura ao sair
+            resultados.append(_rodar_cenario(cliente, pedido, numero, nome, ""))
         os.environ.pop("FORCAR_FALHA", None)
     return resultados
 
 
 def formatar_tabela(resultados: list[dict]) -> str:
-    cabecalho = ["#", "cenario", "FORCAR_FALHA", "motor", "tentativas (motor:resultado)", "HTTP", "avisos", "tempo(s)",
-                 "/health depois"]
+    cabecalho = ["#", "cenario", "FORCAR_FALHA", "motor", "tentativas (motor:resultado)", "HTTP", "avisos", "descartes",
+                 "tempo(s)", "/health depois"]
     linhas = [cabecalho]
     for r in resultados:
         saude = f"{r['health_status']} [" + " ".join(f"{m}={'ok' if ok else 'X'}" for m, ok in r["health_motores"].items()) + "]"
@@ -135,7 +186,7 @@ def formatar_tabela(resultados: list[dict]) -> str:
         linhas.append([
             str(r["cenario"]), r["nome"], r["forcar_falha"] or "(vazio)", r["motor"] or "-",
             " > ".join(f"{m}:{res}" for m, res in r["tentativas"]), http, ",".join(r["avisos"]) or "-",
-            f"{r['segundos']:.2f}", saude,
+            ",".join(f"{m}:{n}" for m, n in r.get("descartados", {}).items()) or "-", f"{r['segundos']:.2f}", saude,
         ])
     larguras = [max(len(linha[i]) for linha in linhas) for i in range(len(cabecalho))]
     formatadas = ["  ".join(c.ljust(w) for c, w in zip(linha, larguras)).rstrip() for linha in linhas]
@@ -147,7 +198,7 @@ def main(argv: list[str]) -> int:
     p.add_argument("--entrada", type=Path, default=ENTRADA_PADRAO, help="transcrição sintética (formato do pedido)")
     args = p.parse_args(argv)
     logging.disable(logging.CRITICAL)  # os avisos da cadeia vão para o log; aqui só a tabela
-    print(formatar_tabela(executar_ensaio(args.entrada)))
+    print(formatar_tabela(executar_ensaio(args.entrada) + executar_extras(args.entrada)))
     return 0
 
 
