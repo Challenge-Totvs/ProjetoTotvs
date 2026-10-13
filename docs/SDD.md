@@ -373,6 +373,8 @@ LLM principal → LLM secundária → modelo local → regras por padrão
 
 ### 6.2 Contrato v3 — `POST /analisar`
 
+> **Fonte única do contrato:** o formato vigente, com todos os campos, regras de citação (§7.2) e erros (§8), está em [`docs/contrato/contrato-v3.md`](contrato/contrato-v3.md) e nas fixtures `docs/contrato/*.json`. Em caso de divergência, vale o contrato v3.
+
 **Pedido:**
 
 ```json
@@ -413,7 +415,7 @@ LLM principal → LLM secundária → modelo local → regras por padrão
 - Nomes em camelCase, iguais aos da demo. `recomendacaoProximosPassos` (v2.0) passa a ser `proximosPassos`, uma lista.
 - Valores de enum em minúsculas: `motor` em `llm1`, `llm2`, `local`, `regras`; `sentimento` em `positivo`, `neutro`, `negativo`.
 
-**Erros:** 422 para pedido inválido (sem turnos); 500 se todos os motores falharem. No Java, tempo limite ou conexão recusada viram `AnaliseIndisponivelException` e 503.
+**Erros:** 422 para pedido inválido (sem turnos); **503 `analise_indisponivel`** com corpo JSON estruturado se todos os motores falharem (contrato v3 §8.1). No Java, resposta 503 do Python, tempo limite ou conexão recusada viram `AnaliseIndisponivelException`, devolvida ao frontend como 503 `analise_indisponivel`.
 
 ### 6.3 O que cada motor entrega
 
