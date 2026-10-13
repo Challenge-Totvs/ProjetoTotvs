@@ -198,3 +198,11 @@ obrigatórios na linha de comando. 2 testes novos. pytest: `468 passed`.
   driver do ensaio passou a usar `taskkill /T` e esperar a porta liberar. Ao vivo, o `Ctrl+C` do roteiro não tem esse
   problema.
 - Custo: 1 chamada à llm2, cerca de US$ 0,004 (estimativa). pytest: `481 passed`.
+
+**Status 5:** concluído (só piloto; a destilação completa NÃO rodou). Detalhes em `docs/evidencias/destilacao-piloto-13-10.md`.
+- `claude-haiku-5-5`, 300 trechos, teto US$ 0,30: 300 rotulados, 0 sem resposta, 15 chamadas, não chegou ao teto.
+- **Custo real: US$ 0,0162** (117.152 tokens de entrada e 8.949 de saída).
+- Concordância LLM × regra: risco 0,810, oportunidade 0,803, interesse 0,760. Em interesse, a LLM marca 46 contra 94 da
+  regra. Concordância não é acerto: o P9 contra o ouro decide.
+- `rotulos_fracos.csv` regravado (fonte LLM em 300 trechos; positivos de treino: risco 969, oportunidade 1.236,
+  interesse 1.452). pytest: `481 passed` (sem mudança de código neste item).
