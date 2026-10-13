@@ -1,0 +1,10 @@
+{
+  "texto": "O suporte está demorando demais para responder os chamados do faturamento.",
+  "referencias": [
+    {"id": "np-101", "texto": "O suporte demora demais para responder, abrimos três chamados e ninguém retornou."},
+    {"id": "np-102", "texto": "O preço ficou muito caro para o que a gente usa."},
+    {"id": "np-103", "texto": "Vamos abrir uma nova filial no mês que vem."},
+    {"id": "np-104", "texto": "Os chamados do faturamento estão sem resposta do suporte há duas semanas."}
+  ],
+  "topK": 3
+}

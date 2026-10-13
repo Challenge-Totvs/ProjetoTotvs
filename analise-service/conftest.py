@@ -74,9 +74,11 @@ def bloquear_rede(monkeypatch):
 @pytest.fixture(autouse=True)
 def sem_chaves_no_ambiente(monkeypatch):
     """Nenhum teste usa chave: o que estiver no ambiente do desenvolvedor é removido (regra 4)."""
-    for variavel in ("LLM_PRINCIPAL_API_KEY", "LLM_PRINCIPAL_MODEL", "LLM_SECUNDARIA_API_KEY", "LLM_SECUNDARIA_MODEL"):
+    for variavel in ("LLM_PRINCIPAL_API_KEY", "LLM_PRINCIPAL_MODEL", "LLM_SECUNDARIA_API_KEY", "LLM_SECUNDARIA_MODEL",
+                     "LLM_PRINCIPAL_WORKSPACE_ID"):
         monkeypatch.delenv(variavel, raising=False)
     monkeypatch.delenv("FORCAR_FALHA", raising=False)
+    monkeypatch.delenv("INTERESSE_MODELO", raising=False)  # nenhum teste de produção liga o modelo de interesse
 
 
 @pytest.fixture(autouse=True)

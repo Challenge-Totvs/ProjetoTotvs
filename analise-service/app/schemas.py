@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 # --- Listas fechadas (contrato v3 §6). Valor fora da lista derruba a análise no Java. ---
 
@@ -226,3 +226,29 @@ class AnaliseResponseV1(BaseModel):
     sentimentoGeral : SentimentoGeral
     recomendacaoProximosPassos : str | None
     motorUtilizado : MotorUtilizado
+
+# --- /similares (PROPOSTA, docs/contrato/similares.md): RAG-lite, sem API ---
+
+TextoSimilares = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000)]
+
+
+class ReferenciaSimilar(BaseModel):
+    id: str = Field(min_length=1, max_length=100)
+    texto: TextoSimilares
+
+
+class PedidoSimilares(BaseModel):
+    texto: TextoSimilares
+    referencias: list[ReferenciaSimilar] = Field(default=[], max_length=200)
+    topK: int = Field(default=3, ge=1, le=50)
+    limiar: float | None = Field(default=None, ge=0, le=1)
+
+
+class ItemSimilar(BaseModel):
+    id: str
+    score: float = Field(ge=0, le=1)
+
+
+class RespostaSimilares(BaseModel):
+    similares: list[ItemSimilar]
+    versaoContrato: Literal["v3"] = "v3"

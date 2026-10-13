@@ -8,11 +8,16 @@ VERSOES_PIPELINE = ("real", "mock")
 MOTORES_VALIDOS = ("llm1", "llm2", "local", "regras")
 
 CAMINHO_MODELO_LOCAL = Path(__file__).resolve().parent / "modelos" / "classificador_risco.joblib"
+# Classificador de interesse (P8): só existe depois da promoção MANUAL de um candidato aprovado pelo portão.
+CAMINHO_MODELO_INTERESSE = Path(__file__).resolve().parent / "modelos" / "classificador_interesse.joblib"
+VARIAVEL_INTERESSE_MODELO = "INTERESSE_MODELO"  # fica AUSENTE do .env até o candidato real ser aprovado
 
 _VARIAVEIS_LLM = {
     "llm1": ("LLM_PRINCIPAL_API_KEY", "LLM_PRINCIPAL_MODEL"),
     "llm2": ("LLM_SECUNDARIA_API_KEY", "LLM_SECUNDARIA_MODEL"),
 }
+
+VARIAVEL_WORKSPACE_LLM1 = "LLM_PRINCIPAL_WORKSPACE_ID"  # opcional: cabeçalho anthropic-workspace-id
 
 
 CAMINHO_ENV = Path(__file__).resolve().parent.parent / ".env"
@@ -59,6 +64,11 @@ def chave_llm(motor: str) -> str | None:
     return os.environ.get(_VARIAVEIS_LLM[motor][0], "").strip() or None
 
 
+def workspace_llm1() -> str | None:
+    """ID do workspace da Anthropic (opcional). Ausente ou vazio => nenhum cabeçalho extra."""
+    return os.environ.get(VARIAVEL_WORKSPACE_LLM1, "").strip() or None
+
+
 def credenciais_llm(motor: str) -> tuple[str, str] | None:
     """(chave, modelo) do motor, ou None se faltar um dos dois."""
     chave = chave_llm(motor)
@@ -75,3 +85,8 @@ def motores_forcados() -> frozenset[str]:
     """Motores que devem falhar de propósito (FORCAR_FALHA="llm1,llm2"): só para a demo. Vazia por padrão."""
     itens = (item.strip().lower() for item in os.environ.get("FORCAR_FALHA", "").split(","))
     return frozenset(item for item in itens if item in MOTORES_VALIDOS)
+
+
+def interesse_modelo_ligado() -> bool:
+    """INTERESSE_MODELO ausente = "0" = desligado; só "1" liga o classificador de interesse no motor local."""
+    return os.environ.get(VARIAVEL_INTERESSE_MODELO, "0").strip() == "1"

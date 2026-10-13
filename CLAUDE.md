@@ -48,6 +48,7 @@ O Java espera no máximo 120 s.
 10. Mudança de comportamento tem teste. Dependência nova só com aviso;
     `scikit-learn==1.9.1` é pinado de propósito.
 11. Fixtures e transcrições de teste são SINTÉTICAS. Nunca commite trecho do corpus da TOTVS.
+12. Commits e PRs sem linhas de coautoria ou de atribuição automática.
 
 ## Como trabalhar
 - Tarefas por ID: `/p0-mock`, `/p1-schemas`, `/p2-prompt`, `/p3-citacoes`,
@@ -55,7 +56,7 @@ O Java espera no máximo 120 s.
   Uma tarefa por sessão (`/clear` entre elas).
 - Ciclo fixo: ler contrato e tarefa -> baseline do pytest -> PLANO e esperar aprovação
   -> testes primeiro (devem falhar pelo motivo certo) -> implementar o mínimo -> pytest
-  verde -> commit `tipo(ID): resumo` -> resumo de 5 linhas. (Sempre commit em meu nome: Joao basta. e sempre commit apos cada mudança para, se caso necessario, poder voltar a versao anterior)
+  verde -> commit `tipo(ID): resumo` -> resumo de 5 linhas. (Sempre commit em meu nome: Joao basta *SEM* co-author. e sempre commit apos cada mudança para, se caso necessario, poder voltar a versao anterior)
 - Só diga que terminou mostrando a saída de `python -m pytest -q`.
 - Nomes de domínio em português; campos JSON em camelCase como o contrato.
 
