@@ -47,7 +47,7 @@ def test_layout_real_ids_e_trecho_alvo_com_coluna_oculta(tmp_path, capsys):
     assert len(ouro) == 9 and ouro[0]["id"] == "G000" and ouro[0]["texto"] == TEXTO.format(0)
     assert ouro[0]["padrao_1"] == "preco_objecao" and ouro[1]["interesse"] == "0" and ouro[0]["interesse"] == "1"
     meta = json.loads((tmp_path / "ouro_final.json").read_text(encoding="utf-8"))
-    assert meta["invalidos"] == {"padrao": 0, "interesse": 0, "ids_repetidos": 0, "fora_da_lista": 0}
+    assert meta["invalidos"] == {"padrao": 0, "interesse": 0, "ids_repetidos": 0, "fora_da_lista": 0, "pendentes": 0}
     assert "Frase sintética" not in capsys.readouterr().out
 
 
