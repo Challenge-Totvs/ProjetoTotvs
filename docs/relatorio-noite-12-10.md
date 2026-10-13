@@ -206,3 +206,47 @@ obrigatórios na linha de comando. 2 testes novos. pytest: `468 passed`.
   regra. Concordância não é acerto: o P9 contra o ouro decide.
 - `rotulos_fracos.csv` regravado (fonte LLM em 300 trechos; positivos de treino: risco 969, oportunidade 1.236,
   interesse 1.452). pytest: `481 passed` (sem mudança de código neste item).
+
+**Status 6:** concluído. Atualizados o "Estado atual" do `CLAUDE.md` (13/10), este relatório e o
+`docs/handoff-kelwin-12-10.md`. No handoff: a §1 diz que `FORCAR_FALHA` exige reiniciar; a §4 diz que o timeout de 120 s
+está confirmado; e a §7 nova traz o ensaio ao vivo e a decisão 500/503.
+
+---
+
+## Fechamento do bloco 2
+
+- pytest final: **`481 passed`** (início do bloco: 460).
+- Commits (Joao, sem coautoria, sem push): `8edd62d` plano · `1414bc1` 1c · `c87a09c` P9 · `36f2c90` amostra do ouro ·
+  `dacf145` ensaio · `eb0528e` piloto · e o deste fechamento.
+- `git ls-files`: nenhum `.xlsx` nem `.csv`; só os dois `.env.example` e o `classificador_risco.joblib` que já existiam.
+  `backend/`, `frontend/` e `*.joblib` sem mudança. As anotações em `docs/relatorio-tarde-12-10.md` continuam sem commit
+  (são suas).
+- **Custo total de API do bloco: ~US$ 0,020.** Piloto de destilação: US$ 0,0162 (real, tokens × preço). Ensaio: 1 chamada
+  à llm2, ~US$ 0,004 (estimativa).
+- Nada parou.
+
+### Decisões tomadas neste bloco (para validar)
+1. **Ouro, ponto 5:** os valores brutos ficam em `<campo>_bruto` (texto da célula sem mexer), e `observacao` também é
+   guardada. O normalizado continua sendo o que mede.
+2. **Ouro, ponto 7:** texto livre na célula `duvida` conta como dúvida e o texto é o motivo; com "sim", o motivo vem da
+   `observacao`. No modo pares, os motivos dos dois são juntados.
+3. **Treino:** `PESO_DUVIDA = 0,5` [proposta] (o pedido dava a opção "peso menor ou fora do ouro de medição": aqui é peso
+   menor no treino; portão e P9 já deixam os trechos com dúvida fora da medição).
+4. **P9/destilação:** a professora padrão é `llm1` + `claude-haiku-5-5`, a mais barata e a mesma nos dois scripts.
+5. **Amostra do ouro:** pool = reuniões do holdout com `no_ouro` = 0 (as planilhas não são abertas); turno alvo com pelo
+   menos 20 caracteres [proposta]; IDs `N001`–`N283`; a amostra ficou com 283 trechos (não 300), porque faltam reuniões para
+   alguns padrões.
+6. **Ensaio:** "citação inventada" e "timeout" entraram como cenários 6 e 7 simulados (o `FORCAR_FALHA` não produz esses
+   dois); os 5 originais não mudaram.
+
+### Decisões abertas que dependem do João
+1. **Ponto 9 — duplicatas:** 7 `ID_MEETING` repetidos no corpus (17 repetições idênticas ignoradas). O próprio holdout
+   tem 345 linhas para 341 reuniões. Sem decisão; nada foi mexido.
+2. **Ponto 10 — 28 reuniões sem turnos `[LOCUTOR n]`:** puladas pela extração; tratar depois.
+3. **Formato da aba `Listas` do ouro real:** o `conciliar_ouro` supõe "toda célula de texto da aba é um valor permitido".
+   Não vi a planilha real; confirme o desenho, ou rode `python treino/conciliar_ouro.py --verificar` (só contagens).
+4. **500 × 503 com o Kelwin:** o SDD diz 500 quando tudo falha; o contrato v3 e o Python devolvem 503 (§7 do handoff).
+5. **Amostra nova (283):** usar como reforço do ouro? Nesse caso ela precisa ser rotulada e entrar no `conciliar_ouro`,
+   que hoje só lê `ouro_rotulador_1..4_PRONTO.xlsx`. `orcamento_restrito` não tem trecho fora das reuniões dos 300.
+6. **Interesse:** no piloto, a LLM marcou 46 contra 94 da regra. Rodar o P9 no ouro real antes de qualquer destilação
+   maior (custo estimado da destilação completa de ~3.000 trechos: ~US$ 0,16).

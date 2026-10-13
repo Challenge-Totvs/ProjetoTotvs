@@ -16,11 +16,13 @@ Prazos: banca TOTVS 15/10/2026 (define o top 4 para o Next, 24/10) · entrega FI
 O formato é o de `docs/contrato/contrato-v3.md` e das fixtures. O Java é a referência: o Python se alinha a ele.
 Mudou campo? Atualize doc e fixture ANTES do código e avise João Paulo, que avisa o Kelwin.
 
-## Estado atual (12/10)
-P0 a P6, P7 e P8 (etapas 1 a 6) estão commitadas na branch `analise-service(joao)`: o Python fala o contrato v3, a
-cadeia real roda e o `/health` usa a última tentativa real (`FORCAR_FALHA` para a demo). Smokes das duas LLMs ok e
-prompt validado com LLM real (P90: llm1 8,7 s, llm2 17,4 s; timeout do Java fica em 120 s). Falta rodar o P8 nos
-dados reais.
+## Estado atual (13/10)
+P0 a P6, P7, P8 e P9 estão commitados na branch `analise-service(joao)`: o Python fala o contrato v3, a cadeia real
+roda e o `/health` usa a última tentativa real (`FORCAR_FALHA` para a demo). Smokes das duas LLMs ok e prompt validado
+com LLM real (P90: llm1 8,7 s, llm2 17,4 s; timeout do Java fica em 120 s). Ensaio de falha ao vivo registrado em
+`docs/evidencias/ensaio-falha-13-10.md`. Dados reais: extração ok (233.267 trechos fora do holdout), amostra nova para o
+ouro (283 trechos, fora dos 300) e piloto de destilação com `claude-haiku-5-5` (300 trechos, US$ 0,0162). Falta:
+rotular e conciliar o ouro, rodar o P9 no ouro real, depois treino e portão.
 
 ## Arquitetura
 router -> orchestrator -> cadeia: llm1 (Anthropic) -> llm2 (OpenAI) -> local
