@@ -58,8 +58,8 @@ export function SecaoTranscricao({
         {visao === "llm" && (
           <div className="px-4 pt-3">
             <Aviso tom="info">
-              Antes de qualquer chamada a LLM externa, nomes de pessoas, empresas e lugares viram pseudônimos estáveis e tipados. O texto original fica
-              só no InsightCall.
+              Antes de qualquer chamada a LLM externa, os nomes cadastrados (cliente, contatos e vendedor) viram pseudônimos estáveis e tipados. O texto
+              original fica só no InsightCall.
             </Aviso>
           </div>
         )}

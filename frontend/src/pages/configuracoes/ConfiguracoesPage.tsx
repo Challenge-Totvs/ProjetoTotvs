@@ -85,10 +85,10 @@ export default function ConfiguracoesPage() {
           </ol>
         </Secao>
 
-        <Secao id="privacidade" titulo="Privacidade" sub="LGPD: nada de nome real chega a uma LLM externa">
+        <Secao id="privacidade" titulo="Privacidade" sub="LGPD: nomes cadastrados não chegam a uma LLM externa">
           <p className="m-0 text-[13.5px] leading-[1.55]">
-            Antes de qualquer chamada, pessoas, empresas e lugares viram pseudônimos estáveis e tipados: o mesmo nome vira sempre o mesmo pseudônimo, e o tipo se mantém. O
-            texto original fica só no InsightCall.
+            Antes de qualquer chamada, os nomes cadastrados (cliente, contatos e vendedor) viram pseudônimos estáveis e tipados: o mesmo nome vira sempre o mesmo
+            pseudônimo, e o tipo se mantém. O texto original fica só no InsightCall.
           </p>
           <div className={cx(bloco, "mt-3 text-[13px] leading-[1.55]")}>
             {/* leading-[1.55]: o text-xs traz altura de linha própria; aqui herda a do bloco, como na demo. */}
