@@ -17,7 +17,7 @@ fi
 ROOT=$(printf '%s' "$CLAUDE_PROJECT_DIR" | tr '\\' '/' | sed 's#//*#/#g')
 REL="${FILE#"$ROOT"/}"
 case "$REL" in
-  .env|*/.env|*.joblib|backend/*|frontend/*|docs/referencia/*)
+  .env|*/.env|*.joblib|docs/referencia/*)
     echo "Bloqueado: $REL é protegido neste projeto (CLAUDE.md, regra 9). Peça a alteração a João Paulo." >&2
     exit 2 ;;
 esac

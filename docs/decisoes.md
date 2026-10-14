@@ -183,3 +183,6 @@ Obtido com `python scripts/inspecionar_modelo.py` (scikit-learn 1.9.1). Só estr
 - Medido sobre os 233.267 trechos (só contagens): a expressão casava em 467; 151 (32%) casavam só por `oracle` (nenhum por `sap`). Dos trechos que a destilação com `claude-haiku-5-5` também viu, a LLM marcou risco em 16 de 83 (19%) entre os que só casavam por `oracle`, contra 71 de 173 (41%) nos demais. A marca de risco da LLM é geral, não só concorrente: serve de indício, não de prova.
 - Efeito: menos falso alarme de "concorrente citado" na demo e nos rótulos fracos que alimentam o retreino do modelo local. `rotulos_fracos.csv` precisa ser regerado antes do retreino.
 - Contrato v3 e fixtures não mudam: o padrão continua o mesmo, só a expressão ficou mais estreita.
+
+
+

@@ -66,6 +66,14 @@ Em falha, o smoke imprime o código do contrato, o HTTP e o tipo do erro do prov
 `not_found_error`...), nunca a mensagem, a chave ou texto. O prompt só conta como validado depois do smoke real
 registrado em `docs/evidencias/`.
 
+## Checagem pré-demo (serviço no ar)
+
+1. Suba o serviço: `uvicorn app.main:app --port 8000` (com `FORCAR_FALHA` ou `PIPELINE_VERSAO`, se for ensaiar).
+2. Rode `python scripts/pre_demo.py` (outra porta: `--porta 8001`; outro motor esperado: `--motor-esperado llm2`).
+3. Ele confere health, `/analisar` curta (12 turnos) e grande (399, sintética), e `/similares`. Imprime OK/FALHOU com tempos.
+4. Termina com PRONTO PARA A DEMO (saída 0) ou NAO PRONTO e a lista do que falhou (saída 2). Fora do ar: uma linha, saída 1.
+5. Com a LLM real, gasta duas chamadas. Não imprime texto, só status e contagens. Exemplo em `docs/evidencias/pre-demo-13-10.md`.
+
 ## Retreino do modelo local (P8, offline)
 
 Scripts em `treino/`, um por etapa, todos com `--help`, imprimindo só contagens e métricas. Dependência só de treino:
