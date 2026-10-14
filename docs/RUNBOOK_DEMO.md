@@ -15,7 +15,7 @@ compartilhada.
 |---|---|---|
 | Java | 25 | `backend/pom.xml` (`java.version`) · `java -version` |
 | Maven | qualquer 3.9.x (o repositório não tem `mvnw`) | `mvn -v` |
-| Node | PREENCHER: rodar `node -v` onde o front sobe | `node -v` (versão que funcionou no ensaio de 14/10) |
+| Node | v24.16.0: rodar `node -v` onde o front sobe | `node -v` (versão que funcionou no ensaio de 14/10) |
 | Python | 3.11+ | `README.md` · `python --version` |
 | Rede | acesso ao Oracle da FIAP, a `api.anthropic.com` e a `api.openai.com` | seção 3, `scripts/teste_rede.py` |
 
