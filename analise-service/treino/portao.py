@@ -9,8 +9,10 @@ Grupos (trechos com `duvida` ficam de fora):
 - interesse: filtro atual (palavra-chave v2 E risco do atual < `LIMIAR_INTERESSE`) × candidato de interesse com
   `LIMIAR_P_INTERESSE`;
 - oportunidade: expressões nos dois lados (não há candidato): só informativo.
-Por grupo: precisão, revocação, F1 e IC95% por bootstrap da DIFERENÇA de F1 (candidato − atual). Aprova um candidato
-se F1 >= atual E a precisão não cai mais de 0,02 E o IC95% não fica inteiramente abaixo de zero. Ouro parcial (ou sem
+Por grupo: precisão, revocação (com IC95% de Wilson), F1, matriz de confusão, baseline Dummy (sem sinal) e IC95% por
+bootstrap PAREADO da DIFERENÇA de F1 e da diferença de precisão (candidato − atual), além da contagem de trechos em
+que atual e candidato discordam. Aprova um candidato se F1 >= atual E o IC95% da diferença de precisão não fica
+inteiramente abaixo de -0,02 E o IC95% da diferença de F1 não fica inteiramente abaixo de zero. Ouro parcial (ou sem
 `ouro_final.json`) => nunca recomenda promoção. Por padrão os números são só indicativos (~8 trechos cada).
 
 Escreve `docs/evidencias/portao-<data>.md` (só métricas) e imprime o comando de promoção MANUAL de cada candidato
@@ -38,15 +40,30 @@ DESTINO_PROMOCAO = {"risco": "app/modelos/classificador_risco.joblib",
 
 # ------------------------------------------------------------------ métricas
 
+def intervalo_wilson(positivos: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    """IC95% de Wilson para uma proporção (positivos/n). (0.0, 0.0) se n == 0."""
+    if n == 0:
+        return 0.0, 0.0
+    p = positivos / n
+    denom = 1 + z * z / n
+    centro = p + z * z / (2 * n)
+    margem = z * ((p * (1 - p) / n + z * z / (4 * n * n)) ** 0.5)
+    lo = (centro - margem) / denom
+    hi = (centro + margem) / denom
+    return round(max(0.0, lo), 4), round(min(1.0, hi), 4)
+
+
 def metricas(y: Sequence[int], pred: Sequence[int]) -> dict:
     tp = sum(1 for a, b in zip(y, pred) if a and b)
     fp = sum(1 for a, b in zip(y, pred) if not a and b)
     fn = sum(1 for a, b in zip(y, pred) if a and not b)
+    tn = sum(1 for a, b in zip(y, pred) if not a and not b)
     precisao = tp / (tp + fp) if tp + fp else 0.0
     revocacao = tp / (tp + fn) if tp + fn else 0.0
     f1 = 2 * precisao * revocacao / (precisao + revocacao) if precisao + revocacao else 0.0
-    return {"n": len(y), "positivos": sum(y), "tp": tp, "fp": fp, "fn": fn,
-            "precisao": round(precisao, 4), "revocacao": round(revocacao, 4), "f1": round(f1, 4)}
+    return {"n": len(y), "positivos": sum(y), "tp": tp, "fp": fp, "fn": fn, "tn": tn,
+            "precisao": round(precisao, 4), "revocacao": round(revocacao, 4), "f1": round(f1, 4),
+            "wilson_precisao": intervalo_wilson(tp, tp + fp), "wilson_revocacao": intervalo_wilson(tp, tp + fn)}
 
 
 def _f1(y, p) -> float:
@@ -56,9 +73,15 @@ def _f1(y, p) -> float:
     return 2 * tp / (2 * tp + fp + fn) if tp else 0.0
 
 
-def ic95_diferenca_f1(y: Sequence[int], atual: Sequence[int], candidato: Sequence[int],
-                      repeticoes: int = REPETICOES_BOOTSTRAP, semente: int = 42) -> tuple[float, float]:
-    """Bootstrap pareado (mesma reamostragem para os dois) da diferença F1(candidato) − F1(atual)."""
+def _precisao(y, p) -> float:
+    tp = int((y & p).sum())
+    fp = int((~y & p).sum())
+    return tp / (tp + fp) if tp + fp else 0.0
+
+
+def _bootstrap_diferenca(estatistica, y: Sequence[int], atual: Sequence[int], candidato: Sequence[int],
+                         repeticoes: int = REPETICOES_BOOTSTRAP, semente: int = 42) -> tuple[float, float]:
+    """Bootstrap pareado (mesma reamostragem para os dois lados) da diferença estatistica(candidato) − estatistica(atual)."""
     import numpy as np
 
     y_, a_, c_ = (np.asarray(v, dtype=bool) for v in (y, atual, candidato))
@@ -68,8 +91,37 @@ def ic95_diferenca_f1(y: Sequence[int], atual: Sequence[int], candidato: Sequenc
     difs = np.empty(repeticoes)
     for i in range(repeticoes):
         idx = rng.integers(0, len(y_), len(y_))
-        difs[i] = _f1(y_[idx], c_[idx]) - _f1(y_[idx], a_[idx])
+        difs[i] = estatistica(y_[idx], c_[idx]) - estatistica(y_[idx], a_[idx])
     return round(float(np.percentile(difs, 2.5)), 4), round(float(np.percentile(difs, 97.5)), 4)
+
+
+def ic95_diferenca_f1(y: Sequence[int], atual: Sequence[int], candidato: Sequence[int],
+                      repeticoes: int = REPETICOES_BOOTSTRAP, semente: int = 42) -> tuple[float, float]:
+    """Bootstrap pareado da diferença F1(candidato) − F1(atual)."""
+    return _bootstrap_diferenca(_f1, y, atual, candidato, repeticoes, semente)
+
+
+def ic95_diferenca_precisao(y: Sequence[int], atual: Sequence[int], candidato: Sequence[int],
+                            repeticoes: int = REPETICOES_BOOTSTRAP, semente: int = 42) -> tuple[float, float]:
+    """Bootstrap pareado da diferença precisão(candidato) − precisão(atual)."""
+    return _bootstrap_diferenca(_precisao, y, atual, candidato, repeticoes, semente)
+
+
+def discordancia(atual: Sequence[int], candidato: Sequence[int]) -> int:
+    """Quantos trechos atual e candidato classificam de forma diferente."""
+    return sum(1 for a, c in zip(atual, candidato) if bool(a) != bool(c))
+
+
+def linha_de_base_dummy(y: Sequence[int], semente: int = 42) -> dict:
+    """Baseline sem sinal (DummyClassifier estratificado pela distribuição de classes do próprio y)."""
+    from sklearn.dummy import DummyClassifier
+
+    y_lista = list(y)
+    clf = DummyClassifier(strategy="stratified", random_state=semente)
+    x_vazio = [[0]] * len(y_lista)
+    clf.fit(x_vazio, y_lista)
+    pred = clf.predict(x_vazio)
+    return metricas(y_lista, [int(v) for v in pred])
 
 
 def suficiencia(candidato: dict | None, minimo: int | None, positivos_minimos: int) -> bool:
@@ -79,16 +131,17 @@ def suficiencia(candidato: dict | None, minimo: int | None, positivos_minimos: i
     return candidato.get("n", 0) >= minimo and candidato.get("positivos", 0) >= positivos_minimos
 
 
-def decidir(atual: dict, candidato: dict, ic: tuple[float, float]) -> tuple[bool, list[str]]:
+def decidir(atual: dict, candidato: dict, ic_f1: tuple[float, float],
+           ic_precisao: tuple[float, float]) -> tuple[bool, list[str]]:
     motivos = []
     if candidato["positivos"] == 0:
         return False, ["sem positivos no ouro: não dá para decidir"]
     if candidato["f1"] < atual["f1"]:
         motivos.append(f"F1 {candidato['f1']} < atual {atual['f1']}")
-    if candidato["precisao"] < atual["precisao"] - QUEDA_MAXIMA_PRECISAO:
-        motivos.append(f"precisão cai mais de {QUEDA_MAXIMA_PRECISAO} ({atual['precisao']} -> {candidato['precisao']})")
-    if ic[1] < 0:
-        motivos.append(f"IC95% da diferença de F1 inteiramente abaixo de zero {list(ic)}")
+    if ic_precisao[1] < -QUEDA_MAXIMA_PRECISAO:
+        motivos.append(f"IC95% da diferença de precisão inteiramente abaixo de -{QUEDA_MAXIMA_PRECISAO} {list(ic_precisao)}")
+    if ic_f1[1] < 0:
+        motivos.append(f"IC95% da diferença de F1 inteiramente abaixo de zero {list(ic_f1)}")
     return not motivos, motivos
 
 
@@ -114,14 +167,20 @@ def avaliar(ouro: list[dict], atual: Any, cand_risco: Any, cand_interesse: Any, 
     y = [int(x["risco"] == "1") for x in linhas]
     a = [int(p >= LIMIAR_RISCO) for p in p_atual]
     c = [int(p >= LIMIAR_RISCO) for p in p_risco]
-    grupos["risco"] = {"atual": metricas(y, a), "candidato": metricas(y, c), "ic95": ic95_diferenca_f1(y, a, c, repeticoes),
+    grupos["risco"] = {"atual": metricas(y, a), "candidato": metricas(y, c),
+                       "ic95": ic95_diferenca_f1(y, a, c, repeticoes),
+                       "ic95_precisao": ic95_diferenca_precisao(y, a, c, repeticoes),
+                       "discordancia": discordancia(a, c), "dummy": linha_de_base_dummy(y),
                        "referencia_regex": metricas(y, [int(regex_do_tipo(t, "risco")) for t in textos])}
 
     com = [i for i, x in enumerate(linhas) if x.get("interesse") in ("0", "1")]
     y = [int(linhas[i]["interesse"] == "1") for i in com]
     a = [int(bool(EXPRESSAO_INTERESSE.search(dobrar(textos[i]))) and p_atual[i] < LIMIAR_INTERESSE) for i in com]
     c = [int(p_interesse[i] >= LIMIAR_P_INTERESSE) for i in com]
-    grupos["interesse"] = {"atual": metricas(y, a), "candidato": metricas(y, c), "ic95": ic95_diferenca_f1(y, a, c, repeticoes)}
+    grupos["interesse"] = {"atual": metricas(y, a), "candidato": metricas(y, c),
+                           "ic95": ic95_diferenca_f1(y, a, c, repeticoes),
+                           "ic95_precisao": ic95_diferenca_precisao(y, a, c, repeticoes),
+                           "discordancia": discordancia(a, c), "dummy": linha_de_base_dummy(y)}
 
     y = [int(x["oportunidade"] == "1") for x in linhas]
     r = [int(regex_do_tipo(t, "oportunidade")) for t in textos]
@@ -129,7 +188,7 @@ def avaliar(ouro: list[dict], atual: Any, cand_risco: Any, cand_interesse: Any, 
 
     for nome in ("risco", "interesse"):
         g = grupos[nome]
-        g["aprovado"], g["motivos"] = decidir(g["atual"], g["candidato"], g["ic95"])
+        g["aprovado"], g["motivos"] = decidir(g["atual"], g["candidato"], g["ic95"], g["ic95_precisao"])
 
     por_padrao = {}
     for padrao in PADROES:
@@ -150,8 +209,12 @@ def comando_promocao(nome: str, pasta: Path) -> str:
 
 def _linha(rotulo: str, m: dict | None) -> str:
     if m is None:
-        return f"| {rotulo} | — | — | — | — |"
-    return f"| {rotulo} | {m['precisao']} | {m['revocacao']} | {m['f1']} | {m['positivos']}/{m['n']} |"
+        return f"| {rotulo} | — | — | — | — | — |"
+    wp = m.get("wilson_precisao")
+    wr = m.get("wilson_revocacao")
+    matriz = f"tp={m.get('tp', '—')} fp={m.get('fp', '—')} fn={m.get('fn', '—')} tn={m.get('tn', '—')}"
+    return (f"| {rotulo} | {m['precisao']} ({list(wp) if wp else '—'}) | {m['revocacao']} ({list(wr) if wr else '—'}) "
+            f"| {m['f1']} | {m['positivos']}/{m['n']} | {matriz} |")
 
 
 def escrever_relatorio(caminho: Path, resultado: dict, meta_ouro: dict, meta_candidato: dict, decisoes: dict) -> None:
@@ -171,14 +234,20 @@ def escrever_relatorio(caminho: Path, resultado: dict, meta_ouro: dict, meta_can
     ]
     if meta_ouro.get("limitacao"):
         linhas.append(f"- Limitação: {meta_ouro['limitacao']}")
-    linhas += ["", "## Por grupo", "", "| Grupo / lado | precisão | revocação | F1 | positivos/n |", "|---|---|---|---|---|"]
+    linhas += ["", "## Por grupo", "",
+               "| Grupo / lado | precisão (Wilson 95%) | revocação (Wilson 95%) | F1 | positivos/n | matriz de confusão |",
+               "|---|---|---|---|---|---|"]
     for nome in ("risco", "interesse", "oportunidade"):
         linhas.append(_linha(f"{nome} — atual", g[nome]["atual"]))
         linhas.append(_linha(f"{nome} — candidato", g[nome]["candidato"]))
+        if "dummy" in g[nome]:
+            linhas.append(_linha(f"{nome} — baseline Dummy (sem sinal)", g[nome]["dummy"]))
     linhas.append(_linha("risco — referência: só regex", g["risco"]["referencia_regex"]))
     linhas += ["", "## Decisão", ""]
     for nome in ("risco", "interesse"):
-        linhas.append(f"- **{nome}**: IC95% da diferença de F1 = {list(g[nome]['ic95'])}; {decisoes[nome]}")
+        linhas.append(f"- **{nome}**: IC95% da diferença de F1 = {list(g[nome]['ic95'])}; "
+                      f"IC95% da diferença de precisão = {list(g[nome]['ic95_precisao'])}; "
+                      f"discordância atual×candidato = {g[nome]['discordancia']} trecho(s); {decisoes[nome]}")
         if g[nome]["motivos"]:
             linhas.append(f"  - motivos: {'; '.join(g[nome]['motivos'])}")
     linhas.append("- **oportunidade**: sem candidato (expressões nos dois lados); só informativo.")

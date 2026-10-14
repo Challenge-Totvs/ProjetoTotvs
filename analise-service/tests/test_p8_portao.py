@@ -60,8 +60,18 @@ def _cenario(tmp_path, completo=True, atual=("suporte",), cand_risco=("suporte",
 
 def test_metricas():
     m = portao.metricas([1, 1, 0, 0], [1, 0, 1, 0])
-    assert (m["tp"], m["fp"], m["fn"], m["precisao"], m["revocacao"], m["f1"]) == (1, 1, 1, 0.5, 0.5, 0.5)
+    assert (m["tp"], m["fp"], m["fn"], m["tn"], m["precisao"], m["revocacao"], m["f1"]) == (1, 1, 1, 1, 0.5, 0.5, 0.5)
     assert portao.metricas([0, 0], [0, 0])["f1"] == 0.0
+    assert portao.metricas([0, 0], [0, 0])["tn"] == 2
+
+
+def test_intervalo_wilson():
+    assert portao.intervalo_wilson(0, 0) == (0.0, 0.0)
+    lo, hi = portao.intervalo_wilson(5, 10)
+    assert 0 < lo < 0.5 < hi < 1
+    # mais observações com a mesma proporção -> intervalo mais estreito
+    lo2, hi2 = portao.intervalo_wilson(50, 100)
+    assert (hi2 - lo2) < (hi - lo)
 
 
 def test_ic95_e_deterministico_e_pareado():
@@ -72,15 +82,43 @@ def test_ic95_e_deterministico_e_pareado():
     assert portao.ic95_diferenca_f1(y, a, a, repeticoes=200) == (0.0, 0.0)
 
 
-@pytest.mark.parametrize("atual,candidato,ic,aprova", [
-    ({"f1": 0.5, "precisao": 0.6, "positivos": 8}, {"f1": 0.6, "precisao": 0.59, "positivos": 8}, (-0.1, 0.3), True),
-    ({"f1": 0.5, "precisao": 0.6, "positivos": 8}, {"f1": 0.49, "precisao": 0.7, "positivos": 8}, (-0.2, 0.1), False),
-    ({"f1": 0.5, "precisao": 0.6, "positivos": 8}, {"f1": 0.6, "precisao": 0.55, "positivos": 8}, (0.0, 0.2), False),
-    ({"f1": 0.5, "precisao": 0.6, "positivos": 8}, {"f1": 0.5, "precisao": 0.6, "positivos": 8}, (-0.3, -0.01), False),
-    ({"f1": 0.0, "precisao": 0.0, "positivos": 0}, {"f1": 0.0, "precisao": 0.0, "positivos": 0}, (0.0, 0.0), False),
+def test_ic95_diferenca_precisao_deterministico_e_pareado():
+    y, a, c = [1, 1, 1, 0, 0, 0] * 5, [1, 1, 0, 1, 0, 0] * 5, [1, 1, 0, 0, 0, 0] * 5
+    ic = portao.ic95_diferenca_precisao(y, a, c, repeticoes=500)
+    assert ic == portao.ic95_diferenca_precisao(y, a, c, repeticoes=500)
+    assert ic[0] <= ic[1]
+    assert portao.ic95_diferenca_precisao(y, a, a, repeticoes=200) == (0.0, 0.0)
+
+
+def test_discordancia():
+    assert portao.discordancia([1, 0, 1, 0], [1, 0, 0, 1]) == 2
+    assert portao.discordancia([1, 1], [1, 1]) == 0
+
+
+def test_linha_de_base_dummy():
+    y = [1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+    d = portao.linha_de_base_dummy(y)
+    assert d["n"] == len(y) and d["positivos"] == 3
+    assert 0.0 <= d["precisao"] <= 1.0 and 0.0 <= d["revocacao"] <= 1.0
+    assert portao.linha_de_base_dummy(y) == d  # determinístico (semente fixa)
+
+
+@pytest.mark.parametrize("atual,candidato,ic_f1,ic_precisao,aprova", [
+    # F1 melhora, IC95% da diferença de precisão não fica inteiramente abaixo de -0,02 -> aprova
+    ({"f1": 0.5, "precisao": 0.6, "positivos": 8}, {"f1": 0.6, "precisao": 0.59, "positivos": 8}, (-0.1, 0.3), (-0.01, 0.05), True),
+    # F1 piora -> reprova
+    ({"f1": 0.5, "precisao": 0.6, "positivos": 8}, {"f1": 0.49, "precisao": 0.7, "positivos": 8}, (-0.2, 0.1), (0.0, 0.1), False),
+    # precisão pontual caiu, mas o IC95% da diferença não fica todo abaixo de -0,02 -> aprova (ruído, não queda real)
+    ({"f1": 0.5, "precisao": 0.6, "positivos": 8}, {"f1": 0.6, "precisao": 0.55, "positivos": 8}, (0.0, 0.2), (-0.019, 0.02), True),
+    # IC95% da diferença de precisão inteiramente abaixo de -0,02 -> reprova mesmo com F1 melhor
+    ({"f1": 0.5, "precisao": 0.6, "positivos": 8}, {"f1": 0.6, "precisao": 0.3, "positivos": 8}, (0.0, 0.2), (-0.4, -0.05), False),
+    # IC95% da diferença de F1 inteiramente abaixo de zero -> reprova
+    ({"f1": 0.5, "precisao": 0.6, "positivos": 8}, {"f1": 0.5, "precisao": 0.6, "positivos": 8}, (-0.3, -0.01), (-0.05, 0.05), False),
+    # sem positivos no ouro -> não dá para decidir
+    ({"f1": 0.0, "precisao": 0.0, "positivos": 0}, {"f1": 0.0, "precisao": 0.0, "positivos": 0}, (0.0, 0.0), (0.0, 0.0), False),
 ])
-def test_regra_de_aprovacao(atual, candidato, ic, aprova):
-    assert portao.decidir(atual, candidato, ic)[0] is aprova
+def test_regra_de_aprovacao(atual, candidato, ic_f1, ic_precisao, aprova):
+    assert portao.decidir(atual, candidato, ic_f1, ic_precisao)[0] is aprova
 
 
 def test_candidato_melhor_com_ouro_completo_imprime_comando(tmp_path, capsys):
