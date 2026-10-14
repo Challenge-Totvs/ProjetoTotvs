@@ -98,3 +98,25 @@ Reuniões já gravadas pelo frontend continuariam com +3 h; corrigir os dados an
 
 `scripts/teste_rede.py`, `scripts/test_teste_rede.py`, `scripts/fluxo_integracao.py`, `scripts/test_fluxo_integracao.py`
 (9 testes: `python -m pytest -q scripts/`) e este relatório.
+
+## Rodada de 14/10 (backend liberado pelo João)
+
+Só testes de unidade: o backend não foi religado contra o Oracle nesta rodada. Comando de cada linha:
+`cd backend && JAVA_HOME=~/.jdks/temurin-25.0.4.1 <maven do cache>/bin/mvn -B test`.
+
+| Parte | Commit | `mvn test` | Tempo | Testes novos |
+|---|---|---|---|---|
+| 1 Fuso + 503 | `f61f11f` | 146/147 | 30 s | 6 (`ReuniaoServiceHoraTest` 2, `AnaliseIndisponivelTest` 4) |
+| 2 Contraexemplos | `9925f0c` | 154/155 | 22 s | 8 (`AnaliseContraexemplosTest` 3, `NaoProcedeDoClienteTest` 5) |
+| 3 `/similares` | `eb3347b` | 160/161 | 20 s | 6 (`ClienteSimilaresTest` 5, `AnaliseSemelhantesTest` 1) |
+
+A única falha em todas as linhas é o `contextLoads` (falta das variáveis do Oracle, como na etapa 1).
+
+- `ddl-auto`: `application.properties` é o único arquivo de configuração do backend (sem `application-*.properties`/
+  `.yml`, sem `config/`, sem devtools global, sem `SPRING_*` no ambiente, sem perfil ativo no run config do IntelliJ;
+  `@Profile("demo")` só liga a `CargaDemo`). Vale `update`, que nunca apaga tabela nem coluna. Efeito da parte 3: no
+  próximo boot contra o Oracle, o Hibernate acrescenta a coluna anulável `TEMA.SEMELHANTE_NAO_PROCEDE_ID`.
+- Docs alterados antes do código: `contrato-v3.md` §3.1, §9, §11 e §13 (parte 2); `similares.md` cabeçalho, §6 e §8 (parte 3).
+- Frontend: nenhuma mudança. O tipo `{texto, clienteNome}` de `api.ts:248` já é atendido; o `id` a mais é ignorado.
+- Pendente: ensaio ponta a ponta com a coluna nova (cliente com um tema marcado "não procede" + reunião nova com o
+  mesmo assunto) e a rodada do `teste_rede.py` no 4G.
