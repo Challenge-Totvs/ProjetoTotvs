@@ -128,12 +128,30 @@ def pesos(linhas: list[dict]) -> list[float]:
     return [PESO_DUVIDA if (x.get("duvida") or "").strip() == "1" else 1.0 for x in linhas]
 
 
-def treinar(linhas: list[dict], base: Any, params: dict[str, Any]) -> tuple[dict[str, Any], dict]:
-    textos = [x["texto"] for x in linhas]
-    peso = pesos(linhas)
+def ler_suspeitos(caminho: Path) -> dict[str, set[str]]:
+    """{grupo: {id, ...}} a partir de `dados_locais/rotulos_suspeitos.csv` (treino/rotulos_suspeitos.py). Sem
+    arquivo => {} (nenhuma exclusão)."""
+    if not caminho.is_file():
+        return {}
+    from treino.comum import ler_csv as _ler_csv
+
+    suspeitos: dict[str, set[str]] = {}
+    for linha in _ler_csv(caminho):
+        suspeitos.setdefault(linha["grupo"], set()).add(linha["id"])
+    return suspeitos
+
+
+def treinar(linhas: list[dict], base: Any, params: dict[str, Any],
+           suspeitos: dict[str, set[str]] | None = None) -> tuple[dict[str, Any], dict]:
+    suspeitos = suspeitos or {}
+    peso_todos = pesos(linhas)
     modelos, tamanhos = {}, {}
     for nome in MODELOS:
-        y = [1 if x[nome] == "1" else 0 for x in linhas]
+        excluidos = suspeitos.get(nome, set())
+        indices = [i for i, x in enumerate(linhas) if x["id"] not in excluidos]
+        textos = [linhas[i]["texto"] for i in indices]
+        peso = [peso_todos[i] for i in indices]
+        y = [1 if linhas[i][nome] == "1" else 0 for i in indices]
         if len(set(y)) < 2:
             raise SystemExit(f"erro: rótulo '{nome}' tem uma classe só ({sum(y)} positivos em {len(y)}); não dá para treinar")
         modelo = novo_modelo(base, params)
@@ -142,7 +160,8 @@ def treinar(linhas: list[dict], base: Any, params: dict[str, Any]) -> tuple[dict
         else:
             modelo.fit(textos, y)
         modelos[nome] = modelo
-        tamanhos[nome] = {"positivos": sum(y), "negativos": len(y) - sum(y)}
+        tamanhos[nome] = {"positivos": sum(y), "negativos": len(y) - sum(y),
+                          "excluidos_suspeitos": len(linhas) - len(indices)}
     return modelos, tamanhos
 
 
@@ -165,6 +184,9 @@ def main(argv: list[str]) -> int:
                    help="veredito da professora (P9), só registrado no metadata.json")
     p.add_argument("--param", action="append", default=[], help="hiperparâmetro alterado (chave=valor); exige justificativa")
     p.add_argument("--justificativa", default="")
+    p.add_argument("--excluir-suspeitos", action="store_true",
+                   help="exclui do treino (por grupo) os trechos marcados em --suspeitos (treino/rotulos_suspeitos.py)")
+    p.add_argument("--suspeitos", type=Path, default=DADOS / "rotulos_suspeitos.csv")
     args = p.parse_args(argv)
 
     params = ler_params(args.param)
@@ -182,11 +204,15 @@ def main(argv: list[str]) -> int:
     separacao["holdout_conferido"] = bool(holdout)
     veredito = ler_veredito(args.veredito)
     professora = registro_professora(linhas, veredito, args.veredito.name if args.veredito.is_file() else None)
+    suspeitos = ler_suspeitos(args.suspeitos) if args.excluir_suspeitos else {}
+    if args.excluir_suspeitos and not suspeitos:
+        print(f"aviso: --excluir-suspeitos pedido mas {args.suspeitos.name} não encontrado ou vazio; "
+              "treinando sem exclusão (rode treino/rotulos_suspeitos.py antes)")
 
     import sklearn
 
     base = carregar_base(args.base)
-    modelos, tamanhos = treinar(linhas, base, params)
+    modelos, tamanhos = treinar(linhas, base, params, suspeitos)
     data = dt.date.today().isoformat()
     pasta = pasta_livre(args.candidatos, data)
     pasta.mkdir(parents=True)
@@ -207,6 +233,8 @@ def main(argv: list[str]) -> int:
         "separacao": separacao,
         "professora": professora,
         "duvida": {"trechos_com_duvida": pesos(linhas).count(PESO_DUVIDA), "peso": PESO_DUVIDA},
+        "suspeitos": {"excluir_suspeitos": args.excluir_suspeitos, "arquivo": args.suspeitos.name if suspeitos else None,
+                     "excluidos_por_grupo": {g: tamanhos[g]["excluidos_suspeitos"] for g in MODELOS}},
     }
     (pasta / "metadata.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     imprimir({"candidato": pasta.name, "tamanhos": tamanhos, "mudancas": len(params), "separacao": separacao,

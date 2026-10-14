@@ -1,2 +1,3 @@
 # Dependencias SÓ do pipeline de treino (P8): nao entram no requirements.txt do servico.
 openpyxl==3.1.5
+cleanlab==2.9.0
