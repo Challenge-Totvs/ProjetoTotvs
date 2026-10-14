@@ -562,3 +562,19 @@ export interface ConviteDetalhe {
   aceito: boolean;
   expirado: boolean;
 }
+/* ---------- Busca no histórico do cliente ---------- */
+
+/** Um trecho de reunião anterior parecido com a consulta (GET /api/clientes/{id}/evidencias). */
+export interface EvidenciaBusca {
+  texto: string; // o turno original da transcrição
+  reuniaoId: Id;
+  turno: number; // número do turno na reunião (para abrir direto nele)
+  data: DataISO; // data e hora da reunião
+  score: number; // 0 a 1; quanto maior, mais parecido
+}
+
+/** `aviso` vem preenchido quando a lista está vazia por falha do serviço ou falta de transcrição. */
+export interface RespostaEvidencias {
+  evidencias: EvidenciaBusca[];
+  aviso: string | null;
+}

@@ -1,5 +1,5 @@
 import { http } from "./http";
-import type { ClienteDetalhe, ClienteResumo, Id, NovoClienteRequest } from "../types/api";
+import type { ClienteDetalhe, ClienteResumo, Id, NovoClienteRequest, RespostaEvidencias } from "../types/api";
 
 /** GET /api/clientes — vendedor: os próprios; gestor: os do escopo. */
 export async function listarClientes(): Promise<ClienteResumo[]> {
@@ -16,5 +16,11 @@ export async function buscarCliente(id: Id): Promise<ClienteDetalhe> {
 /** POST /api/clientes — cria o cliente com o primeiro contato. */
 export async function criarCliente(dados: NovoClienteRequest): Promise<ClienteDetalhe> {
   const { data } = await http.post<ClienteDetalhe>("/api/clientes", dados);
+  return data;
+}
+
+/** GET /api/clientes/{id}/evidencias?q= — trechos das reuniões anteriores parecidos com a consulta. */
+export async function buscarEvidencias(id: Id, consulta: string): Promise<RespostaEvidencias> {
+  const { data } = await http.get<RespostaEvidencias>(`/api/clientes/${id}/evidencias`, { params: { q: consulta } });
   return data;
 }
