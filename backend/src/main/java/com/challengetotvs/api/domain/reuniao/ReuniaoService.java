@@ -16,11 +16,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class ReuniaoService {
+
+    private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
 
     private final ClienteRepository clienteRepository;
     private final ReuniaoRepository reuniaoRepository;
@@ -30,7 +34,7 @@ public class ReuniaoService {
                 .filter(c -> c.getVendedor() != null && c.getVendedor().getId().equals(consultor.getId()))
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado!"));
 
-        var dataHora = request.dataHora().toLocalDateTime();
+        var dataHora = horaLocal(request.dataHora());
         validarStatusEData(request.status(), dataHora);
 
         var contato = escolherContato(cliente, request.contatoId());
@@ -43,16 +47,21 @@ public class ReuniaoService {
         return ReuniaoResponse.from(reuniao);
     }
 
+    /** O Jackson entrega o OffsetDateTime em UTC; a reunião é gravada na hora de Brasília, como no resto do sistema. */
+    static LocalDateTime horaLocal(OffsetDateTime dataHora) {
+        return dataHora.atZoneSameInstant(FUSO).toLocalDateTime();
+    }
+
     private void validarStatusEData(StatusReuniao status, LocalDateTime dataHora) {
         if (status == StatusReuniao.ANALISADA) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "status_invalido",
                     "Uma reunião nova só pode ser agendada ou aguardando transcrição.");
         }
-        if (status == StatusReuniao.AGENDADA && !dataHora.isAfter(LocalDateTime.now())) {
+        if (status == StatusReuniao.AGENDADA && !dataHora.isAfter(LocalDateTime.now(FUSO))) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "data_invalida",
                     "Reunião agendada precisa ter data e hora futuras.");
         }
-        if (status == StatusReuniao.REALIZADA && dataHora.toLocalDate().isAfter(LocalDate.now())) {
+        if (status == StatusReuniao.REALIZADA && dataHora.toLocalDate().isAfter(LocalDate.now(FUSO))) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "data_invalida",
                     "Reunião já realizada não pode ter data futura.");
         }
