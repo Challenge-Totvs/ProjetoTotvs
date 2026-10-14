@@ -198,8 +198,8 @@ function PaginaAnalisada({ r, turno }: { r: ReuniaoDetalhe; turno: number | null
         <div className="mb-4">
           <Aviso tom="atencao">
             {analise.motor === "local"
-              ? "Análise em contingência pelo modelo local: sem resumo, sem compromissos e sem leitura de quem falou. A reunião é reprocessada quando uma LLM voltar."
-              : "Análise em contingência pelas regras: sem resumo, sem compromissos e sem leitura de quem falou. A reunião é reprocessada quando uma LLM voltar."}
+              ? "Análise em contingência pelo modelo local: sem resumo, sem compromissos e sem leitura de quem falou. Reenvie a transcrição quando uma LLM voltar para obter a análise completa."
+              : "Análise em contingência pelas regras: sem resumo, sem compromissos e sem leitura de quem falou. Reenvie a transcrição quando uma LLM voltar para obter a análise completa."}
           </Aviso>
         </div>
       )}

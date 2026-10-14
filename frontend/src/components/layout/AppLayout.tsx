@@ -178,7 +178,7 @@ function BannerContingencia() {
   const texto =
     estadoMotores === "llm1_fora"
       ? "A LLM principal não está respondendo. As próximas análises seguem pela LLM secundária, sem perda de qualidade esperada."
-      : "As duas LLMs não estão respondendo. As próximas análises seguem pelo modelo local, marcadas como contingência: sem resumo e sem leitura de quem falou. Reprocessam quando uma LLM voltar.";
+      : "As duas LLMs não estão respondendo. As próximas análises seguem pelo modelo local, marcadas como contingência: sem resumo e sem leitura de quem falou. Reenvie a transcrição quando uma LLM voltar.";
   return (
     <div className="flex items-center gap-2.5 border-b border-atencao-borda bg-atencao-fundo px-6 py-[9px] text-[13px] leading-[1.4] text-atencao ate-640:px-4" role="status">
       <AlertTriangle size={15} aria-hidden="true" className="flex-none" />
