@@ -54,6 +54,18 @@ class NaoProcedeDoClienteTest {
     }
 
     @Test
+    void semCitacaoAnteriorUsaAUltimaDeTodas() {
+        Tema tema = tema(31L, "renovacao");
+        LocalDateTime marcado = agora().minusDays(5);
+        var evento = evento(tema, "fora_contexto", marcado);
+        when(citacoes.findByTemaIdOrderByReuniaoDataHoraAsc(31L)).thenReturn(List.of(
+                citacao(tema, "primeira depois da marcacao", marcado.plusDays(1)),
+                citacao(tema, "ultima de todas", marcado.plusDays(3))));
+
+        assertThat(naoProcede.trecho(evento)).contains("ultima de todas");
+    }
+
+    @Test
     void temaSemCitacaoFicaDeFora() {
         Tema tema = tema(31L, "renovacao");
         when(eventos.findByTemaClienteIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(CLIENTE_ID, TipoEvento.NAO_PROCEDE))
