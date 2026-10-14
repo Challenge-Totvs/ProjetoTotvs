@@ -60,7 +60,7 @@ Orçamento de tempo **[decidido, D7; calibrar no smoke]**: `llm1` ~55 s, `llm2` 
 | `turnos` | `[{n:int, locutor:int, texto:string}]` | **sim** | De 1 a 3.000 itens. `n` consecutivo de 1 a N; `locutor` inteiro (não é sequencial e não é uma pessoa); `texto` não vazio, até 5.000 caracteres. Já vem **pseudonimizado** (`[PESSOA_1]`, `[EMPRESA_1]`, `[LOCAL_1]`). Vazio ou ausente → 422 `pedido_invalido` |
 | `dataReuniao` | string `AAAA-MM-DD` | não | Só referência para a LLM entender prazos ditos ("até segunda") |
 | `padroes` | `[string]` | não | Subconjunto dos 14 padrões (6.1). Ausente ou vazio = os 14. O Java envia os ativos. Chave fora da lista → 422 `padrao_desconhecido` |
-| `contraexemplos` | `[{padrao, texto, motivo}]` | não | "Não procede" anteriores. `motivo` ∈ `nao_cliente`, `fora_contexto`, `tema_errado`, `outro`. O Java hoje envia `[]` (tarefa E6) |
+| `contraexemplos` | `[{padrao, texto, motivo}]` | não | "Não procede" anteriores. `motivo` ∈ `nao_cliente`, `fora_contexto`, `tema_errado`, `outro`. O Java envia os temas marcados "não procede" (ainda vigentes) do **mesmo cliente**, do mais recente ao mais antigo, até 50: `padrao` = chave do tema, `texto` = citação do tema já pseudonimizada e cortada em 500 caracteres, `motivo` vazio vira `outro`. Cliente sem "não procede" → `[]` (tarefa E6, 14/10) |
 | `contextoCliente` | `[{tipo, texto, origem, data}]` | não, **extra** | Ajuste manual por cliente. `tipo` = `ajuste_manual`; `origem` ∈ `vendedor`, `gestor`; `data` = `AAAA-MM-DD`. O Java ainda não envia |
 | `glossarioTime` | `[{termo, significa, escopo}]` | não, **extra** | Siglas e nomes internos. `escopo` = `time`. O Java ainda não envia |
 | `correcoesAnteriores` | `[{padrao, textoOriginal, correcao, motivo}]` | não, **extra** | Correções do vendedor. `correcao` = `nao_procede` (único valor na Release 1, **[decidido, A7]**). O Java ainda não envia |
@@ -297,7 +297,7 @@ Formato que o Java já lê (`MotorStatusService`: lista `motores` com `motor` e 
 
 | Ponto | Situação |
 |---|---|
-| Pedido | `AnaliseService` monta `Pedido(turnos, dataReuniao, padroes, contraexemplos)`; `contraexemplos` vai como `[]` |
+| Pedido | `AnaliseService` monta `Pedido(turnos, dataReuniao, padroes, contraexemplos)`; `contraexemplos` traz os "não procede" do mesmo cliente (§3.1), ou `[]` se não houver |
 | Resposta | `ContratoV3.Resposta` e os records aninhados têm `@JsonIgnoreProperties(ignoreUnknown = true)`: campos extras são seguros. **A4 está fechada** |
 | Campos que o Java exige | `motor` ∈ {llm1, llm2, local, regras} e `sentimento` ∈ {positivo, neutro, negativo} (ou nulo), senão a análise falha com 503. `tipos` com `risco`/`oportunidade` em minúsculas. `turno` inteiro em temas, interesse e compromissos |
 | Tolera ausência | Listas e mapas ausentes viram vazios no construtor do record |
@@ -331,7 +331,7 @@ O que falta do lado Java: um teste que leia `docs/contrato/resposta-v3-*.json` e
 
 | Arquivo | Conteúdo | Quem lê |
 |---|---|---|
-| `pedido-v3.json` | O que o Java envia hoje: `turnos`, `dataReuniao`, `padroes` (os 14), `contraexemplos: []` | Python e Java |
+| `pedido-v3.json` | O que o Java envia para um cliente sem "não procede": `turnos`, `dataReuniao`, `padroes` (os 14), `contraexemplos: []` | Python e Java |
 | `pedido-v3-extras.json` | Acrescenta `contraexemplos` preenchido, `contextoCliente`, `glossarioTime`, `correcoesAnteriores` e um subconjunto de `padroes` | Python |
 | `resposta-v3-llm.json` | Resposta completa de LLM: três temas, interesse, compromisso, evento de conduta e um descartado. **É também a resposta do mock** | Python e Java |
 | `resposta-v3-local.json` | Contingência do `local`, com temas por expressão | Python e Java |
@@ -365,6 +365,7 @@ Foram conferidas por script: cada `texto` e `citacao` existe literalmente no tur
 |---|---|
 | 2026-10-11 | Primeira versão como "contrato v2", baseada no corpo v1. **Substituída no mesmo dia.** |
 | 2026-10-11 | Realinhada ao contrato v3 do SDD e ao `ContratoV3` do Java (commit `fc206c2`). Remove o pedido e o corpo v1. Regras por padrão voltam à cadeia na Release 1. Rollback passa a ser a resposta gravada (`PIPELINE_VERSAO=mock`). |
+| 2026-10-14 | O Java passa a preencher `contraexemplos` com os "não procede" do mesmo cliente (§3.1, §9). Formato inalterado. |
 
 Regra de mudança: campo novo opcional não muda a versão; remover ou mudar o significado de um campo que o Java lê exige conversa com o Kelwin antes.
 

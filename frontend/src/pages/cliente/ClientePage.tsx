@@ -7,6 +7,7 @@ import { History, Upload, Users } from "lucide-react";
 import { buscarCliente } from "../../api/clientes";
 import { infoErro } from "../../api/http";
 import { InspetorTema } from "../../components/cliente/InspetorTema";
+import { BuscaHistorico } from "../../components/cliente/BuscaHistorico";
 import { MapaTemas } from "../../components/cliente/MapaTemas";
 import { ItemCompromisso } from "../../components/tema/Itens";
 import { AvisoLeitura, CabecalhoPagina, Carregando, ErroCarregar, Etiqueta, Numero, Secao, Vazio } from "../../components/ui/base";
@@ -245,6 +246,9 @@ function PaginaCliente({ id }: { id: Id }) {
               <LegendaGlifos compacta />
             </div>
           </Secao>
+
+          {/* Busca por assunto nas transcrições anteriores do cliente */}
+          <BuscaHistorico clienteId={cliente.id} />
 
           {/* Reuniões, da mais recente para a mais antiga */}
           <Secao id="reunioes" titulo="Reuniões" contagem={reunioes.length} semPadding>

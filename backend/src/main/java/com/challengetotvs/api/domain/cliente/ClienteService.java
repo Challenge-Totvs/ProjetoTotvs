@@ -43,7 +43,7 @@ public class ClienteService {
         return "GESTOR".equals(usuario.getRole());
     }
 
-    private boolean podeVer(Cliente cliente, Consultor usuario) {
+    public boolean podeVer(Cliente cliente, Consultor usuario) {
         if (ehGestor(usuario)) return true;
         return cliente.getVendedor() != null && cliente.getVendedor().getId().equals(usuario.getId());
     }

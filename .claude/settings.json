@@ -19,9 +19,7 @@
       "Read(**/.env)",
       "Read(**/.env.local)",
       "Edit(**/.env)",
-      "Edit(**/*.joblib)",
-      "Edit(/backend/**)",
-      "Edit(/frontend/**)"
+      "Edit(**/*.joblib)"
     ]
   },
   "hooks": {
