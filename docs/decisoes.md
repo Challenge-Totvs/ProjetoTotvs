@@ -91,7 +91,7 @@ Nota de numeração: a mensagem de 12/10 pedia "D10 a D13"; como D10 e D11 já e
 1. `suporte_insatisfacao` (risco): `\b(suporte|atendimento|chamado|ticket)\b.{0,80}\b(demor\w*|ninguem\s+(retorn\w*|respond\w*)|sem\s+(retorno|resposta)|nao\s+(retorn\w*|respond\w*|resolv\w*)|lent[oa]|pessim\w*|ruim|horriv\w*|insatisf\w*|reclam\w*)|\b(demor\w*|ninguem\s+retorn\w*)\b.{0,80}\b(suporte|atendimento|chamado)\b`
 2. `preco_objecao` (risco): `\b(muito\s+caro|ficou\s+caro|esta\s+caro|e\s+caro|salgad[oa]|preco\s+(\w+\s+){0,2}(alto|elevado|puxado)|valor\s+(\w+\s+){0,2}(alto|elevado|puxado|salgad[oa])|mais\s+barat[oa]|acima\s+do\s+(nosso\s+)?(orcamento|mercado))\b`
 3. `prazo_implantacao` (risco): `\b(prazo|cronograma)\b.{0,60}\b(implanta\w*|implementa\w*|go[- ]?live|virada|migra\w*)|\b(implanta\w*|implementa\w*|migra\w*)\b.{0,60}\b(prazo|atras\w*|demor\w*)|\batras\w*\b.{0,40}\b(implanta\w*|projeto|go[- ]?live|cronograma)`
-4. `concorrente_citado` (risco) **[v2]**: `\b(concorrent\w*|outro\s+fornecedor|outra\s+solucao|omie|bling|sap|oracle)\b`
+4. `concorrente_citado` (risco) **[v2]**: `\b(concorrent\w*|outro\s+fornecedor|outra\s+solucao|omie|bling)\b` (`sap` e `oracle` saíram em 13/10, ver abaixo)
 5. `cancelamento_citado` (risco) **[v2]**: `\b(cancel\w*|rescind\w*|rescis\w*)\b.{0,40}\b(contrato|assinatura|licenca\w*|plano|servico|sistema|produto|conta)\b|\b(contrato|assinatura|licenca\w*|plano|servico|sistema|produto|conta)\b.{0,40}\b(cancel\w*|rescind\w*|rescis\w*)\b|\bencerrar\s+(o\s+)?contrato\b|\bnao\s+(vamos|vou|pretendemos)\s+renovar\b|\bdeixar\s+de\s+usar\b`
 6. `adocao_resistencia` (risco): `\b(equipe|time|pessoal|usuarios|funcionarios|colaboradores)\b.{0,60}\b(resist\w*|nao\s+(usa\w*|quer\w*|adaptou|se\s+adapt\w*|gost\w*)|dificuldade)|\b(resistencia|ninguem\s+usa)\b`
 7. `fiscal_problema` (risco): `\b(fiscal|sped|nfe|nf-e|imposto\w*|tribut\w*|apuracao)\b.{0,80}\b(erro\w*|problema\w*|falh\w*|travou|nao\s+(fecha|fechou|bate|gera\w*)|divergen\w*|rejei\w*)|\b(erro\w*|problema\w*|falh\w*|divergen\w*|rejei\w*)\b.{0,80}\b(fiscal|sped|nfe|nf-e|imposto\w*|tribut\w*|apuracao)\b`
@@ -177,3 +177,9 @@ Obtido com `python scripts/inspecionar_modelo.py` (scikit-learn 1.9.1). Só estr
   (pior caso: 17,4 s, llm2). Fatos em `docs/evidencias/smoke-12-10.md`. O timeout do Java fica em 120 s.
 - `PROMPT_VALIDADO_COM_LLM_REAL = True`; o aviso do `smoke_llm.py` só aparece se a constante voltar a falso (ex.: depois de
   mudar o prompt). Fecha a ressalva "prompt NÃO validado com LLM real" do AC3 e o smoke real pendente do AC10.
+
+### 13/10 — `concorrente_citado` sem `sap` e `oracle` (decisão do João Paulo)
+- Motivo: no corpus anonimizado, `oracle` aparece quase sempre como banco de dados ou nuvem do cliente, e `sap` não casa em nenhum trecho. Nome de concorrente é difícil de pegar pela palavra; o caminho é o contexto (llm1, llm2 e o classificador local).
+- Medido sobre os 233.267 trechos (só contagens): a expressão casava em 467; 151 (32%) casavam só por `oracle` (nenhum por `sap`). Dos trechos que a destilação com `claude-haiku-5-5` também viu, a LLM marcou risco em 16 de 83 (19%) entre os que só casavam por `oracle`, contra 71 de 173 (41%) nos demais. A marca de risco da LLM é geral, não só concorrente: serve de indício, não de prova.
+- Efeito: menos falso alarme de "concorrente citado" na demo e nos rótulos fracos que alimentam o retreino do modelo local. `rotulos_fracos.csv` precisa ser regerado antes do retreino.
+- Contrato v3 e fixtures não mudam: o padrão continua o mesmo, só a expressão ficou mais estreita.

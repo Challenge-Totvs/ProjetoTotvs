@@ -51,6 +51,9 @@ NAO_DEVE_CASAR = {
     "concorrente_citado": [
         "Vamos usar outro sistema de ponto na filial.",
         "Falamos com outra empresa de limpeza.",
+        "O banco de dados deles é Oracle.",
+        "Hoje rodamos em Oracle na nuvem.",
+        "Eles usam SAP no financeiro.",
     ],
     "cancelamento_citado": [
         "Vou cancelar a reunião de amanhã.",
