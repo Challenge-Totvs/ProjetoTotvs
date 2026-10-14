@@ -169,3 +169,24 @@ def test_pipeline_ponta_a_ponta_sintetico(tmp_path, capsys):
     saida = capsys.readouterr().out
     assert "NÃO promover" in saida or "REPROVADO" in saida  # só a metade A: ouro parcial nunca promove
     assert "Copy-Item" not in saida
+
+
+def test_ouro_parcial_suficiente_com_minimo_libera_promocao(tmp_path, capsys):
+    """--ouro-minimo é decisão humana: ouro parcial com tamanho e positivos mínimos libera a promoção manual."""
+    assert portao.main(_cenario(tmp_path, completo=False) + ["--ouro-minimo", "3", "--positivos-minimos", "1"]) == 0
+    saida = capsys.readouterr().out
+    assert "risco: APROVADO no ouro PARCIAL suficiente" in saida and "Copy-Item" in saida
+
+
+def test_ouro_parcial_abaixo_do_minimo_continua_bloqueado(tmp_path, capsys):
+    portao.main(_cenario(tmp_path, completo=False) + ["--ouro-minimo", "999"])
+    saida = capsys.readouterr().out
+    assert "Copy-Item" not in saida and "NÃO promover" in saida
+
+
+def test_suficiencia():
+    assert portao.suficiencia({"n": 120, "positivos": 12}, 100, 10) is True
+    assert portao.suficiencia({"n": 120, "positivos": 9}, 100, 10) is False
+    assert portao.suficiencia({"n": 99, "positivos": 50}, 100, 10) is False
+    assert portao.suficiencia({"n": 500, "positivos": 50}, None, 10) is False
+    assert portao.suficiencia(None, 100, 10) is False

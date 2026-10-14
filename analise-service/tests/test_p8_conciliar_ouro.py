@@ -94,7 +94,7 @@ def test_valores_invalidos_sao_contados_sem_imprimir(tmp_path, capsys):
     linhas[1][5] = "talvez"
     planilha(tmp_path / co.ARQUIVOS[1], linhas)
     _, meta = _rodar(tmp_path)
-    assert meta["invalidos"] == {"padrao": 1, "interesse": 1, "ids_repetidos": 0, "fora_da_lista": 0}
+    assert meta["invalidos"] == {"padrao": 1, "interesse": 1, "ids_repetidos": 0, "fora_da_lista": 0, "pendentes": 0}
     assert "padrao_que_nao_existe" not in capsys.readouterr().out
 
 
@@ -182,3 +182,15 @@ def test_pares_duvida_e_motivo_de_qualquer_um_dos_dois(tmp_path):
     ouro = {x["id"]: x for x in comum.ler_csv(tmp_path / "ouro_final.csv")}
     assert codigo == 0 and ouro["GA000"]["duvida"] == "1" and ouro["GA000"]["motivo_duvida"] == "não sei se é renovação"
     assert meta["resumo"]["duvida_com_motivo"] == 1
+
+
+def test_unico_linhas_em_branco_sao_pendentes_e_nao_viram_negativos(tmp_path):
+    """Rotulagem parcial: linha sem nenhum rótulo fica FORA do ouro (não vira 'nenhum' + interesse 'não')."""
+    rotuladas = metade("GA", 6)
+    em_branco = [[f"GA{i:03d}", "ctx", TEXTO.format(i), "", "", "", ""] for i in range(6, 10)]
+    planilha(tmp_path / co.ARQUIVOS[1], rotuladas + em_branco)
+    codigo, meta = _rodar(tmp_path)
+    assert codigo == 0
+    ouro = comum.ler_csv(tmp_path / "ouro_final.csv")
+    assert len(ouro) == 6 and {x["id"] for x in ouro} == {f"GA{i:03d}" for i in range(6)}
+    assert meta["invalidos"]["pendentes"] == 4 and meta["completo"] is False

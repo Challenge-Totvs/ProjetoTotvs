@@ -72,6 +72,13 @@ def ic95_diferenca_f1(y: Sequence[int], atual: Sequence[int], candidato: Sequenc
     return round(float(np.percentile(difs, 2.5)), 4), round(float(np.percentile(difs, 97.5)), 4)
 
 
+def suficiencia(candidato: dict | None, minimo: int | None, positivos_minimos: int) -> bool:
+    """Ouro parcial vale como suficiente só com --ouro-minimo (decisão humana) e tamanho/positivos mínimos no grupo."""
+    if minimo is None or not candidato:
+        return False
+    return candidato.get("n", 0) >= minimo and candidato.get("positivos", 0) >= positivos_minimos
+
+
 def decidir(atual: dict, candidato: dict, ic: tuple[float, float]) -> tuple[bool, list[str]]:
     motivos = []
     if candidato["positivos"] == 0:
@@ -197,6 +204,10 @@ def main(argv: list[str]) -> int:
     p.add_argument("--atual", type=Path, default=CAMINHO_MODELO_ATUAL, help="classificador de risco em uso")
     p.add_argument("--relatorio", type=Path, default=None, help="padrão docs/evidencias/portao-<data>.md")
     p.add_argument("--repeticoes", type=int, default=REPETICOES_BOOTSTRAP)
+    p.add_argument("--ouro-minimo", type=int, default=None,
+                   help="aceita ouro PARCIAL como suficiente se o grupo tiver >= N trechos avaliados (decisão humana)")
+    p.add_argument("--positivos-minimos", type=int, default=10,
+                   help="com --ouro-minimo: positivos mínimos do grupo no ouro (padrão 10)")
     args = p.parse_args(argv)
 
     if not args.ouro.is_file():
@@ -221,10 +232,16 @@ def main(argv: list[str]) -> int:
     completo = bool(meta_ouro.get("completo"))
     decisoes, comandos = {}, []
     for nome in ("risco", "interesse"):
-        if not resultado["grupos"][nome]["aprovado"]:
+        grupo = resultado["grupos"][nome]
+        suficiente = suficiencia(grupo["candidato"], args.ouro_minimo, args.positivos_minimos)
+        if not grupo["aprovado"]:
             decisoes[nome] = "REPROVADO: mantém o atual"
-        elif not completo:
+        elif not completo and not suficiente:
             decisoes[nome] = "passou no ouro PARCIAL: NÃO promover até o ouro completo (mantém o atual)"
+        elif not completo:
+            decisoes[nome] = (f"APROVADO no ouro PARCIAL suficiente (>= {args.ouro_minimo} trechos e "
+                              f">= {args.positivos_minimos} positivos): promoção manual liberada")
+            comandos.append(comando_promocao(nome, pasta))
         else:
             decisoes[nome] = "APROVADO: promoção manual liberada"
             comandos.append(comando_promocao(nome, pasta))

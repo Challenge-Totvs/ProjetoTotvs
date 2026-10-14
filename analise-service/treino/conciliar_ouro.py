@@ -158,7 +158,7 @@ def rotulos(linhas: list[dict], c: Colunas, metade: str,
             permitidos: set[str] | None = None) -> tuple[dict[str, dict], dict]:
     """id -> rótulo normalizado; e contagens de valores inválidos (sem imprimir os valores)."""
     saida: dict[str, dict] = {}
-    invalidos = {"padrao": 0, "interesse": 0, "ids_repetidos": 0, "fora_da_lista": 0}
+    invalidos = {"padrao": 0, "interesse": 0, "ids_repetidos": 0, "fora_da_lista": 0, "pendentes": 0}
     for linha in linhas:
         id_ = str(linha.get(_chave(c.id))).strip()
         if id_ in saida:
@@ -167,6 +167,10 @@ def rotulos(linhas: list[dict], c: Colunas, metade: str,
         brutos = {campo: linha.get(_chave(nome)) for campo, nome in (
             ("padrao_1", c.padrao1), ("padrao_2", c.padrao2), ("interesse", c.interesse), ("duvida", c.duvida))}
         observacao = linha.get(_chave(c.observacao))
+        if all(str(v if v is not None else "").strip() == "" for v in (*brutos.values(), observacao)):
+            # Linha toda em branco = trecho ainda não rotulado (rotulagem parcial). Não vira negativo: fica fora do ouro.
+            invalidos["pendentes"] += 1
+            continue
         p1 = _padrao(brutos["padrao_1"], permitidos, invalidos)
         p2 = _padrao(brutos["padrao_2"], permitidos, invalidos)
         interesse = normalizar_sim_nao(brutos["interesse"])
@@ -302,7 +306,8 @@ def modo_unico(pasta: Path, c: Colunas) -> tuple[list[dict] | None, dict]:
             original = {r: ouro[mapa[r]] for r in ids_r}
             medidos["teste-reteste"] = kappas(original, reteste, ids_r)
             pares["teste-reteste"] = len(ids_r)
-    meta = {"modo": "unico", "completo": metades == ["A", "B"], "metades": metades, "kappas": medidos,
+    meta = {"modo": "unico", "completo": metades == ["A", "B"] and not invalidos.get("pendentes"),
+            "metades": metades, "kappas": medidos,
             "pares_kappa": pares, "invalidos": invalidos, "avisos": avisos_de_kappa(medidos),
             "limitacao": LIMITACAO_UNICO}
     if not medidos:
