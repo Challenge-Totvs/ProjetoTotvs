@@ -1,8 +1,8 @@
 # Contrato `POST /similares` (RAG-lite) — PROPOSTA
 
 > **PROPOSTA, ainda não validada.** Este contrato só vale depois que o João Paulo e o Kelwin o validarem. Até lá o
-> Python implementa exatamente o que está aqui, mas nomes, limites e o valor do limiar podem mudar. Nenhum código Java
-> depende dele ainda.
+> Python implementa exatamente o que está aqui, mas nomes, limites e o valor do limiar podem mudar. Desde 14/10 o
+> Java consome o endpoint (§6), sempre de forma opcional: se ele sumir, a análise segue igual.
 
 Versão: proposta de 12/10/2026 (P7). Contrato principal: `contrato-v3.md`. Escopo: `docs/escopo-rag-retreino.md` §2.A.
 
@@ -74,13 +74,19 @@ casar: a `np-104` da fixture ("Os chamados do faturamento estão sem resposta do
 0,2301) saiu de `resposta-similares.json`. Quem quiser o corte antigo manda `limiar: 0.2` no pedido.
 **Calibração real pendente** com o conjunto ouro (P8).
 
-## 6. O que o Java precisa implementar (Kelwin)
+## 6. Como o Java usa (implementado em 14/10)
 
-1. Cliente HTTP do `/similares` (mesma base URL do `/analisar`), com timeout curto (sugestão: 3 s).
-2. Para cada tema novo: enviar `texto` do tema e os trechos "não procede" do mesmo cliente como `referencias`
-   (`id` = id do registro no Java).
-3. Campo `semelhanteNaoProcede` (ex.: `id` da referência mais parecida, ou booleano) no tema devolvido ao frontend.
-4. Ignorar falha em silêncio (log no Java, sem erro para o usuário).
+1. `ClienteSimilares`: mesma base URL do `/analisar`, timeout de 3 s (conexão e leitura), `topK: 1`, sem `limiar`
+   (vale o padrão do Python, 0,25).
+2. Depois do `/analisar`, uma consulta por padrão dos temas devolvidos: `texto` = `texto` do tema (já
+   pseudonimizado), `referencias` = os "não procede" vigentes do mesmo cliente (até 200; `id` = **id do tema**
+   marcado no Java, em string; `texto` = a citação desse tema, pseudonimizada com o mesmo mapa e cortada em 2.000).
+   Cliente sem "não procede" => nenhuma chamada.
+3. Só o tema **novo** guarda o resultado (`Tema.semelhanteNaoProcedeId`, coluna anulável). O frontend recebe
+   `semelhanteNaoProcede: {id, texto, clienteNome} | null`; volta `null` se o tema de referência deixou de ser
+   "não procede".
+4. Qualquer falha (timeout, 4xx, 5xx, corpo inválido) vira só um log sem texto; as consultas restantes daquela
+   análise são puladas, para nunca somar 3 s por tema. O `/analisar` nunca falha por causa do `/similares`.
 
 ## 7. Fixtures
 
@@ -93,3 +99,4 @@ casar: a `np-104` da fixture ("Os chamados do faturamento estão sem resposta do
 | Data | Mudança |
 |---|---|
 | 2026-10-12 | Primeira proposta (P7). |
+| 2026-10-14 | Java passa a consumir (§6): `id` = id do tema, `topK: 1`, timeout 3 s, falha ignorada. Formato do endpoint inalterado. |

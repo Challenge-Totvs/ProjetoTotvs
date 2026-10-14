@@ -26,7 +26,7 @@ public record TemaResponse(
         List<CitacaoResponse> citacoes,
         RegistroFora registroFora,
         NaoProcede naoProcede,
-        Object semelhanteNaoProcede,
+        SemelhanteNaoProcede semelhanteNaoProcede,
         Long anteriorId,
         List<Object> avisos) {
 
@@ -42,6 +42,10 @@ public record TemaResponse(
     }
 
     public record NaoProcede(String motivo, String por, LocalDate em) {
+    }
+
+    /** Tema "não procede" do mesmo cliente que o /similares achou parecido: id, o trecho dele e o cliente. */
+    public record SemelhanteNaoProcede(Long id, String texto, String clienteNome) {
     }
 
     private static int grupo(Situacao s) {

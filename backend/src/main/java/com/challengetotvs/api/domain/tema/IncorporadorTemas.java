@@ -31,7 +31,8 @@ public class IncorporadorTemas {
     public record Resumo(int novos, int atualizados) {
     }
 
-    public Resumo incorporar(Reuniao reuniao, ContratoV3.Resposta resposta) {
+    /** semelhantesNaoProcede: padrão -> id do tema "não procede" mais parecido (/similares); vale só para tema novo. */
+    public Resumo incorporar(Reuniao reuniao, ContratoV3.Resposta resposta, Map<String, Long> semelhantesNaoProcede) {
         citacaoRepository.deleteAll(citacaoRepository.findByReuniaoId(reuniao.getId()));
         citacaoRepository.flush();
 
@@ -71,14 +72,16 @@ public class IncorporadorTemas {
                 Tema anterior = EscolhaDeTema.anterior(candidatos)
                         .map(c -> porId.get(c.id()))
                         .orElse(null);
-                tema = temaRepository.save(Tema.builder()
+                Tema novo = Tema.builder()
                         .cliente(reuniao.getCliente())
                         .padrao(padroes.get(consolidado.padrao()))
                         .titulo(titulo(consolidado.titulo(), padroes.get(consolidado.padrao())))
                         .risco(consolidado.risco())
                         .oportunidade(consolidado.oportunidade())
                         .anterior(anterior)
-                        .build());
+                        .build();
+                novo.setSemelhanteNaoProcedeId(semelhantesNaoProcede.get(consolidado.padrao()));
+                tema = temaRepository.save(novo);
                 novos++;
             }
 

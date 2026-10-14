@@ -41,6 +41,10 @@ public class Tema {
     @Column(nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 
+    /** Id do tema "não procede" do mesmo cliente que o /similares achou parecido quando este tema nasceu. */
+    @Column(name = "semelhante_nao_procede_id")
+    private Long semelhanteNaoProcedeId;
+
     @Builder
     public Tema(Cliente cliente, Padrao padrao, String titulo,
                 boolean risco, boolean oportunidade, Tema anterior) {

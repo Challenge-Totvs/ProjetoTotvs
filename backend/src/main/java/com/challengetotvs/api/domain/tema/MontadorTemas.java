@@ -28,6 +28,7 @@ public class MontadorTemas {
     private final TranscricaoRepository transcricaoRepository;
     private final AnaliseRepository analiseRepository;
     private final LeitorAnalise leitorAnalise;
+    private final NaoProcedeDoCliente naoProcedeDoCliente;
 
     @Value("${insightcall.janela-dias:30}")
     private int janela;
@@ -117,9 +118,22 @@ public class MontadorTemas {
                         f.getObservacao(), f.getPor().getNome())).orElse(null),
                 naoProcede.map(n -> new NaoProcede(n.getMotivo(), n.getPor().getNome(),
                         n.getCriadoEm().toLocalDate())).orElse(null),
-                null,
+                semelhante(tema),
                 tema.getAnterior() == null ? null : tema.getAnterior().getId(),
                 List.of());
+    }
+
+    /** Só enquanto o tema de referência continuar "não procede": desfeita a marcação, o aviso some. */
+    private SemelhanteNaoProcede semelhante(Tema tema) {
+        Long id = tema.getSemelhanteNaoProcedeId();
+        if (id == null) {
+            return null;
+        }
+        return eventoTemaRepository
+                .findFirstByTemaIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(id, TipoEvento.NAO_PROCEDE)
+                .flatMap(naoProcedeDoCliente::trecho)
+                .map(texto -> new SemelhanteNaoProcede(id, texto, tema.getCliente().getNome()))
+                .orElse(null);
     }
 
     private CitacaoResponse paraResposta(Citacao c, boolean comContexto, Map<Long, DadosReuniao> cache) {

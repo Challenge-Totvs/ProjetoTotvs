@@ -54,7 +54,8 @@ class AnaliseContraexemplosTest {
             enviado.set(pedido);
             throw new AnaliseIndisponivelException("o teste só olha o pedido");
         };
-        service = new AnaliseService(transcricoes, padroes, capturaEPara, mock(GravadorAnalise.class), naoProcede);
+        service = new AnaliseService(transcricoes, padroes, capturaEPara, mock(GravadorAnalise.class), naoProcede,
+                mock(ClienteSimilares.class));
     }
 
     @Test

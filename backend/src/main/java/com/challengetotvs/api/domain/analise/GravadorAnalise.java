@@ -14,6 +14,7 @@ import tools.jackson.databind.ObjectMapper;
 import com.challengetotvs.api.domain.tema.IncorporadorTemas;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +32,8 @@ public class GravadorAnalise {
     }
 
     public Gravado gravar(Transcricao transcricao, ContratoV3.Resposta bruta,
-                          Pseudonimizador pseudonimizador, long duracaoMs) {
+                          Pseudonimizador pseudonimizador, long duracaoMs,
+                          Map<String, Long> semelhantesNaoProcede) {
         MotorUtilizado motor;
         SentimentoGeral sentimento;
         try {
@@ -65,7 +67,7 @@ public class GravadorAnalise {
         reuniao.setStatus(StatusReuniao.ANALISADA);
         reuniaoRepository.save(reuniao);
 
-        var resumo = incorporadorTemas.incorporar(reuniao, resposta);
+        var resumo = incorporadorTemas.incorporar(reuniao, resposta, semelhantesNaoProcede);
 
         // E1: reprocessar uma reunião apaga os compromissos da análise anterior antes de criar os novos
         compromissoRepository.deleteByReuniaoId(reuniao.getId());

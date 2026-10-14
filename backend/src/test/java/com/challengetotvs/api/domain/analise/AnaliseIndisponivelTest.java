@@ -99,10 +99,11 @@ class AnaliseIndisponivelTest {
         AnaliseStrategy foraDoAr = pedido -> {
             throw new AnaliseIndisponivelException("fora do ar");
         };
-        var service = new AnaliseService(transcricoes, padroes, foraDoAr, gravador, mock(NaoProcedeDoCliente.class));
+        var service = new AnaliseService(transcricoes, padroes, foraDoAr, gravador, mock(NaoProcedeDoCliente.class),
+                mock(ClienteSimilares.class));
 
         assertThatThrownBy(() -> service.analisar(10L, vendedor)).isInstanceOf(AnaliseIndisponivelException.class);
-        verify(gravador, never()).gravar(any(), any(), any(), anyLong());
+        verify(gravador, never()).gravar(any(), any(), any(), anyLong(), any());
         assertThat(reuniao.getStatus()).isEqualTo(StatusReuniao.REALIZADA);
     }
 

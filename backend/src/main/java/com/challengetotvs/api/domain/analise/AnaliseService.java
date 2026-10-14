@@ -30,6 +30,7 @@ public class AnaliseService {     // SEM @Transactional: a espera pelo Python nÃ
     private final AnaliseStrategy strategy;
     private final GravadorAnalise gravador;
     private final NaoProcedeDoCliente naoProcedeDoCliente;
+    private final ClienteSimilares clienteSimilares;
 
     public AnalisarResponse analisar(Long transcricaoId, Consultor consultor) {
         var transcricao = transcricaoRepository.findById(transcricaoId)
@@ -48,7 +49,8 @@ public class AnaliseService {     // SEM @Transactional: a espera pelo Python nÃ
         }
 
         var padroes = padraoRepository.findByAtivoTrueOrderByNomeAsc().stream().map(Padrao::getChave).toList();
-        var contraexemplos = naoProcedeDoCliente.doCliente(reuniao.getCliente().getId()).stream()
+        var naoProcede = naoProcedeDoCliente.doCliente(reuniao.getCliente().getId());
+        var contraexemplos = naoProcede.stream()
                 .map(t -> new ContratoV3.Contraexemplo(t.padrao(),
                         cortar(pseudonimizador.pseudonimizar(t.texto()), MAXIMO_TEXTO_CONTRAEXEMPLO), t.motivo()))
                 .toList();
@@ -61,7 +63,13 @@ public class AnaliseService {     // SEM @Transactional: a espera pelo Python nÃ
         if (resposta == null) {
             throw new AnaliseIndisponivelException("O serviÃ§o de anÃ¡lise devolveu uma resposta vazia.");
         }
-        var gravado = gravador.gravar(transcricao, resposta, pseudonimizador, duracaoMs);   // E1: era "resumo"
+        // opcional: se o /similares falhar, volta vazio e os temas seguem sem aviso
+        var referencias = naoProcede.stream()
+                .map(t -> new ClienteSimilares.Referencia(String.valueOf(t.temaId()), pseudonimizador.pseudonimizar(t.texto())))
+                .toList();
+        var semelhantes = clienteSimilares.maisParecidos(resposta.temas(), referencias);
+
+        var gravado = gravador.gravar(transcricao, resposta, pseudonimizador, duracaoMs, semelhantes);   // E1: era "resumo"
 
         return new AnalisarResponse(reuniao.getId(), MotorUtilizado.de(resposta.motor()).valor(), resposta.tentativas(),
                 gravado.novos(), gravado.atualizados(), gravado.compromissos());            // E1: o Ãºltimo era 0
