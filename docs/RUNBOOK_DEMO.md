@@ -15,7 +15,7 @@ compartilhada.
 |---|---|---|
 | Java | 25 | `backend/pom.xml` (`java.version`) · `java -version` |
 | Maven | qualquer 3.9.x (o repositório não tem `mvnw`) | `mvn -v` |
-| Node | LTS recente; o Vite 8 pede 20.19+ ou 22.12+ | `frontend/package.json` · `node -v` |
+| Node | PREENCHER: rodar `node -v` onde o front sobe | `node -v` (versão que funcionou no ensaio de 14/10) |
 | Python | 3.11+ | `README.md` · `python --version` |
 | Rede | acesso ao Oracle da FIAP, a `api.anthropic.com` e a `api.openai.com` | seção 3, `scripts/teste_rede.py` |
 
@@ -76,7 +76,8 @@ cd backend
 mvn spring-boot:run "-Dspring-boot.run.profiles=demo"
 ```
 
-O perfil `demo` liga o `CargaDemo` (`@Profile("demo")`): na primeira subida num banco vazio ele grava o seed
+Pelo IntelliJ, basta marcar *Active profiles: demo* na configuração de execução; o comando `mvn` acima é a
+alternativa. O perfil `demo` liga o `CargaDemo` (`@Profile("demo")`): na primeira subida num banco vazio ele grava o seed
 (5 usuários, 16 clientes, 33 reuniões, 47 temas, 8 compromissos); nas seguintes, vê que a conta
 `kelwin.bastos@insightcall.com` existe e não faz nada. Sem o perfil `demo`, o seed não é carregado. Pelo IntelliJ, o
 equivalente é *Active profiles: demo* na configuração de execução. O Hibernate está com `ddl-auto=update`: a primeira
@@ -152,14 +153,31 @@ padrões e os dados do seed.
 Antes de rodar:
 
 1. **Suba o backend pelo menos uma vez antes**, com o código atual: é essa subida que cria a coluna
-   `TEMA.SEMELHANTE_NAO_PROCEDE_ID`, que o script usa. Sem ela, o script falha.
+   `TEMA.SEMELHANTE_NAO_PROCEDE_ID`, que o script usa. Sem ela, o script falha. Confirmado em 14/10/2026: no Oracle
+   da demo a coluna já existe (NUMBER(19,0), anulável). Se a banca usar outro banco, a primeira subida do backend a cria.
 2. **Pare o backend** (terminal 2) durante a limpeza.
 3. **Faça backup** do schema.
 4. Rode só **depois do último ensaio** (seção 4).
 
-Como rodar: desligue o autocommit do cliente SQL; rode a seção 1 (CONFERÊNCIA) e anote os números; rode a seção 2. Ela
-termina em `ROLLBACK`: confira as contagens esperadas (estão no próprio script) e só então troque, de propósito, o
-`ROLLBACK;` pelo `COMMIT;` comentado.
+Como rodar:
+
+1. Desligue o autocommit do cliente SQL.
+2. Rode a seção 1 (CONFERÊNCIA) e anote os números.
+3. Antes do `ROLLBACK`, cole a consulta 1.1 do script (totais por tabela) logo depois do passo 2.9 e rode a seção 2
+   inteira. Sem essa consulta, o `ROLLBACK` desfaz tudo e não dá para ver o resultado da limpeza.
+4. Só troque, de propósito, o `ROLLBACK;` pelo `COMMIT;` comentado se o resultado for: REUNIAO 33, TRANSCRICAO 27,
+   ANALISE 27, TEMA 47, CITACAO 60, EVENTO_TEMA 1, COMPROMISSO 8, NOTIFICACAO 0.
+
+Depois da limpeza, confira os cadastros de teste:
+
+```sql
+SELECT id, nome FROM CLIENTE ORDER BY id;
+SELECT id, nome, email FROM CONSULTOR ORDER BY id;
+```
+
+O seed tem 16 clientes e 5 usuários. O que passar disso é de teste (por exemplo, a conta `integracao@insightcall.test`
+e os clientes criados pelo `scripts/fluxo_integracao.py`) e aparece na visão da gestora. O script **não** apaga
+cadastros, de propósito: a decisão de apagá-los à mão é do Kelwin.
 
 **Depois da limpeza, não reenvie a transcrição de exemplo** (nem para "testar"). O próximo envio dela tem de ser o da
 banca: um segundo envio do mesmo texto para o mesmo cliente é bloqueado pelo hash duplicado (409
@@ -191,6 +209,7 @@ A rede caiu (ou o Oracle não responde: login falha, telas não carregam)?
 
 Nada funciona?
 └─ Plano C: passe o vídeo gravado da demo e narre por cima. Não tente consertar ao vivo.
+   Vídeo: PREENCHER: onde está o vídeo (caminho no computador da apresentação e cópia de reserva em pendrive ou nuvem).
 ```
 
 ---
