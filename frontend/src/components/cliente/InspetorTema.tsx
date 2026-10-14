@@ -23,6 +23,7 @@ export function InspetorTema({
   podeAgir,
   contextoAberto,
   setContextoAberto,
+  semTitulo,
 }: {
   tema: Tema;
   /** O usuário é o vendedor dono do cliente. */
@@ -30,6 +31,8 @@ export function InspetorTema({
   /** Chave da citação com o contexto aberto (controlado pela página, para a tecla V). */
   contextoAberto: string | null;
   setContextoAberto: (chave: string | null) => void;
+  /** Omite o <h2> do título (usado dentro do ModalTema, que já mostra o título no cabeçalho). */
+  semTitulo?: boolean;
 }) {
   const app = useApp();
   const navigate = useNavigate();
@@ -41,8 +44,8 @@ export function InspetorTema({
   return (
     <div>
       {/* Título, tipos e padrão */}
-      <h2 className="m-0 text-base leading-[1.35] font-semibold text-ink">{tema.titulo}</h2>
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      {!semTitulo && <h2 className="m-0 text-base leading-[1.35] font-semibold text-ink">{tema.titulo}</h2>}
+      <div className={cx("flex flex-wrap items-center gap-1.5", semTitulo ? "mt-0" : "mt-2")}>
         <ChipTipos tipos={tema.tipos} />
         <span className="text-xs text-ardosia">Padrão: {tema.padraoNome || tema.padrao}</span>
       </div>

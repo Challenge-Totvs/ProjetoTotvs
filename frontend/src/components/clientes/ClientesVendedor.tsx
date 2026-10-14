@@ -10,9 +10,10 @@ import { cx, normalizar } from "../../lib/formato";
 import { rotas } from "../../lib/rotas";
 import { CabecalhoPagina, Segmentado, Vazio } from "../ui/base";
 import { barraFerramentas, busca as classeBusca, card, comPainel, conteudo, select, tabela, td, th, tr } from "../ui/classes";
-import { ChipsTemas, ChipTipoCliente } from "../ui/glifos";
+import { ChipTipoCliente } from "../ui/glifos";
 import { BotaoPainel, PainelLateral } from "../ui/Sobrepostos";
 import { CelulaCliente, CelulaUltimaReuniao, TdIndicadores, ThIndicadores } from "./Celulas";
+import { ChipsTemas } from "./ChipsTemas";
 import { PreviaCliente } from "./PreviaCliente";
 
 type FiltroTipo = "todos" | "ativo" | "prospect" | "sem";
@@ -135,7 +136,7 @@ export function ClientesVendedor({ clientes: todos }: { clientes: ClienteResumo[
                         <CelulaUltimaReuniao cliente={c} />
                       </td>
                       <td className={cx(td, compacto ? "max-w-[240px]" : "max-w-[320px]")}>
-                        <ChipsTemas temas={c.temas} max={compacto ? 2 : 3} />
+                        <ChipsTemas temas={c.temas} max={compacto ? 2 : 3} vendedorId={c.vendedor.id} />
                       </td>
                       <TdIndicadores ind={c.indicadores} />
                       {!compacto && (
