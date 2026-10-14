@@ -1,0 +1,10 @@
+{
+  "consulta": "demora no suporte",
+  "trechos": [
+    {"id": "12:3", "texto": "O suporte demora demais para responder, abrimos três chamados e ninguém retornou."},
+    {"id": "12:7", "texto": "O preço ficou muito caro para o que a gente usa."},
+    {"id": "15:2", "texto": "Vamos abrir uma nova filial no mês que vem."},
+    {"id": "15:9", "texto": "Os chamados do faturamento estão sem resposta do suporte há duas semanas."}
+  ],
+  "topK": 3
+}

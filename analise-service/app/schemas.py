@@ -252,3 +252,16 @@ class ItemSimilar(BaseModel):
 class RespostaSimilares(BaseModel):
     similares: list[ItemSimilar]
     versaoContrato: Literal["v3"] = "v3"
+
+
+# --- /evidencias (PROPOSTA, docs/contrato/evidencias.md): busca no histórico do cliente, sem API ---
+
+class PedidoEvidencias(BaseModel):
+    consulta: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]
+    trechos: list[ReferenciaSimilar] = Field(default=[], max_length=500)
+    topK: int = Field(default=10, ge=1, le=50)
+
+
+class RespostaEvidencias(BaseModel):
+    evidencias: list[ItemSimilar]
+    versaoContrato: Literal["v3"] = "v3"
