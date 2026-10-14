@@ -1,7 +1,0 @@
-{
-  "codigo": "conteudo_curto",
-  "mensagem": "O conteúdo tem menos de 80 caracteres.",
-  "detalhes": [
-    {"campo": "conteudo", "limite": 80, "recebido": 42}
-  ]
-}
