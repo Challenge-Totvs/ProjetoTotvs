@@ -233,6 +233,15 @@ function PaginaAnalisada({ r, turno }: { r: ReuniaoDetalhe; turno: number | null
                 <p className="m-0 text-[13.5px] leading-[1.6] text-ink">{analise.resumo}</p>
               </Secao>
             )}
+            {analise.proximosPassos.length > 0 && (
+              <Secao id="passos" titulo="Próximos passos sugeridos" acao={<Etiqueta icone={Sparkles}>Gerado por IA</Etiqueta>}>
+                <ol className="m-0 grid list-decimal gap-1.5 pl-[18px] text-[13.5px] leading-[1.5]">
+                  {analise.proximosPassos.map((p) => (
+                    <li key={p}>{p}</li>
+                  ))}
+                </ol>
+              </Secao>
+            )}
             <Secao
               id="riscos-r"
               titulo={
@@ -296,15 +305,6 @@ function PaginaAnalisada({ r, turno }: { r: ReuniaoDetalhe; turno: number | null
                 <Vazio titulo="Nenhum ponto de interesse registrado" />
               )}
             </Secao>
-            {analise.proximosPassos.length > 0 && (
-              <Secao id="passos" titulo="Próximos passos sugeridos" acao={<Etiqueta icone={Sparkles}>Gerado por IA</Etiqueta>}>
-                <ol className="m-0 grid list-decimal gap-1.5 pl-[18px] text-[13.5px] leading-[1.5]">
-                  {analise.proximosPassos.map((p) => (
-                    <li key={p}>{p}</li>
-                  ))}
-                </ol>
-              </Secao>
-            )}
             {r.compromissos.length > 0 && (
               <Secao id="comp-r" titulo="Compromissos do vendedor nesta reunião" semPadding>
                 <ul className="m-0 list-none p-0">
