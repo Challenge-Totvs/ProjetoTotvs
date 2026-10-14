@@ -209,3 +209,38 @@ def test_chamada_real_sem_servico_vira_servico_fora_do_ar():
     chamar = pd.criar_chamada("http://127.0.0.1:9", timeout=0.5)  # porta 9 (discard): nada escuta em loopback
     with pytest.raises(pd.ServicoForaDoAr):
         chamar("GET", "/health", None)
+
+
+# ------------------------------------------------------------------ --exigir-real (pipelineVersao)
+
+def _health_com_pipeline(valor):
+    corpo = _json(HEALTH)
+    if valor is None:
+        corpo.pop("pipelineVersao")
+    else:
+        corpo["pipelineVersao"] = valor
+    return corpo
+
+
+def test_exigir_real_com_pipeline_real_passa(capsys):
+    chamar, chamadas = _servico_falso(_resposta(), health=_health_com_pipeline("real"))
+    assert pd.main(["--exigir-real"], chamar=chamar) == 0
+    assert len(chamadas) == 4  # segue a checagem normal
+    assert capsys.readouterr().out.strip().splitlines()[-1] == "e) PRONTO PARA A DEMO"
+
+
+@pytest.mark.parametrize("valor", ["mock", None])
+def test_exigir_real_com_pipeline_mock_ou_ausente_sai_com_2_sem_gastar(capsys, valor):
+    chamar, chamadas = _servico_falso(_resposta(), health=_health_com_pipeline(valor))
+    assert pd.main(["--exigir-real"], chamar=chamar) == 2
+    assert chamadas == [("GET", "/health", None)]  # para no (a): nenhuma chamada de análise
+    saida = capsys.readouterr().out
+    assert "falhou=pipeline_nao_real" in saida
+    assert saida.strip().splitlines()[-1] == "e) NAO PRONTO: a) GET /health"
+
+
+def test_sem_exigir_real_pipeline_mock_nao_falha_por_isso(capsys):
+    chamar, chamadas = _servico_falso(_resposta(), health=_health_com_pipeline("mock"))
+    assert pd.main([], chamar=chamar) == 0
+    assert len(chamadas) == 4
+    assert "pipeline_nao_real" not in capsys.readouterr().out
