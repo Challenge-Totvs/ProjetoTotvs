@@ -52,9 +52,12 @@ public class NaoProcedeDoCliente {
         var citacoes = citacaoRepository.findByTemaIdOrderByReuniaoDataHoraAsc(evento.getTema().getId());
         Citacao escolhida = null;
         for (Citacao c : citacoes) {
-            if (escolhida == null || !c.getCriadoEm().isAfter(evento.getCriadoEm())) {
+            if (!c.getCriadoEm().isAfter(evento.getCriadoEm())) {
                 escolhida = c;
             }
+        }
+        if (escolhida == null && !citacoes.isEmpty()) {
+            escolhida = citacoes.get(citacoes.size() - 1);
         }
         return Optional.ofNullable(escolhida)
                 .map(Citacao::getTexto)
