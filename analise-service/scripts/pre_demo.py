@@ -69,6 +69,10 @@ def checar_health(status_http: int, corpo: dict | None, segundos: float | None =
                 f"status={corpo.get('status')} pipeline={corpo.get('pipelineVersao')} {motores}", segundos)
 
 
+def pipeline_real(corpo: dict | None) -> bool:
+    return isinstance(corpo, dict) and corpo.get("pipelineVersao") == "real"
+
+
 def turnos_citados(corpo: dict) -> list[int]:
     """Todo turno que a resposta cita: temas (turno e turnoFim), interesse, compromissos e eventos de conduta."""
     turnos = []
@@ -186,10 +190,17 @@ def pedido_grande() -> dict:
     return gerar()  # padrão: ~72 mil caracteres, semente 42 -> 399 turnos
 
 
-def executar(chamar: Chamar, motor_esperado: str = MOTOR_ESPERADO) -> list[Item]:
-    """Roda (a)-(d). Levanta ServicoForaDoAr se o /health não conecta."""
+def executar(chamar: Chamar, motor_esperado: str = MOTOR_ESPERADO, exigir_real: bool = False) -> list[Item]:
+    """Roda (a)-(d). Levanta ServicoForaDoAr se o /health não conecta.
+
+    Com exigir_real, para no (a) se pipelineVersao != "real": sem gastar chamadas de análise.
+    """
     status, corpo, segundos = chamar("GET", "/health", None)
     itens = [checar_health(status, corpo, segundos)]
+    if exigir_real and not pipeline_real(corpo):
+        valor = corpo.get("pipelineVersao") if isinstance(corpo, dict) else None
+        itens[0] = Item("a", "GET /health", False, f"http={status} pipeline={valor} falhou=pipeline_nao_real", segundos)
+        return itens
     for rotulo, tamanho, pedido in (
         ("b", "curta", json.loads(PEDIDO_CURTO.read_text(encoding="utf-8"))),
         ("c", "grande", pedido_grande()),
@@ -209,11 +220,13 @@ def main(argv: list[str], chamar: Chamar | None = None) -> int:
     p.add_argument("--porta", type=int, default=8000)
     p.add_argument("--timeout", type=float, default=TIMEOUT_S, help=f"segundos por chamada (padrão {TIMEOUT_S:g})")
     p.add_argument("--motor-esperado", default=MOTOR_ESPERADO, choices=MOTORES)
+    p.add_argument("--exigir-real", action="store_true",
+                   help="falha (saída 2) se o /health não disser pipelineVersao=real")
     args = p.parse_args(argv)
     base = f"http://{args.host}:{args.porta}"
     chamar = chamar or criar_chamada(base, args.timeout)
     try:
-        itens = executar(chamar, args.motor_esperado)
+        itens = executar(chamar, args.motor_esperado, args.exigir_real)
     except ServicoForaDoAr:
         print(f"FALHOU servico fora do ar em {base} (suba com: uvicorn app.main:app --port {args.porta})")
         return 1
