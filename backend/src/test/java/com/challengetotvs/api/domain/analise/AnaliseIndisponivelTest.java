@@ -4,6 +4,7 @@ import com.challengetotvs.api.domain.cliente.Cliente;
 import com.challengetotvs.api.domain.consultor.Consultor;
 import com.challengetotvs.api.domain.reuniao.Reuniao;
 import com.challengetotvs.api.domain.reuniao.StatusReuniao;
+import com.challengetotvs.api.domain.tema.NaoProcedeDoCliente;
 import com.challengetotvs.api.domain.tema.PadraoRepository;
 import com.challengetotvs.api.domain.transcricao.Transcricao;
 import com.challengetotvs.api.domain.transcricao.TranscricaoRepository;
@@ -98,7 +99,7 @@ class AnaliseIndisponivelTest {
         AnaliseStrategy foraDoAr = pedido -> {
             throw new AnaliseIndisponivelException("fora do ar");
         };
-        var service = new AnaliseService(transcricoes, padroes, foraDoAr, gravador);
+        var service = new AnaliseService(transcricoes, padroes, foraDoAr, gravador, mock(NaoProcedeDoCliente.class));
 
         assertThatThrownBy(() -> service.analisar(10L, vendedor)).isInstanceOf(AnaliseIndisponivelException.class);
         verify(gravador, never()).gravar(any(), any(), any(), anyLong());

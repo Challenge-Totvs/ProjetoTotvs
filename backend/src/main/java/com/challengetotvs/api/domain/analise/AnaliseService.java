@@ -4,6 +4,7 @@ import com.challengetotvs.api.domain.analise.Pseudonimizador.Entidade;
 import com.challengetotvs.api.domain.analise.Pseudonimizador.Tipo;
 import com.challengetotvs.api.domain.consultor.Consultor;
 import com.challengetotvs.api.domain.reuniao.Reuniao;
+import com.challengetotvs.api.domain.tema.NaoProcedeDoCliente;
 import com.challengetotvs.api.domain.tema.Padrao;
 import com.challengetotvs.api.domain.tema.PadraoRepository;
 import com.challengetotvs.api.domain.transcricao.LeitorTurnos;
@@ -22,10 +23,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AnaliseService {     // SEM @Transactional: a espera pelo Python n√£o pode segurar o banco
 
+    static final int MAXIMO_TEXTO_CONTRAEXEMPLO = 500;   // contrato v3 ¬ß3.2
+
     private final TranscricaoRepository transcricaoRepository;
     private final PadraoRepository padraoRepository;
     private final AnaliseStrategy strategy;
     private final GravadorAnalise gravador;
+    private final NaoProcedeDoCliente naoProcedeDoCliente;
 
     public AnalisarResponse analisar(Long transcricaoId, Consultor consultor) {
         var transcricao = transcricaoRepository.findById(transcricaoId)
@@ -44,7 +48,12 @@ public class AnaliseService {     // SEM @Transactional: a espera pelo Python n√
         }
 
         var padroes = padraoRepository.findByAtivoTrueOrderByNomeAsc().stream().map(Padrao::getChave).toList();
-        var pedido = new ContratoV3.Pedido(turnos, reuniao.getDataHora().toLocalDate().toString(), padroes, List.of());
+        var contraexemplos = naoProcedeDoCliente.doCliente(reuniao.getCliente().getId()).stream()
+                .map(t -> new ContratoV3.Contraexemplo(t.padrao(),
+                        cortar(pseudonimizador.pseudonimizar(t.texto()), MAXIMO_TEXTO_CONTRAEXEMPLO), t.motivo()))
+                .toList();
+        var pedido = new ContratoV3.Pedido(turnos, reuniao.getDataHora().toLocalDate().toString(), padroes,
+                contraexemplos);
 
         long inicio = System.nanoTime();
         var resposta = strategy.analisar(pedido);
@@ -56,6 +65,10 @@ public class AnaliseService {     // SEM @Transactional: a espera pelo Python n√
 
         return new AnalisarResponse(reuniao.getId(), MotorUtilizado.de(resposta.motor()).valor(), resposta.tentativas(),
                 gravado.novos(), gravado.atualizados(), gravado.compromissos());            // E1: o √∫ltimo era 0
+    }
+
+    static String cortar(String texto, int maximo) {
+        return texto.length() <= maximo ? texto : texto.substring(0, maximo);
     }
 
     private List<Entidade> entidadesDoCadastro(Reuniao reuniao) {
