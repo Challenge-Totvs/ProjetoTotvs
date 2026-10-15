@@ -14,10 +14,13 @@ import ClientePage from "./pages/cliente/ClientePage";
 import ClientesPage from "./pages/clientes/ClientesPage";
 import ConfiguracoesPage from "./pages/configuracoes/ConfiguracoesPage";
 import ConvitePage from "./pages/convite/ConvitePage";
+import DesempenhoPage from "./pages/desempenho/DesempenhoPage";
 import InicioPage from "./pages/inicio/InicioPage";
 import NovaTranscricaoPage from "./pages/nova/NovaTranscricaoPage";
 import PadroesPage from "./pages/padroes/PadroesPage";
+import ReunioesPage from "./pages/reunioes/ReunioesPage";
 import ReuniaoPage from "./pages/reuniao/ReuniaoPage";
+import UsoPlanoPage from "./pages/uso/UsoPlanoPage";
 import VendedoresPage from "./pages/vendedores/VendedoresPage";
 import VisaoVendedorPage from "./pages/vendedores/VisaoVendedorPage";
 import type { Perfil } from "./types/api";
@@ -104,7 +107,9 @@ export default function App() {
               />
               <Route path={rotas.clientes} element={<ClientesPage />} />
               <Route path="/clientes/:id" element={<ClientePage />} />
+              <Route path={rotas.reunioesLista} element={<ReunioesPage />} />
               <Route path="/reunioes/:id" element={<ReuniaoPage />} />
+              <Route path={rotas.desempenho} element={<DesempenhoPage />} />
               <Route
                 path="/transcricoes/nova"
                 element={
@@ -138,6 +143,14 @@ export default function App() {
                 element={
                   <SoPerfil perfil="gestor">
                     <VisaoVendedorPage />
+                  </SoPerfil>
+                }
+              />
+              <Route
+                path={rotas.uso}
+                element={
+                  <SoPerfil perfil="gestor">
+                    <UsoPlanoPage />
                   </SoPerfil>
                 }
               />

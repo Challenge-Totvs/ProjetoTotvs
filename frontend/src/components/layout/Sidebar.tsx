@@ -1,6 +1,6 @@
 /* Barra lateral: Nova transcrição (vendedor), itens do perfil e Configurações na base. */
 
-import { Building2, Home, Layers, Plus, Settings, Users, type LucideIcon } from "lucide-react";
+import { Building2, CalendarClock, Home, Layers, Plus, Settings, TrendingUp, Users, Wallet, type LucideIcon } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
 import { cx } from "../../lib/formato";
@@ -20,17 +20,24 @@ const NAV: Record<"vendedor" | "gestor", { topo: ItemNav[]; base: ItemNav[] }> =
   vendedor: {
     topo: [
       { k: "inicio", l: "Início", Icone: Home, para: rotas.inicio, g: "I" },
+      { k: "reunioes", l: "Reuniões", Icone: CalendarClock, para: rotas.reunioesLista, g: "R" },
       { k: "clientes", l: "Clientes", Icone: Building2, para: rotas.clientes, g: "C" },
+      { k: "desempenho", l: "Desempenho", Icone: TrendingUp, para: rotas.desempenho, g: "D" },
     ],
     base: [{ k: "configuracoes", l: "Configurações", Icone: Settings, para: rotas.configuracoes }],
   },
   gestor: {
     topo: [
       { k: "clientes", l: "Clientes", Icone: Building2, para: rotas.clientes, g: "C" },
+      { k: "reunioes", l: "Reuniões", Icone: CalendarClock, para: rotas.reunioesLista, g: "R" },
       { k: "padroes", l: "Padrões", Icone: Layers, para: rotas.padroes, g: "P" },
       { k: "vendedores", l: "Vendedores", Icone: Users, para: rotas.vendedores, g: "V" },
+      { k: "desempenho", l: "Desempenho", Icone: TrendingUp, para: rotas.desempenho, g: "D" },
     ],
-    base: [{ k: "configuracoes", l: "Configurações", Icone: Settings, para: rotas.configuracoes }],
+    base: [
+      { k: "uso", l: "Uso e plano", Icone: Wallet, para: rotas.uso, g: "U" },
+      { k: "configuracoes", l: "Configurações", Icone: Settings, para: rotas.configuracoes },
+    ],
   },
 };
 
@@ -39,9 +46,13 @@ export { NAV };
 /** Seção da barra lateral que fica marcada para cada endereço. */
 function secaoDaRota(caminho: string): string {
   if (caminho.startsWith("/inicio")) return "inicio";
+  // A lista plana (sem id) marca "Reuniões"; a reunião em si (com id) marca "Clientes", de onde normalmente se chega a ela.
+  if (caminho === rotas.reunioesLista) return "reunioes";
   if (caminho.startsWith("/clientes") || caminho.startsWith("/reunioes")) return "clientes";
   if (caminho.startsWith("/padroes")) return "padroes";
   if (caminho.startsWith("/vendedores")) return "vendedores";
+  if (caminho.startsWith("/desempenho")) return "desempenho";
+  if (caminho.startsWith("/uso")) return "uso";
   if (caminho.startsWith("/configuracoes")) return "configuracoes";
   if (caminho.startsWith("/transcricoes")) return "nova";
   return "";

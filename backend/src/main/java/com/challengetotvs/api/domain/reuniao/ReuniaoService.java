@@ -80,6 +80,11 @@ public class ReuniaoService {
     }
 
     public Page<ReuniaoResponse> listar(Pageable pagination, Consultor consultor) {
+        // Gestão vê as reuniões do time inteiro (app de um time só); vendedor vê só as próprias.
+        if (com.challengetotvs.api.security.Perfis.ehGestor(consultor)) {
+            return reuniaoRepository.findAllWithClienteEVendedor(pagination)
+                    .map(ReuniaoResponse::comVendedor);
+        }
         return reuniaoRepository.findByConsultorWithCliente(consultor, pagination)
                 .map(ReuniaoResponse::from);
     }

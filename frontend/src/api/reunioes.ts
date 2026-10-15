@@ -4,10 +4,20 @@ import type {
   EnviarTranscricaoResponse,
   Id,
   NovaReuniaoRequest,
+  Pagina,
   ReuniaoDetalhe,
+  ReuniaoResumo,
   ResultadoAnalisarResponse,
   TurnoTranscricao,
 } from "../types/api";
+
+/** GET /api/reunioes?page=&size= — lista plana (vendedor: só as próprias; gestão: o time inteiro). */
+export async function listarReunioes(pagina = 0, tamanho = 20): Promise<Pagina<ReuniaoResumo>> {
+  const { data } = await http.get<Pagina<ReuniaoResumo>>("/api/reunioes", {
+    params: { page: pagina, size: tamanho, sort: "dataHora,desc" },
+  });
+  return data;
+}
 
 /** GET /api/reunioes/{id} — reunião com análise, temas, compromissos e métricas. */
 export async function buscarReuniao(id: Id): Promise<ReuniaoDetalhe> {

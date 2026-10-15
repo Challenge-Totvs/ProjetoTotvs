@@ -14,6 +14,10 @@ public interface ReuniaoRepository extends JpaRepository<Reuniao, Long> {
     @Query(value = "SELECT r FROM Reuniao r JOIN FETCH r.cliente WHERE r.consultor = :consultor")
     Page<Reuniao> findByConsultorWithCliente(@Param("consultor") Consultor consultor, Pageable pageable);
 
+    /** Todas as reuniões do time, com cliente e vendedor já carregados (tela "Reuniões" da gestão; app de um time só). */
+    @Query(value = "SELECT r FROM Reuniao r JOIN FETCH r.cliente c JOIN FETCH c.vendedor")
+    Page<Reuniao> findAllWithClienteEVendedor(Pageable pageable);
+
     List<Reuniao> findByClienteIdOrderByDataHoraDesc(Long clienteId);
 
     List<Reuniao> findByClienteVendedorIdOrderByDataHoraAsc(Long vendedorId);

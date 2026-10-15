@@ -562,6 +562,32 @@ export interface ConviteDetalhe {
   aceito: boolean;
   expirado: boolean;
 }
+/* ---------- Reuniões (lista plana) ---------- */
+
+/** Uma linha da lista plana de reuniões (GET /api/reunioes), sem a análise completa. */
+export interface ReuniaoResumo {
+  id: Id;
+  clienteId: Id;
+  cliente: string;
+  titulo: string;
+  dataHora: DataISO;
+  duracaoMin: number | null;
+  status: StatusReuniao;
+  confirmada: boolean;
+  contato: string | null;
+  /** Dono do cliente; só vem preenchido na listagem da gestão (vendedor já sabe que são as próprias). */
+  vendedorNome: string | null;
+}
+
+/** Página do Spring Data; os demais campos da resposta não são usados aqui. */
+export interface Pagina<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
 /* ---------- Busca no histórico do cliente ---------- */
 
 /** Um trecho de reunião anterior parecido com a consulta (GET /api/clientes/{id}/evidencias). */
