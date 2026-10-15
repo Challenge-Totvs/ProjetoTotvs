@@ -57,8 +57,8 @@ export function AppLayout() {
         st.esperandoG = false;
         clearTimeout(timerG);
         const destinos: Record<string, string> = app.gestor
-          ? { c: rotas.clientes, p: rotas.padroes, v: rotas.vendedores }
-          : { i: rotas.inicio, c: rotas.clientes };
+          ? { c: rotas.clientes, r: rotas.reunioesLista, p: rotas.padroes, v: rotas.vendedores, d: rotas.desempenho, u: rotas.uso }
+          : { i: rotas.inicio, r: rotas.reunioesLista, c: rotas.clientes, d: rotas.desempenho };
         if (destinos[k]) {
           e.preventDefault();
           navigate(destinos[k]);
@@ -194,7 +194,7 @@ function BannerContingencia() {
 
 function Rodape() {
   const { legenda } = useApp();
-  const itens: [string[], string][] = [...legenda, [[ATALHO_BUSCA], "buscar"], [["G", "I C P V"], "ir para"]];
+  const itens: [string[], string][] = [...legenda, [[ATALHO_BUSCA], "buscar"], [["G", "I C P V D U R"], "ir para"]];
   return (
     <footer
       className="flex h-8 flex-none items-center gap-3.5 overflow-hidden border-t border-linha bg-branco pr-5 pl-6 text-xs text-ardosia ate-640:hidden"

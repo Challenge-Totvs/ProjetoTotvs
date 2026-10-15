@@ -10,6 +10,10 @@ export const rotas = {
   configuracoes: "/configuracoes",
   padroes: "/padroes",
   vendedores: "/vendedores",
+  /** Lista plana de reuniões; a reunião em si é `reuniao(id)`. */
+  reunioesLista: "/reunioes",
+  desempenho: "/desempenho",
+  uso: "/uso",
 
   /** Página do cliente; com `temaId`, abre já com o tema selecionado. */
   cliente: (id: Id, temaId?: Id | null) => (temaId ? `/clientes/${id}?tema=${temaId}` : `/clientes/${id}`),
