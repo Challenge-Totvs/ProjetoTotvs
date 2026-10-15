@@ -8,37 +8,46 @@ import { useApp, useAtalhos } from "../../context/AppContext";
 import { fmtDiaSemana, fmtHora, paraData } from "../../lib/datas";
 import { cx, normalizar } from "../../lib/formato";
 import { rotas } from "../../lib/rotas";
-import { CabecalhoPagina, Segmentado, Vazio } from "../ui/base";
-import { barraFerramentas, busca as classeBusca, card, comPainel, conteudo, select, tabela, td, th, tr } from "../ui/classes";
+import { CabecalhoPagina, Vazio } from "../ui/base";
+import { BarraFiltros, type GrupoFiltro } from "../ui/BarraFiltros";
+import { busca as classeBusca, card, comPainel, conteudo, select, tabela, td, th, tr } from "../ui/classes";
 import { ChipTipoCliente } from "../ui/glifos";
 import { BotaoPainel, PainelLateral } from "../ui/Sobrepostos";
 import { CelulaCliente, CelulaUltimaReuniao, TdIndicadores, ThIndicadores } from "./Celulas";
 import { ChipsTemas } from "./ChipsTemas";
 import { PreviaCliente } from "./PreviaCliente";
 
-type FiltroTipo = "todos" | "ativo" | "prospect" | "sem";
+type GrupoTipo = "tipo";
 type Ordem = "atencao" | "recente" | "nome";
 
 /** Momento da última reunião em milissegundos (0 quando não há). */
 const quandoUltima = (c: ClienteResumo) => (c.ultimaReuniao ? paraData(c.ultimaReuniao.dataHora).getTime() : 0);
 
-/** O cliente passa no filtro de tipo? ("sem" = cliente sem tipo definido) */
-const doTipo = (c: ClienteResumo, t: FiltroTipo) => t === "todos" || (t === "sem" ? !c.tipo : c.tipo === t);
+/** O cliente passa no filtro de tipo? (vazio = todos; "sem" = cliente sem tipo definido) */
+const doTipo = (c: ClienteResumo, marcados: string[]) => !marcados.length || marcados.includes(c.tipo || "sem");
 
 export function ClientesVendedor({ clientes: todos }: { clientes: ClienteResumo[] }) {
   const app = useApp();
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
-  const [tipo, setTipo] = useState<FiltroTipo>("todos");
+  const [tipo, setTipo] = useState<Record<GrupoTipo, string[]>>({ tipo: [] });
   const [ordem, setOrdem] = useState<Ordem>("atencao");
   const [selId, setSelId] = useState<number | null>(null);
 
-  const contar = (t: FiltroTipo) => todos.filter((c) => doTipo(c, t)).length;
+  const contar = (_grupo: GrupoTipo, v: string) => todos.filter((c) => doTipo(c, [v])).length;
+  const alternarTipo = (grupo: GrupoTipo, v: string) =>
+    setTipo((t) => ({ ...t, [grupo]: t[grupo].includes(v) ? t[grupo].filter((x) => x !== v) : [...t[grupo], v] }));
+  const grupos: GrupoFiltro<GrupoTipo>[] = [["tipo", "Tipo de cliente", [["ativo", "Ativo"], ["prospect", "Prospect"], ["sem", "Sem tipo"]]]];
+  const algumFiltro = !!busca.trim() || tipo.tipo.length > 0;
+  const limpar = () => {
+    setTipo({ tipo: [] });
+    setBusca("");
+  };
 
   // Filtra por tipo e pela busca (sem acento, em nome, contatos e segmento) e ordena.
   const termo = normalizar(busca.trim());
   const lista = todos
-    .filter((c) => doTipo(c, tipo))
+    .filter((c) => doTipo(c, tipo.tipo))
     .filter((c) => !termo || normalizar(`${c.nome} ${c.contatos.map((x) => x.nome).join(" ")} ${c.segmento}`).includes(termo))
     .sort((a, b) => {
       if (ordem === "nome") return a.nome.localeCompare(b.nome);
@@ -76,33 +85,31 @@ export function ClientesVendedor({ clientes: todos }: { clientes: ClienteResumo[
       />
       <div className={comPainel}>
         <div className={conteudo}>
-          {/* Busca, tipo de cliente e ordenação */}
-          <div className={barraFerramentas}>
-            {/* Campo com o recuo e a cor de placeholder padrão do navegador, e ícone que encolhe, como na demo */}
-            <label className={cx(classeBusca, "[&_input]:px-0.5 [&_input]:py-px [&_input]:placeholder:text-[#757575]")}>
-              <Search size={14} aria-hidden="true" className="text-faint" />
-              <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cliente ou contato" aria-label="Buscar cliente ou contato" />
-            </label>
-            <Segmentado<FiltroTipo>
-              rotulo="Tipo de cliente"
-              valor={tipo}
-              onChange={setTipo}
-              opcoes={[
-                ["todos", "Todos", todos.length],
-                ["ativo", "Ativos", contar("ativo")],
-                ["prospect", "Prospects", contar("prospect")],
-                ["sem", "Sem tipo", contar("sem")],
-              ]}
-            />
-            <label className="inline-flex items-center gap-1.5 text-[12.5px] text-ardosia">
-              Ordenar
-              <select className={select()} value={ordem} onChange={(e) => setOrdem(e.target.value as Ordem)}>
-                <option value="atencao">Mais atenção</option>
-                <option value="recente">Última reunião</option>
-                <option value="nome">Nome</option>
-              </select>
-            </label>
-          </div>
+          {/* Busca com os filtros embutidos (chips + pop-up "Filtro") e ordenação, como na demo */}
+          <BarraFiltros
+            campoBusca={
+              // Campo com o recuo e a cor de placeholder padrão do navegador, e ícone que encolhe, como na demo
+              <label className={cx(classeBusca, "[&_input]:px-0.5 [&_input]:py-px [&_input]:placeholder:text-[#757575]")}>
+                <Search size={14} aria-hidden="true" className="text-faint" />
+                <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cliente ou contato" aria-label="Buscar cliente ou contato" />
+              </label>
+            }
+            grupos={grupos}
+            marcadas={tipo}
+            onAlternar={alternarTipo}
+            contar={contar}
+            onLimpar={algumFiltro ? limpar : null}
+            extra={
+              <label className="inline-flex items-center gap-1.5 text-[12.5px] text-ardosia">
+                Ordenar
+                <select className={select()} value={ordem} onChange={(e) => setOrdem(e.target.value as Ordem)}>
+                  <option value="atencao">Mais atenção</option>
+                  <option value="recente">Última reunião</option>
+                  <option value="nome">Nome</option>
+                </select>
+              </label>
+            }
+          />
 
           {/* Tabela: clique seleciona, duplo clique abre o cliente */}
           <div className={cx(card, "overflow-x-auto")}>
