@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
 import { cx } from "../../lib/formato";
 import { rotas } from "../../lib/rotas";
-import { Logo } from "../ui/base";
+import { Logo, LogoIcone } from "../ui/base";
 import { btn } from "../ui/classes";
 
 interface ItemNav {
@@ -85,9 +85,11 @@ export function Sidebar() {
     <aside className="flex w-[232px] flex-none flex-col border-r border-linha bg-branco ate-900:w-16" aria-label="Navegação principal">
       <div className="flex h-14 flex-none items-center border-b border-linha px-[18px]">
         <span className="ate-900:hidden">
-          <Logo tamanho={16} />
+          <Logo tamanho={18} />
         </span>
-        <span aria-hidden="true" className="hidden h-2.5 w-2.5 rounded-[3px] bg-sinal ate-900:block" />
+        <span className="hidden ate-900:block">
+          <LogoIcone tamanho={22} />
+        </span>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-1 p-3">
         {usuario.perfil === "vendedor" && (

@@ -2,6 +2,10 @@
 
 import type { ReactNode } from "react";
 import { AlertCircle, AlertTriangle, CheckCircle2, Circle, Info, Loader2, Lock, type LucideIcon } from "lucide-react";
+import logoIcone from "../../assets/logo/icone.png";
+import logoIconeClaro from "../../assets/logo/icone-claro.png";
+import logoLockup from "../../assets/logo/lockup.png";
+import logoLockupClaro from "../../assets/logo/lockup-claro.png";
 import { cx, iniciais } from "../../lib/formato";
 import { btn, card, contagem as classeContagem } from "./classes";
 
@@ -23,16 +27,14 @@ export function Kbd({ children, claro }: { children: ReactNode; claro?: boolean 
 
 /* ---------- Logo ---------- */
 
-/** Logo provisório (o definitivo está com outro integrante do grupo). */
+/** Marca InsightCall (ícone + nome). `claro` troca para a versão branca, usada sobre o painel escuro (bg-ink). */
 export function Logo({ claro, tamanho = 20 }: { claro?: boolean; tamanho?: number }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <span aria-hidden="true" className="flex-none rounded-[3px] bg-sinal" style={{ width: tamanho / 2, height: tamanho / 2 }} />
-      <span className={cx("font-semibold tracking-[-0.01em]", claro ? "text-branco" : "text-ink")} style={{ fontSize: tamanho }}>
-        InsightCall
-      </span>
-    </div>
-  );
+  return <img src={claro ? logoLockupClaro : logoLockup} alt="InsightCall" style={{ height: tamanho }} className="block w-auto" />;
+}
+
+/** Só o símbolo (sem o nome), para espaços pequenos: barra lateral recolhida, avatares de marca. */
+export function LogoIcone({ claro, tamanho = 20 }: { claro?: boolean; tamanho?: number }) {
+  return <img src={claro ? logoIconeClaro : logoIcone} alt="InsightCall" style={{ height: tamanho }} className="block w-auto" />;
 }
 
 /* ---------- Aviso ---------- */
