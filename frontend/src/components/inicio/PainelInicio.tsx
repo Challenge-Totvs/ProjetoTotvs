@@ -4,7 +4,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Building2, CheckCircle2, CornerDownRight, Plus, Repeat, Upload, type LucideIcon } from "lucide-react";
-import type { Inicio, Tema, TipoMudanca } from "../../types/api";
+import type { Inicio, InicioSemanal, Tema, TipoMudanca } from "../../types/api";
+import { GraficoEngajamentoSemanal, GraficoReunioesSemanais } from "./GraficoSemanal";
 import { useAtalhos } from "../../context/AppContext";
 import { paraData, relativo } from "../../lib/datas";
 import { ROTULO_MUDANCA, ultimaCitacao } from "../../lib/dominio";
@@ -28,7 +29,18 @@ const ICONE_MUDANCA: Partial<Record<TipoMudanca, LucideIcon>> = {
 /** Quantas mudanças aparecem antes do "Ver todas as N". */
 const MUDANCAS_VISIVEIS = 6;
 
-export function PainelInicio({ inicio, somenteLeitura, nomeVendedor }: { inicio: Inicio; somenteLeitura?: boolean; nomeVendedor?: string }) {
+export function PainelInicio({
+  inicio,
+  somenteLeitura,
+  nomeVendedor,
+  semanal,
+}: {
+  inicio: Inicio;
+  somenteLeitura?: boolean;
+  nomeVendedor?: string;
+  /** Série semanal (GET /api/inicio/semanal), opcional: a tela funciona sem ela. */
+  semanal?: InicioSemanal | null;
+}) {
   const navigate = useNavigate();
   const W = inicio.janelaDias;
   // Na visão do gestor, sem nome informado, usa o nome que veio do backend.
@@ -281,6 +293,22 @@ export function PainelInicio({ inicio, somenteLeitura, nomeVendedor }: { inicio:
               />
             </div>
           </Secao>
+
+          {/* Série semanal: dois gráficos de um eixo só (nunca combinados num só, com duas escalas). */}
+          {semanal && semanal.semanas.length > 0 && (
+            <div className={grid2}>
+              <Secao id="ini-semanal-reunioes" titulo="Reuniões por semana" sub={`Últimas ${semanal.semanas.length} semanas, dentro da janela de ${semanal.janelaDias} dias`}>
+                <GraficoReunioesSemanais semanas={semanal.semanas} />
+              </Secao>
+              <Secao
+                id="ini-semanal-engajamento"
+                titulo="Engajamento médio por semana"
+                sub="Média do score (0 a 100) das reuniões analisadas na semana"
+              >
+                <GraficoEngajamentoSemanal semanas={semanal.semanas} />
+              </Secao>
+            </div>
+          )}
         </div>
       )}
     </>
