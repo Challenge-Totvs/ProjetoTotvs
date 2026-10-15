@@ -3,7 +3,7 @@
 
 import { CornerDownRight, Cpu, Repeat } from "lucide-react";
 import type { Motor, Tema, TipoCliente, TipoTema } from "../../types/api";
-import { descreverCitacao, estadoCitacao, MOTORES, ROTULO_SITUACAO, temRisco, type EstadoGlifo } from "../../lib/dominio";
+import { descreverCitacao, estadoCitacao, MOTORES, temRisco, type EstadoGlifo } from "../../lib/dominio";
 import { Etiqueta } from "./base";
 import { COR } from "./cores";
 
@@ -179,25 +179,7 @@ export function ChipMotor({ motor }: { motor: Motor }) {
   );
 }
 
-/** Chips dos temas em pauta de um cliente (lista de clientes). */
-export function ChipsTemas({ temas, max = 3, porPadrao }: { temas: Tema[]; max?: number; porPadrao?: boolean }) {
-  const lista = temas.filter((t) => t.emPauta);
-  if (!lista.length) return <span className="text-xs text-faint">Nenhum em pauta</span>;
-  return (
-    <span className="flex flex-wrap items-center gap-1">
-      {lista.slice(0, max).map((t) => (
-        <span
-          key={t.id}
-          className="inline-flex max-w-[190px] items-center gap-[5px] rounded border border-linha bg-branco px-[7px] py-px text-xs text-ink"
-          title={`${t.titulo} · ${ROTULO_SITUACAO[t.situacao]}`}
-        >
-          <GlifosTema tipos={t.tipos}   tratado={t.citacoes[0]?.tratado ?? null} />
-          <span className="truncate">{porPadrao ? t.padraoNome : t.titulo}</span>
-          {t.recorrente && <Repeat size={11} aria-label="recorrente" />}
-        </span>
-      ))}
-      {lista.length > max && <span className="text-xs text-ardosia">+{lista.length - max}</span>}
-    </span>
-  );
-}
+/* ChipsTemas (chips clicáveis que abrem o pop-up do tema) mora em
+   components/clientes/ChipsTemas.tsx — depende do InspetorTema e do ModalTema,
+   que por sua vez usam este arquivo; manter aqui criaria um ciclo de módulos. */
 
