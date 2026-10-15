@@ -110,19 +110,36 @@ public class InicioService {
     }
 
 
+    /**
+     * Antes: 1 consulta de transcrição + 1 de análise POR reunião analisada. Com o Oracle remoto, uma tela com
+     * muitas reuniões na janela significava dezenas de round-trips sequenciais. Agora: 2 consultas no total.
+     */
     private Double mediaFalaDoVendedor(List<Reuniao> analisadas) {
+        if (analisadas.isEmpty()) {
+            return null;
+        }
+        var reuniaoIds = analisadas.stream().map(Reuniao::getId).toList();
+        var transcricoes = transcricaoRepository.findByReuniaoIdIn(reuniaoIds);
+        Map<Long, com.challengetotvs.api.domain.transcricao.Transcricao> transcricaoPorReuniao = transcricoes.stream()
+                .collect(Collectors.toMap(t -> t.getReuniao().getId(), t -> t, (a, b) -> a));
+        var transcricaoIds = transcricoes.stream().map(com.challengetotvs.api.domain.transcricao.Transcricao::getId).toList();
+        Map<Long, com.challengetotvs.api.domain.analise.Analise> analisePorTranscricao = transcricaoIds.isEmpty()
+                ? Map.of()
+                : analiseRepository.findByTranscricaoIdIn(transcricaoIds).stream()
+                        .collect(Collectors.toMap(a -> a.getTranscricao().getId(), a -> a, (a, b) -> a));
+
         double soma = 0;
         int contadas = 0;
         for (Reuniao reuniao : analisadas) {
-            var transcricao = transcricaoRepository.findByReuniaoId(reuniao.getId());
-            if (transcricao.isEmpty()) continue;
-            var analise = analiseRepository.findByTranscricaoId(transcricao.get().getId());
-            if (analise.isEmpty()) continue;
-            var papeis = leitorAnalise.papeis(analise.get().getPapeis());
+            var transcricao = transcricaoPorReuniao.get(reuniao.getId());
+            if (transcricao == null) continue;
+            var analise = analisePorTranscricao.get(transcricao.getId());
+            if (analise == null) continue;
+            var papeis = leitorAnalise.papeis(analise.getPapeis());
             if (papeis.isEmpty()) continue;
 
             var metricas = MetricasConversa.calcular(
-                    LeitorTurnos.ler(transcricao.get().getConteudo()), papeis, reuniao.getDuracaoMin());
+                    LeitorTurnos.ler(transcricao.getConteudo()), papeis, reuniao.getDuracaoMin());
             if (metricas.falaVendedor() != null) {
                 soma += metricas.falaVendedor();
                 contadas++;

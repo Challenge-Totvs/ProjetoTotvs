@@ -1,10 +1,12 @@
 package com.challengetotvs.api.domain.tema;
 
+import com.challengetotvs.api.domain.analise.Analise;
 import com.challengetotvs.api.domain.analise.AnaliseRepository;
 import com.challengetotvs.api.domain.analise.LeitorAnalise;
 import com.challengetotvs.api.domain.reuniao.Reuniao;
 import com.challengetotvs.api.domain.tema.TemaResponse.*;
 import com.challengetotvs.api.domain.transcricao.LeitorTurnos;
+import com.challengetotvs.api.domain.transcricao.Transcricao;
 import com.challengetotvs.api.domain.transcricao.TranscricaoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,11 +41,30 @@ public class MontadorTemas {
 
     public List<TemaResponse> doCliente(Long clienteId, boolean comContexto) {
         LocalDate hoje = LocalDate.now(FUSO);
-        Map<Long, DadosReuniao> cache = new HashMap<>();
-        List<TemaResponse> saida = new ArrayList<>();
+        List<Tema> temas = temaRepository.findByClienteId(clienteId);
+        if (temas.isEmpty()) {
+            return List.of();
+        }
 
-        for (Tema tema : temaRepository.findByClienteId(clienteId)) {
-            TemaResponse resposta = montar(tema, hoje, comContexto, cache);
+        // Tudo em lote (uma consulta por tabela, não uma por tema): essencial com o Oracle remoto da faculdade.
+        Map<Long, List<Citacao>> citacoesPorTema = citacaoRepository.findByTemaClienteIdOrderByReuniaoDataHoraAsc(clienteId)
+                .stream().collect(Collectors.groupingBy(c -> c.getTema().getId()));
+        Map<Long, EventoTema> foraPorTema = vigentePorTema(eventoTemaRepository
+                .findByTemaClienteIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(clienteId, TipoEvento.TRATADO_FORA));
+        Map<Long, EventoTema> naoProcedePorTema = vigentePorTema(eventoTemaRepository
+                .findByTemaClienteIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(clienteId, TipoEvento.NAO_PROCEDE));
+
+        Set<Long> reuniaoIds = citacoesPorTema.values().stream().flatMap(List::stream)
+                .map(c -> c.getReuniao().getId()).collect(Collectors.toSet());
+        Map<Long, DadosReuniao> cache = carregarDados(reuniaoIds);
+
+        List<TemaResponse> saida = new ArrayList<>();
+        for (Tema tema : temas) {
+            var citacoes = new ArrayList<>(citacoesPorTema.getOrDefault(tema.getId(), List.of()));
+            TemaResponse resposta = montar(tema, hoje, comContexto, citacoes,
+                    Optional.ofNullable(foraPorTema.get(tema.getId())),
+                    Optional.ofNullable(naoProcedePorTema.get(tema.getId())),
+                    cache);
             if (resposta != null) {
                 saida.add(resposta);
             }
@@ -54,25 +76,63 @@ public class MontadorTemas {
     public TemaResponse doTema(Long temaId, boolean comContexto) {
         Tema tema = temaRepository.findById(temaId)
                 .orElseThrow(() -> new EntityNotFoundException("Tema não encontrado!"));
-        TemaResponse resposta = montar(tema, LocalDate.now(FUSO), comContexto, new HashMap<>());
+        var citacoes = new ArrayList<>(citacaoRepository.findByTemaIdOrderByReuniaoDataHoraAsc(tema.getId()));
+        var fora = eventoTemaRepository.findFirstByTemaIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(
+                tema.getId(), TipoEvento.TRATADO_FORA);
+        var naoProcede = eventoTemaRepository.findFirstByTemaIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(
+                tema.getId(), TipoEvento.NAO_PROCEDE);
+        TemaResponse resposta = montar(tema, LocalDate.now(FUSO), comContexto, citacoes, fora, naoProcede, new HashMap<>());
         if (resposta == null) {
             throw new EntityNotFoundException("Tema sem citações!");
         }
         return resposta;
     }
 
-    private TemaResponse montar(Tema tema, LocalDate hoje, boolean comContexto, Map<Long, DadosReuniao> cache) {
-        var citacoes = new ArrayList<>(citacaoRepository.findByTemaIdOrderByReuniaoDataHoraAsc(tema.getId()));
+    /** Entre vários eventos vigentes (um tipo, vários temas, do mais novo ao mais antigo), fica o primeiro de cada tema. */
+    private Map<Long, EventoTema> vigentePorTema(List<EventoTema> vigentesDoMaisNovoAoMaisAntigo) {
+        Map<Long, EventoTema> porTema = new LinkedHashMap<>();
+        for (EventoTema e : vigentesDoMaisNovoAoMaisAntigo) {
+            porTema.putIfAbsent(e.getTema().getId(), e);
+        }
+        return porTema;
+    }
+
+    /** Turnos e papéis de várias reuniões de uma vez, para citações de clientes diferentes não repetirem consulta. */
+    private Map<Long, DadosReuniao> carregarDados(Set<Long> reuniaoIds) {
+        Map<Long, DadosReuniao> cache = new HashMap<>();
+        if (reuniaoIds.isEmpty()) {
+            return cache;
+        }
+        var transcricoes = transcricaoRepository.findByReuniaoIdIn(reuniaoIds);
+        Map<Long, Transcricao> transcricaoPorReuniao = transcricoes.stream()
+                .collect(Collectors.toMap(t -> t.getReuniao().getId(), t -> t, (a, b) -> a));
+        var transcricaoIds = transcricoes.stream().map(Transcricao::getId).toList();
+        Map<Long, Analise> analisePorTranscricao = transcricaoIds.isEmpty()
+                ? Map.of()
+                : analiseRepository.findByTranscricaoIdIn(transcricaoIds).stream()
+                        .collect(Collectors.toMap(a -> a.getTranscricao().getId(), a -> a, (a, b) -> a));
+
+        for (Long reuniaoId : reuniaoIds) {
+            Transcricao transcricao = transcricaoPorReuniao.get(reuniaoId);
+            if (transcricao == null) {
+                cache.put(reuniaoId, new DadosReuniao(List.of(), Map.of()));
+                continue;
+            }
+            var turnos = LeitorTurnos.ler(transcricao.getConteudo());
+            var analise = analisePorTranscricao.get(transcricao.getId());
+            var papeis = analise == null ? Map.<Integer, String>of() : leitorAnalise.papeis(analise.getPapeis());
+            cache.put(reuniaoId, new DadosReuniao(turnos, papeis));
+        }
+        return cache;
+    }
+
+    private TemaResponse montar(Tema tema, LocalDate hoje, boolean comContexto, List<Citacao> citacoes,
+                                 Optional<EventoTema> fora, Optional<EventoTema> naoProcede, Map<Long, DadosReuniao> cache) {
         if (citacoes.isEmpty()) {
             return null;
         }
         citacoes.sort(Comparator.comparing((Citacao c) -> c.getReuniao().getDataHora())
                 .thenComparingInt(Citacao::getTurno));
-
-        var fora = eventoTemaRepository.findFirstByTemaIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(
-                tema.getId(), TipoEvento.TRATADO_FORA);
-        var naoProcede = eventoTemaRepository.findFirstByTemaIdAndTipoAndDesfeitoEmIsNullOrderByCriadoEmDesc(
-                tema.getId(), TipoEvento.NAO_PROCEDE);
 
         var entradas = citacoes.stream()
                 .map(c -> new CitacaoEntrada(c.getReuniao().getDataHora(), c.getReuniao().getId(),

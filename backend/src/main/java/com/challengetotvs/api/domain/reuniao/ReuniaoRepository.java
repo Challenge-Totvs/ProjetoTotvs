@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ReuniaoRepository extends JpaRepository<Reuniao, Long> {
@@ -19,6 +20,9 @@ public interface ReuniaoRepository extends JpaRepository<Reuniao, Long> {
     Page<Reuniao> findAllWithClienteEVendedor(Pageable pageable);
 
     List<Reuniao> findByClienteIdOrderByDataHoraDesc(Long clienteId);
+
+    /** Reuniões de vários clientes de uma vez (listagem de Clientes): evita 1 consulta por cliente. */
+    List<Reuniao> findByClienteIdInOrderByDataHoraDesc(Collection<Long> clienteIds);
 
     List<Reuniao> findByClienteVendedorIdOrderByDataHoraAsc(Long vendedorId);
 }
