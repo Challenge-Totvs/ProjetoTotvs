@@ -21,8 +21,11 @@ export async function listarPadroesAgregados(tipoCliente = "todos", tipo = "todo
   return data;
 }
 
-/** GET /api/vendedores — uma linha por vendedor do escopo, com os números da janela. */
-export async function listarVendedores(): Promise<VendedorResumo[]> {
-  const { data } = await http.get<VendedorResumo[]>("/api/vendedores");
+/**
+ * GET /api/vendedores — uma linha por vendedor do escopo, com os números da janela.
+ * janelaDias: quando informado, muda só esta visualização (não a janela configurada do time).
+ */
+export async function listarVendedores(janelaDias?: number): Promise<VendedorResumo[]> {
+  const { data } = await http.get<VendedorResumo[]>("/api/vendedores", { params: janelaDias ? { janelaDias } : undefined });
   return data;
 }

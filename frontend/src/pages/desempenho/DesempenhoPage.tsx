@@ -5,12 +5,27 @@
 
 import { buscarInicio } from "../../api/inicio";
 import { listarVendedores } from "../../api/gestor";
-import { Aviso, CabecalhoPagina, Carregando, ErroCarregar, Numero, Secao } from "../../components/ui/base";
+import { Aviso, CabecalhoPagina, Carregando, ErroCarregar, Numero, Secao, Segmentado } from "../../components/ui/base";
 import { card, direita, numeros, tabela, td, th, tr } from "../../components/ui/classes";
 import { useApp, useTrilha } from "../../context/AppContext";
 import { useApi } from "../../hooks/useApi";
+import { useJanelaVisao } from "../../hooks/useJanelaVisao";
 import { cx, pct } from "../../lib/formato";
 import type { MetricasVendedor, VendedorResumo } from "../../types/api";
+
+/** Visões de 30/60/90 dias: muda só o que a tela mostra, não a janela configurada do time. */
+type JanelaVisao = "30" | "60" | "90";
+const OPCOES_JANELA: [JanelaVisao, string][] = [
+  ["30", "30 dias"],
+  ["60", "60 dias"],
+  ["90", "90 dias"],
+];
+
+function SeletorJanela({ janela, onChange }: { janela: number; onChange: (dias: number) => void }) {
+  return (
+    <Segmentado rotulo="Janela" opcoes={OPCOES_JANELA} valor={String(janela) as JanelaVisao} onChange={(v) => onChange(Number(v))} />
+  );
+}
 
 /** Soma as métricas de todos os vendedores; taxas vêm ponderadas pelo denominador de cada uma. */
 function somarTime(vendedores: VendedorResumo[]): MetricasVendedor {
@@ -63,12 +78,17 @@ export default function DesempenhoPage() {
 
 function DesempenhoProprio() {
   const app = useApp();
-  const { dados, erro, carregando, recarregar } = useApi(buscarInicio, [app.versao]);
+  const [janela, setJanela] = useJanelaVisao(app.janelaDias);
+  const { dados, erro, carregando, recarregar } = useApi(() => buscarInicio(janela), [app.versao, janela]);
   if (carregando && !dados) return <Carregando />;
   if (!dados) return <ErroCarregar mensagem={erro ?? "Não foi possível carregar o desempenho."} onTentar={() => void recarregar()} />;
   return (
     <>
-      <CabecalhoPagina titulo="Desempenho" texto={`Suas reuniões nos últimos ${dados.janelaDias} dias.`} />
+      <CabecalhoPagina
+        titulo="Desempenho"
+        texto={`Suas reuniões nos últimos ${dados.janelaDias} dias.`}
+        acoes={<SeletorJanela janela={janela} onChange={setJanela} />}
+      />
       <BlocoMetricas m={dados.desempenho} janelaDias={dados.janelaDias} />
     </>
   );
@@ -78,7 +98,8 @@ function DesempenhoProprio() {
 
 function DesempenhoDoTime() {
   const app = useApp();
-  const { dados, erro, carregando, recarregar } = useApi(listarVendedores, [app.versao]);
+  const [janela, setJanela] = useJanelaVisao(app.janelaDias);
+  const { dados, erro, carregando, recarregar } = useApi(() => listarVendedores(janela), [app.versao, janela]);
   if (carregando && !dados) return <Carregando />;
   if (!dados) return <ErroCarregar mensagem={erro ?? "Não foi possível carregar o desempenho do time."} onTentar={() => void recarregar()} />;
 
@@ -88,14 +109,18 @@ function DesempenhoDoTime() {
 
   return (
     <>
-      <CabecalhoPagina titulo="Desempenho do time" texto={`O time ${app.usuario.time} nos últimos ${app.janelaDias} dias.`} />
+      <CabecalhoPagina
+        titulo="Desempenho do time"
+        texto={`O time ${app.usuario.time} nos últimos ${janela} dias.`}
+        acoes={<SeletorJanela janela={janela} onChange={setJanela} />}
+      />
       <div className="mb-4">
         <Aviso tom="neutro">
           Sem comparação com o período anterior por aqui ainda: o backend guarda a janela atual, não uma série para comparar. Os números abaixo são do
           período corrente.
         </Aviso>
       </div>
-      <BlocoMetricas m={time} janelaDias={app.janelaDias} />
+      <BlocoMetricas m={time} janelaDias={janela} />
       <div className="mt-4">
         <Secao titulo="Por vendedor" sub="Ordenado por quem pede mais atenção: riscos sem retorno + oportunidades perdidas." semPadding>
           <div className={cx(card, "overflow-x-auto")}>

@@ -1,9 +1,12 @@
 import { http } from "./http";
 import type { Id, Inicio } from "../types/api";
 
-/** GET /api/inicio — o Início do vendedor logado, tudo pronto. */
-export async function buscarInicio(): Promise<Inicio> {
-  const { data } = await http.get<Inicio>("/api/inicio");
+/**
+ * GET /api/inicio — o Início do vendedor logado, tudo pronto.
+ * janelaDias: quando informado, muda só esta visualização (não a janela configurada do time).
+ */
+export async function buscarInicio(janelaDias?: number): Promise<Inicio> {
+  const { data } = await http.get<Inicio>("/api/inicio", { params: janelaDias ? { janelaDias } : undefined });
   return data;
 }
 
