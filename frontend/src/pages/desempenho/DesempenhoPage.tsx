@@ -6,10 +6,12 @@
 import { buscarInicio } from "../../api/inicio";
 import { listarVendedores } from "../../api/gestor";
 import { Aviso, CabecalhoPagina, Carregando, ErroCarregar, Numero, Secao } from "../../components/ui/base";
+import { BotaoRelatorio } from "../../components/ui/BotaoRelatorio";
 import { card, direita, numeros, tabela, td, th, tr } from "../../components/ui/classes";
 import { useApp, useTrilha } from "../../context/AppContext";
 import { useApi } from "../../hooks/useApi";
 import { cx, pct } from "../../lib/formato";
+import { relatorioDesempenhoTime, relatorioDesempenhoVendedor } from "../../lib/relatorioDocx";
 import type { MetricasVendedor, VendedorResumo } from "../../types/api";
 
 /** Soma as métricas de todos os vendedores; taxas vêm ponderadas pelo denominador de cada uma. */
@@ -68,7 +70,16 @@ function DesempenhoProprio() {
   if (!dados) return <ErroCarregar mensagem={erro ?? "Não foi possível carregar o desempenho."} onTentar={() => void recarregar()} />;
   return (
     <>
-      <CabecalhoPagina titulo="Desempenho" texto={`Suas reuniões nos últimos ${dados.janelaDias} dias.`} />
+      <CabecalhoPagina
+        titulo="Desempenho"
+        texto={`Suas reuniões nos últimos ${dados.janelaDias} dias.`}
+        acoes={
+          <BotaoRelatorio
+            rotulo="Meu relatório (.docx)"
+            gerar={() => relatorioDesempenhoVendedor(app.usuario.nome, dados.janelaDias, dados.desempenho)}
+          />
+        }
+      />
       <BlocoMetricas m={dados.desempenho} janelaDias={dados.janelaDias} />
     </>
   );
@@ -88,7 +99,16 @@ function DesempenhoDoTime() {
 
   return (
     <>
-      <CabecalhoPagina titulo="Desempenho do time" texto={`O time ${app.usuario.time} nos últimos ${app.janelaDias} dias.`} />
+      <CabecalhoPagina
+        titulo="Desempenho do time"
+        texto={`O time ${app.usuario.time} nos últimos ${app.janelaDias} dias.`}
+        acoes={
+          <BotaoRelatorio
+            rotulo="Relatório do time (.docx)"
+            gerar={() => relatorioDesempenhoTime(app.usuario.time, app.janelaDias, time, ordenados)}
+          />
+        }
+      />
       <div className="mb-4">
         <Aviso tom="neutro">
           Sem comparação com o período anterior por aqui ainda: o backend guarda a janela atual, não uma série para comparar. Os números abaixo são do
