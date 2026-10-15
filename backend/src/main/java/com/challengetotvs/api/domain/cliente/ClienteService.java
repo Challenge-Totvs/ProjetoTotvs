@@ -28,7 +28,7 @@ public class ClienteService {
         var clientes = ehGestor(usuario)
                 ? repository.findByVendedorIsNotNullOrderByNomeAsc()
                 : repository.findByVendedorOrderByNomeAsc(usuario);
-        return clientes.stream().map(c -> detalhador.montar(c, false)).toList();
+        return detalhador.montarLista(clientes);
     }
 
     @Transactional(readOnly = true)
