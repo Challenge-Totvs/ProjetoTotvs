@@ -15,15 +15,17 @@ A numeração D1–D9 é deste arquivo; no contrato, "D2", "D3", "D4" e "D9" cit
 | D7 | Rollback/mock: `PIPELINE_VERSAO=real|mock`; `mock` devolve `resposta-v3-llm.json` | João Paulo, 11/10 |
 | D8 | A5: o modelo local divide o texto por turno "por ora"; revisar na Release 2 | João Paulo, 11/10 |
 | D9 | A7: `descartados` com motivo `nao_procede` só no fluxo do Java | João Paulo, 11/10 |
+| D10 | "Roteiro de conduta por regra" (taxa de cumprimento por regra, time inteiro, visto no artifact de demo) não existe em nenhuma camada hoje (dado, motor ou contrato). Decisão de escopo: entra como classificador novo no `analise-service`, mas só depois da banca de 15/10 — não faz parte do Challenge. Bloqueado por A2 (ainda aberta) | João Paulo, 15/10 |
 
 ## Abertas
 | # | Pendência | Dono |
 |---|---|---|
-| A2 | Lista definitiva dos eventos de conduta | João Paulo |
+| A2 | Lista definitiva dos eventos de conduta (bloqueia D10: sem ela não há regra pra medir cumprimento) | João Paulo |
 | A3 | Mapeamento classificador -> 14 padrões (Release 2) | João Paulo |
 | A8 | Conteúdo das 14 expressões regulares (primeira versão sai na P4; revisar) | João Paulo |
 | A9 | 503 ou 500 quando a análise falha | João Paulo e Kelwin |
 | A10 | Atualizar SDD §6.2 para apontar ao `contrato-v3.md` | Kelwin |
+| A11 | Desenhar o classificador de conduta (D10): como cada evento conta como cumprida/violada, treino/regras, contrato novo | João Paulo, após a banca |
 | AC9 | Teste Java lendo as fixtures v3 | Kelwin |
 
 ## Registro de execução (pytest)
