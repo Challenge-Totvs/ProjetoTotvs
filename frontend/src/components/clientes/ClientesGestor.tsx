@@ -11,9 +11,10 @@ import { rotas } from "../../lib/rotas";
 import { CabecalhoPagina, Vazio } from "../ui/base";
 import { BarraFiltros } from "../ui/BarraFiltros";
 import { btn, busca as classeBusca, card, comPainel, conteudo, select, tabela, td, th, tr } from "../ui/classes";
-import { ChipsTemas, ChipTipoCliente } from "../ui/glifos";
+import { ChipTipoCliente } from "../ui/glifos";
 import { BotaoPainel, PainelLateral } from "../ui/Sobrepostos";
 import { CelulaCliente, CelulaUltimaReuniao, TdIndicadores, ThIndicadores } from "./Celulas";
+import { ChipsTemas } from "./ChipsTemas";
 import { FACETAS_SITUACAO, FACETAS_VAZIAS, passaFaceta, type Facetas, type GrupoFaceta, type GrupoOpcoes } from "./facetas";
 import { PreviaCliente } from "./PreviaCliente";
 
@@ -213,7 +214,7 @@ export function ClientesGestor({ clientes: todos }: { clientes: ClienteResumo[] 
                             </td>
                           )}
                           <td className={cx(td, compacto ? "max-w-[240px]" : "max-w-[340px]")}>
-                            <ChipsTemas temas={c.temas} porPadrao max={compacto ? 2 : 3} />
+                            <ChipsTemas temas={c.temas} porPadrao max={compacto ? 2 : 3} vendedorId={c.vendedor.id} />
                           </td>
                           <TdIndicadores ind={c.indicadores} />
                         </tr>
