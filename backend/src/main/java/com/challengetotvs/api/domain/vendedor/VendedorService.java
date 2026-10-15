@@ -22,12 +22,12 @@ public class VendedorService {
     private final ConsultorRepository consultorRepository;
     private final InicioService inicioService;
 
-    public List<VendedorResumo> listar(Consultor usuario) {
+    public List<VendedorResumo> listar(Consultor usuario, Integer janelaDias) {
         Perfis.exigirGestor(usuario);
         return consultorRepository.findAll(Sort.by("nome")).stream()
                 .filter(c -> !Perfis.ehGestor(c))
                 .map(c -> new VendedorResumo(c.getId(), c.getNome(), c.getEmail(),
-                        inicioService.montar(c).desempenho()))
+                        inicioService.montar(c, janelaDias).desempenho()))
                 .toList();
     }
 

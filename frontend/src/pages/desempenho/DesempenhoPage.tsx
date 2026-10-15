@@ -5,14 +5,29 @@
 
 import { buscarInicio } from "../../api/inicio";
 import { listarVendedores } from "../../api/gestor";
-import { Aviso, CabecalhoPagina, Carregando, ErroCarregar, Numero, Secao } from "../../components/ui/base";
+import { Aviso, CabecalhoPagina, Carregando, ErroCarregar, Numero, Secao, Segmentado } from "../../components/ui/base";
 import { BotaoRelatorio } from "../../components/ui/BotaoRelatorio";
 import { card, direita, numeros, tabela, td, th, tr } from "../../components/ui/classes";
 import { useApp, useTrilha } from "../../context/AppContext";
 import { useApi } from "../../hooks/useApi";
+import { useJanelaVisao } from "../../hooks/useJanelaVisao";
 import { cx, pct } from "../../lib/formato";
 import { relatorioDesempenhoTime, relatorioDesempenhoVendedor } from "../../lib/relatorioDocx";
 import type { MetricasVendedor, VendedorResumo } from "../../types/api";
+
+/** Visões de 30/60/90 dias: muda só o que a tela mostra, não a janela configurada do time. */
+type JanelaVisao = "30" | "60" | "90";
+const OPCOES_JANELA: [JanelaVisao, string][] = [
+  ["30", "30 dias"],
+  ["60", "60 dias"],
+  ["90", "90 dias"],
+];
+
+function SeletorJanela({ janela, onChange }: { janela: number; onChange: (dias: number) => void }) {
+  return (
+    <Segmentado rotulo="Janela" opcoes={OPCOES_JANELA} valor={String(janela) as JanelaVisao} onChange={(v) => onChange(Number(v))} />
+  );
+}
 
 /** Soma as métricas de todos os vendedores; taxas vêm ponderadas pelo denominador de cada uma. */
 function somarTime(vendedores: VendedorResumo[]): MetricasVendedor {
@@ -65,7 +80,8 @@ export default function DesempenhoPage() {
 
 function DesempenhoProprio() {
   const app = useApp();
-  const { dados, erro, carregando, recarregar } = useApi(buscarInicio, [app.versao]);
+  const [janela, setJanela] = useJanelaVisao(app.janelaDias);
+  const { dados, erro, carregando, recarregar } = useApi(() => buscarInicio(janela), [app.versao, janela]);
   if (carregando && !dados) return <Carregando />;
   if (!dados) return <ErroCarregar mensagem={erro ?? "Não foi possível carregar o desempenho."} onTentar={() => void recarregar()} />;
   return (
@@ -74,10 +90,13 @@ function DesempenhoProprio() {
         titulo="Desempenho"
         texto={`Suas reuniões nos últimos ${dados.janelaDias} dias.`}
         acoes={
-          <BotaoRelatorio
-            rotulo="Meu relatório (.docx)"
-            gerar={() => relatorioDesempenhoVendedor(app.usuario.nome, dados.janelaDias, dados.desempenho)}
-          />
+          <>
+            <SeletorJanela janela={janela} onChange={setJanela} />
+            <BotaoRelatorio
+              rotulo="Meu relatório (.docx)"
+              gerar={() => relatorioDesempenhoVendedor(app.usuario.nome, dados.janelaDias, dados.desempenho)}
+            />
+          </>
         }
       />
       <BlocoMetricas m={dados.desempenho} janelaDias={dados.janelaDias} />
@@ -89,7 +108,8 @@ function DesempenhoProprio() {
 
 function DesempenhoDoTime() {
   const app = useApp();
-  const { dados, erro, carregando, recarregar } = useApi(listarVendedores, [app.versao]);
+  const [janela, setJanela] = useJanelaVisao(app.janelaDias);
+  const { dados, erro, carregando, recarregar } = useApi(() => listarVendedores(janela), [app.versao, janela]);
   if (carregando && !dados) return <Carregando />;
   if (!dados) return <ErroCarregar mensagem={erro ?? "Não foi possível carregar o desempenho do time."} onTentar={() => void recarregar()} />;
 
@@ -101,12 +121,15 @@ function DesempenhoDoTime() {
     <>
       <CabecalhoPagina
         titulo="Desempenho do time"
-        texto={`O time ${app.usuario.time} nos últimos ${app.janelaDias} dias.`}
+        texto={`O time ${app.usuario.time} nos últimos ${janela} dias.`}
         acoes={
-          <BotaoRelatorio
-            rotulo="Relatório do time (.docx)"
-            gerar={() => relatorioDesempenhoTime(app.usuario.time, app.janelaDias, time, ordenados)}
-          />
+          <>
+            <SeletorJanela janela={janela} onChange={setJanela} />
+            <BotaoRelatorio
+              rotulo="Relatório do time (.docx)"
+              gerar={() => relatorioDesempenhoTime(app.usuario.time, janela, time, ordenados)}
+            />
+          </>
         }
       />
       <div className="mb-4">
@@ -115,7 +138,7 @@ function DesempenhoDoTime() {
           período corrente.
         </Aviso>
       </div>
-      <BlocoMetricas m={time} janelaDias={app.janelaDias} />
+      <BlocoMetricas m={time} janelaDias={janela} />
       <div className="mt-4">
         <Secao titulo="Por vendedor" sub="Ordenado por quem pede mais atenção: riscos sem retorno + oportunidades perdidas." semPadding>
           <div className={cx(card, "overflow-x-auto")}>

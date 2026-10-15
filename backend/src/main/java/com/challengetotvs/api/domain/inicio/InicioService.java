@@ -51,6 +51,14 @@ public class InicioService {
     private int janela;
 
     public InicioResponse montar(Consultor vendedor) {
+        return montar(vendedor, null);
+    }
+
+    /**
+     * @param janelaDias quando informado, muda só esta visualização (não a janela configurada do time).
+     */
+    public InicioResponse montar(Consultor vendedor, Integer janelaDias) {
+        int janela = janelaDias != null ? janelaDias : this.janela;
         LocalDate hoje = LocalDate.now(FUSO);
 
         var clientes = clienteRepository.findByVendedorOrderByNomeAsc(vendedor);

@@ -356,6 +356,22 @@ export interface Inicio {
   desempenho: MetricasVendedor;
 }
 
+/** Um ponto da série semanal (GET /api/inicio/semanal). */
+export interface PontoSemanal {
+  /** Segunda-feira da semana, "AAAA-MM-DD". */
+  inicioSemana: DataISO;
+  realizadas: number;
+  analisadas: number;
+  /** Média do score (0 a 100) das reuniões analisadas na semana. Nulo quando nenhuma tem score ainda. */
+  engajamentoMedio: number | null;
+}
+
+/** GET /api/inicio/semanal: série semanal de reuniões e engajamento, dentro da janela. */
+export interface InicioSemanal {
+  janelaDias: number;
+  semanas: PontoSemanal[];
+}
+
 /* ---------- Reunião ---------- */
 
 export interface InteresseItem {

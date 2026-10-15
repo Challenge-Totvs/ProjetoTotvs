@@ -4,11 +4,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { listarVendedores } from "../../api/gestor";
-import { CabecalhoPagina, Carregando, ErroCarregar } from "../../components/ui/base";
+import { CabecalhoPagina, Carregando, ErroCarregar, Segmentado } from "../../components/ui/base";
 import { card, direita, num, td, tabela, th } from "../../components/ui/classes";
 import { LinhaVendedor } from "../../components/vendedores/LinhaVendedor";
 import { useApp, useAtalhos, useTrilha } from "../../context/AppContext";
 import { useApi } from "../../hooks/useApi";
+import { useJanelaVisao } from "../../hooks/useJanelaVisao";
 import { cx, pct } from "../../lib/formato";
 import { rotas } from "../../lib/rotas";
 import type { VendedorResumo } from "../../types/api";
@@ -41,12 +42,21 @@ function LinhaMediana({ vendedores }: { vendedores: VendedorResumo[] }) {
   );
 }
 
+/** Visões de 30/60/90 dias: muda só o que a tela mostra, não a janela configurada do time. */
+type JanelaVisao = "30" | "60" | "90";
+const OPCOES_JANELA: [JanelaVisao, string][] = [
+  ["30", "30 dias"],
+  ["60", "60 dias"],
+  ["90", "90 dias"],
+];
+
 export default function VendedoresPage() {
   const app = useApp();
   const navigate = useNavigate();
   useTrilha([{ l: "Vendedores" }]);
+  const [janela, setJanela] = useJanelaVisao(app.janelaDias);
   // O backend já devolve as métricas prontas; a janela muda o cálculo, então entra nas deps.
-  const { dados, erro, carregando, recarregar } = useApi(listarVendedores, [app.versao, app.janelaDias]);
+  const { dados, erro, carregando, recarregar } = useApi(() => listarVendedores(janela), [app.versao, janela]);
   const linhas = dados ?? [];
   // Linha selecionada pelo teclado (J/K), destacada na tabela.
   const [sel, setSel] = useState(0);
@@ -70,7 +80,8 @@ export default function VendedoresPage() {
     <>
       <CabecalhoPagina
         titulo="Vendedores"
-        texto={`Time ${app.usuario.time}. Abra a visão pessoal de cada vendedor, como ele vê, só para leitura. Números dos últimos ${app.janelaDias} dias.`}
+        texto={`Time ${app.usuario.time}. Abra a visão pessoal de cada vendedor, como ele vê, só para leitura. Números dos últimos ${janela} dias.`}
+        acoes={<Segmentado rotulo="Janela" opcoes={OPCOES_JANELA} valor={String(janela) as JanelaVisao} onChange={(v) => setJanela(Number(v))} />}
       />
       <div className={cx(card, "overflow-x-auto")}>
         <table className={tabela}>
@@ -90,7 +101,7 @@ export default function VendedoresPage() {
           <tbody>
             {linhas.length > 1 && <LinhaMediana vendedores={linhas} />}
             {linhas.map((v, i) => (
-              <LinhaVendedor key={v.id} v={v} janelaDias={app.janelaDias} selecionada={i === sel} onAbrir={() => navigate(rotas.vendedor(v.id))} />
+              <LinhaVendedor key={v.id} v={v} janelaDias={janela} selecionada={i === sel} onAbrir={() => navigate(rotas.vendedor(v.id))} />
             ))}
           </tbody>
         </table>
