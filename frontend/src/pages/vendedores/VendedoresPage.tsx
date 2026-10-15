@@ -5,13 +5,42 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { listarVendedores } from "../../api/gestor";
 import { CabecalhoPagina, Carregando, ErroCarregar, Segmentado } from "../../components/ui/base";
-import { card, direita, tabela, th } from "../../components/ui/classes";
+import { card, direita, num, td, tabela, th } from "../../components/ui/classes";
 import { LinhaVendedor } from "../../components/vendedores/LinhaVendedor";
 import { useApp, useAtalhos, useTrilha } from "../../context/AppContext";
 import { useApi } from "../../hooks/useApi";
 import { useJanelaVisao } from "../../hooks/useJanelaVisao";
-import { cx } from "../../lib/formato";
+import { cx, pct } from "../../lib/formato";
 import { rotas } from "../../lib/rotas";
+import type { VendedorResumo } from "../../types/api";
+
+/** Mediana simples (lista pequena, poucos vendedores por time). */
+function mediana(valores: number[]): number {
+  if (valores.length === 0) return 0;
+  const ord = [...valores].sort((a, b) => a - b);
+  const meio = Math.floor(ord.length / 2);
+  return ord.length % 2 ? ord[meio] : (ord[meio - 1] + ord[meio]) / 2;
+}
+
+/** Linha de referência "Mediana do time": metade do time fica de cada lado, por definição — não é meta. */
+function LinhaMediana({ vendedores }: { vendedores: VendedorResumo[] }) {
+  const col = (f: (v: VendedorResumo) => number) => mediana(vendedores.map(f));
+  const taxas = vendedores.map((v) => v.metricas.taxaConversa).filter((t): t is number => t != null);
+  const celNum = cx(td, direita, num, "text-ardosia");
+  return (
+    <tr className="border-b border-linha-forte bg-nevoa">
+      <td className={cx(td, "font-medium text-ardosia")}>Mediana do time</td>
+      <td className={celNum}>{col((v) => v.metricas.clientes)}</td>
+      <td className={celNum}>{col((v) => v.metricas.realizadas)}</td>
+      <td className={celNum}>{col((v) => v.metricas.riscosSemRetorno)}</td>
+      <td className={celNum}>{col((v) => v.metricas.oportPerdidas)}</td>
+      <td className={celNum}>{taxas.length ? pct(mediana(taxas)) : "—"}</td>
+      <td className={celNum}>{col((v) => v.metricas.tratadosFora)}</td>
+      <td className={celNum}>{col((v) => v.metricas.compromissosVencidos)}</td>
+      <td className={td} />
+    </tr>
+  );
+}
 
 /** Visões de 30/60/90 dias: muda só o que a tela mostra, não a janela configurada do time. */
 type JanelaVisao = "30" | "60" | "90";
@@ -70,15 +99,16 @@ export default function VendedoresPage() {
             </tr>
           </thead>
           <tbody>
+            {linhas.length > 1 && <LinhaMediana vendedores={linhas} />}
             {linhas.map((v, i) => (
-              <LinhaVendedor key={v.id} v={v} selecionada={i === sel} onAbrir={() => navigate(rotas.vendedor(v.id))} />
+              <LinhaVendedor key={v.id} v={v} janelaDias={janela} selecionada={i === sel} onAbrir={() => navigate(rotas.vendedor(v.id))} />
             ))}
           </tbody>
         </table>
       </div>
       <p className="mx-0.5 mt-2.5 mb-0 text-xs leading-normal text-faint">
-        “Tratados na conversa” é a parcela dos temas citados na janela que foram respondidos na própria reunião. Depende do papel do locutor, que a LLM
-        infere: é uma estimativa e não ordena nada.
+        A mediana do time é uma referência, não uma meta: por definição, metade do time fica de cada lado dela. “Tratados na conversa” é a parcela dos temas
+        citados na janela que foram respondidos na própria reunião. Depende do papel do locutor, que a LLM infere: é uma estimativa e não ordena nada.
       </p>
     </>
   );

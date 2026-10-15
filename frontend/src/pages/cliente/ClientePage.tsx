@@ -11,6 +11,7 @@ import { BuscaHistorico } from "../../components/cliente/BuscaHistorico";
 import { MapaTemas } from "../../components/cliente/MapaTemas";
 import { ItemCompromisso } from "../../components/tema/Itens";
 import { AvisoLeitura, CabecalhoPagina, Carregando, ErroCarregar, Etiqueta, Numero, Secao, Vazio } from "../../components/ui/base";
+import { BotaoRelatorio } from "../../components/ui/BotaoRelatorio";
 import { COR } from "../../components/ui/cores";
 import { btn, comPainel, conteudo, direita, linkForte, numeros, tabela, td, th, tr } from "../../components/ui/classes";
 import { ChipMotor, ChipTipoCliente, GlifosTema, LegendaGlifos } from "../../components/ui/glifos";
@@ -20,6 +21,7 @@ import { useApi } from "../../hooks/useApi";
 import { fmtDiaSemana, fmtHora, hoje, paraData, relativo } from "../../lib/datas";
 import { ultimaCitacao } from "../../lib/dominio";
 import { cx, plural } from "../../lib/formato";
+import { relatorioRelacionamentoCliente, relatorioReunioesCliente } from "../../lib/relatorioDocx";
 import { rotas } from "../../lib/rotas";
 import type { ClienteDetalhe, Id } from "../../types/api";
 
@@ -176,6 +178,7 @@ function PaginaCliente({ id }: { id: Id }) {
         }`}
         acoes={
           <>
+            <BotaoRelatorio rotulo="Relacionamento (.docx)" gerar={() => relatorioRelacionamentoCliente(cliente)} />
             {podeAgir && (
               <button type="button" className={btn()} onClick={() => navigate(rotas.nova({ clienteId: cliente.id }))}>
                 <Upload size={15} aria-hidden="true" />
@@ -251,7 +254,17 @@ function PaginaCliente({ id }: { id: Id }) {
           <BuscaHistorico clienteId={cliente.id} />
 
           {/* Reuniões, da mais recente para a mais antiga */}
-          <Secao id="reunioes" titulo="Reuniões" contagem={reunioes.length} semPadding>
+          <Secao
+            id="reunioes"
+            titulo="Reuniões"
+            contagem={reunioes.length}
+            semPadding
+            acao={
+              reunioes.length > 0 && (
+                <BotaoRelatorio rotulo="Relatório (.docx)" sm gerar={() => relatorioReunioesCliente(cliente, reunioes)} />
+              )
+            }
+          >
             <div className="overflow-x-auto">
               <table className={tabela}>
                 <thead>

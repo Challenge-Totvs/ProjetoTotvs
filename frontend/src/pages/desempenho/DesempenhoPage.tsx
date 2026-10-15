@@ -6,11 +6,13 @@
 import { buscarInicio } from "../../api/inicio";
 import { listarVendedores } from "../../api/gestor";
 import { Aviso, CabecalhoPagina, Carregando, ErroCarregar, Numero, Secao, Segmentado } from "../../components/ui/base";
+import { BotaoRelatorio } from "../../components/ui/BotaoRelatorio";
 import { card, direita, numeros, tabela, td, th, tr } from "../../components/ui/classes";
 import { useApp, useTrilha } from "../../context/AppContext";
 import { useApi } from "../../hooks/useApi";
 import { useJanelaVisao } from "../../hooks/useJanelaVisao";
 import { cx, pct } from "../../lib/formato";
+import { relatorioDesempenhoTime, relatorioDesempenhoVendedor } from "../../lib/relatorioDocx";
 import type { MetricasVendedor, VendedorResumo } from "../../types/api";
 
 /** Visões de 30/60/90 dias: muda só o que a tela mostra, não a janela configurada do time. */
@@ -87,7 +89,15 @@ function DesempenhoProprio() {
       <CabecalhoPagina
         titulo="Desempenho"
         texto={`Suas reuniões nos últimos ${dados.janelaDias} dias.`}
-        acoes={<SeletorJanela janela={janela} onChange={setJanela} />}
+        acoes={
+          <>
+            <SeletorJanela janela={janela} onChange={setJanela} />
+            <BotaoRelatorio
+              rotulo="Meu relatório (.docx)"
+              gerar={() => relatorioDesempenhoVendedor(app.usuario.nome, dados.janelaDias, dados.desempenho)}
+            />
+          </>
+        }
       />
       <BlocoMetricas m={dados.desempenho} janelaDias={dados.janelaDias} />
     </>
@@ -112,7 +122,15 @@ function DesempenhoDoTime() {
       <CabecalhoPagina
         titulo="Desempenho do time"
         texto={`O time ${app.usuario.time} nos últimos ${janela} dias.`}
-        acoes={<SeletorJanela janela={janela} onChange={setJanela} />}
+        acoes={
+          <>
+            <SeletorJanela janela={janela} onChange={setJanela} />
+            <BotaoRelatorio
+              rotulo="Relatório do time (.docx)"
+              gerar={() => relatorioDesempenhoTime(app.usuario.time, janela, time, ordenados)}
+            />
+          </>
+        }
       />
       <div className="mb-4">
         <Aviso tom="neutro">
