@@ -9,12 +9,12 @@ import { rotuloTipoCliente } from "../../lib/dominio";
 import { cx, normalizar, plural } from "../../lib/formato";
 import { rotas } from "../../lib/rotas";
 import { CabecalhoPagina, Vazio } from "../ui/base";
-import { barraFerramentas, btn, busca as classeBusca, card, comPainel, conteudo, select, tabela, td, th, tr } from "../ui/classes";
+import { BarraFiltros } from "../ui/BarraFiltros";
+import { btn, busca as classeBusca, card, comPainel, conteudo, select, tabela, td, th, tr } from "../ui/classes";
 import { ChipsTemas, ChipTipoCliente } from "../ui/glifos";
 import { BotaoPainel, PainelLateral } from "../ui/Sobrepostos";
 import { CelulaCliente, CelulaUltimaReuniao, TdIndicadores, ThIndicadores } from "./Celulas";
 import { FACETAS_SITUACAO, FACETAS_VAZIAS, passaFaceta, type Facetas, type GrupoFaceta, type GrupoOpcoes } from "./facetas";
-import { FacetasClientes } from "./FacetasClientes";
 import { PreviaCliente } from "./PreviaCliente";
 
 type Agrupar = "nenhum" | "vendedor" | "segmento" | "tipo";
@@ -129,23 +129,27 @@ export function ClientesGestor({ clientes: todos }: { clientes: ClienteResumo[] 
         }
       />
       <div className={comPainel}>
-        {/* Coluna de facetas à esquerda */}
-        <FacetasClientes grupos={grupos} marcadas={facetas} contar={contar} onAlternar={alternar} onLimpar={algumFiltro ? limpar : null} />
-
         <div className={conteudo}>
-          {/* Busca e quantos clientes ficaram */}
-          <div className={barraFerramentas}>
-            <label className={classeBusca}>
-              <Search size={14} aria-hidden="true" className="text-faint" />
-              <input
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar cliente, contato ou vendedor"
-                aria-label="Buscar cliente, contato ou vendedor"
-              />
-            </label>
-            <span className="text-[12.5px] text-ardosia tabular-nums">{plural(filtrados.length, "cliente", "clientes")}</span>
-          </div>
+          {/* Busca com os filtros embutidos (chips + pop-up "Filtro"), como na demo */}
+          <BarraFiltros
+            campoBusca={
+              <label className={classeBusca}>
+                <Search size={14} aria-hidden="true" className="text-faint" />
+                <input
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar cliente, contato ou vendedor"
+                  aria-label="Buscar cliente, contato ou vendedor"
+                />
+              </label>
+            }
+            grupos={grupos}
+            marcadas={facetas}
+            onAlternar={alternar}
+            contar={contar}
+            onLimpar={algumFiltro ? limpar : null}
+            extra={<span className="text-[12.5px] text-ardosia tabular-nums">{plural(filtrados.length, "cliente", "clientes")}</span>}
+          />
 
           {/* Tabela: um tbody por grupo; clique seleciona, duplo clique abre o cliente */}
           <div className={cx(card, "overflow-x-auto")}>
